@@ -230,7 +230,7 @@ export function App() {
 										))}
 								</div>
 								<SearchBar
-									placeholder={`Search ${iconPack?.iconIds?.length.toLocaleString() ?? 0} Icons...`}
+									placeholder={`Search ${iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons...`}
 									value={searchText}
 									onChange={setSearchText}
 								/>
