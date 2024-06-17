@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import "./App.css";
 
 import { iconPacks } from "./IconstackData.jsx";
-import { SearchBar, Button, PropertyControl, XIcon, SegmentedControl } from "./FramerUIComponents.jsx";
+import { SearchBar, Button, PropertyControl, XIcon, SegmentedControl } from "@shared/components.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
 import FeatherIcons from "./icon-packs/FeatherIcons.json";

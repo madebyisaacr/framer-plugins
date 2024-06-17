@@ -60,32 +60,6 @@ export function Button({
 	);
 }
 
-export function Dropdown({ options, optionTitles = null, onChange, style = {} }) {
-	return (
-		<select
-			onChange={(e) => onChange(e.target.value)}
-			defaultValue={options?.[0]?.value ?? ""}
-			style={{
-				backgroundColor: "var(--framer-color-bg-secondary)",
-				borderRadius: 8,
-				height: 30,
-				minHeight: 30,
-				padding: "0 16px 1px 7px",
-				border: "none",
-				color: "inherit",
-				...inheritFont,
-				...style,
-			}}
-		>
-			{options?.map((option, index) => (
-				<option key={option} value={option}>
-					{optionTitles ? optionTitles[index] : option}
-				</option>
-			))}
-		</select>
-	);
-}
-
 export function SearchBar({ placeholder = "Search...", background = true, style = {}, value, onChange, onSubmit = null }) {
 	return (
 		<div
