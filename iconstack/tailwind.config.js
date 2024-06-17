@@ -38,6 +38,7 @@ export default {
 		},
 		borderRadius: {
 			DEFAULT: "8px",
+			sm: "5px",
 			lg: "10px",
 			xl: "15px",
 			full: "1000px",

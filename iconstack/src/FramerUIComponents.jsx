@@ -147,13 +147,9 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 				animate={{
 					opacity: i === currentItemIndex || i + 1 === currentItemIndex ? 0 : 1,
 				}}
+				className="absolute w-[1px] h-[16px] top-[7px] bg-divider"
 				style={{
-					position: "absolute",
-					width: 1,
-					height: 16,
-					top: 7,
 					left: `${(i + 1) * (100 / items?.length)}%`,
-					backgroundColor: "var(--framer-color-divider-secondary)",
 				}}
 				initial={false}
 				transition={transition}
@@ -163,35 +159,21 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 
 	return (
 		<div
+			className="relative flex flex-row items-stretch bg-bg-secondary p-0.5 rounded min-h-6"
 			style={{
-				position: "relative",
-				display: "flex",
-				flexDirection: "row",
-				alignItems: "stretch",
-				backgroundColor: "var(--framer-color-bg-secondary)",
-				padding: 2,
-				borderRadius: 8,
-				minHeight: 30,
 				...style,
 			}}
 		>
-			<div
-				style={{
-					position: "absolute",
-					inset: 2,
-				}}
-			>
+			<div className="absolute inset-0.5">
 				<motion.div
 					animate={{
 						left: `${(100 / items?.length) * currentItemIndex}%`,
 					}}
+					className="absolute rounded-[6px] h-full"
 					style={{
-						position: "absolute",
 						width: `${100 / items?.length}%`,
 						backgroundColor: "var(--framer-color-segmented-control)",
-						borderRadius: 6,
 						boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
-						height: "100%",
 					}}
 					initial={false}
 					transition={transition}
@@ -205,13 +187,8 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 					animate={{
 						color: index === currentItemIndex ? "var(--framer-color-text)" : "var(--framer-color-text-tertiary)",
 					}}
+					className="relative flex flex-1 items-center justify-center cursor-pointer"
 					style={{
-						position: "relative",
-						flex: 1,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						cursor: "pointer",
 						fontWeight: index === currentItemIndex && "600",
 					}}
 					initial={false}
@@ -235,22 +212,13 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 				<input
 					type="number"
 					key="number"
-					className="framestack-text-input"
 					value={value / multiplier}
 					onChange={(e) => onChange(Number(e.target.value) * multiplier)}
 					min={propertyControl.min}
 					max={propertyControl.max}
 					step={1 / multiplier}
-					style={{
-						backgroundColor: "var(--framer-color-bg-secondary)",
-						color: "var(--framer-color-text)",
-						borderRadius: 8,
-						paddingLeft: 7,
-						paddingBottom: 1,
-						border: "none",
-						height: "100%",
-						...inheritFont,
-					}}
+					className="bg-bg-secondary text-color-base rounded pl-[7px] pb-[1px] border-none h-full"
+					style={inheritFont}
 				/>
 			);
 
@@ -274,46 +242,18 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 				controls.push(
 					<div
 						key="stepper"
-						style={{
-							position: "relative",
-							display: "flex",
-							flexDirection: "row",
-							alignItems: "center",
-							backgroundColor: "var(--framer-color-bg-secondary)",
-							borderRadius: 8,
-							color: "var(--framer-color-text-tertiary)",
-							height: "100%",
-							cursor: "pointer",
-						}}
+						className="relative flex flex-row items-center h-full cursor-pointer bg-bg-secondary rounded text-color-tertiary"
 					>
-						<div
-							onClick={() => increment(false)}
-							style={{
-								flex: 1,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								height: "100%",
-							}}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" style={{ display: "block" }}>
+						<div onClick={() => increment(false)} className="flex-1 flex items-center justify-center h-full">
+							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
 								<path
 									d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
 									fill="currentColor"
 								></path>
 							</svg>
 						</div>
-						<div
-							onClick={() => increment(true)}
-							style={{
-								flex: 1,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								height: "100%",
-							}}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10" style={{ display: "block" }}>
+						<div onClick={() => increment(true)} className="flex-1 flex items-center justify-center h-full">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10" className="block">
 								<path
 									d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
 									fill="currentColor"
@@ -339,30 +279,15 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 			controls.push(
 				<div
 					key="color"
-					style={{
-						display: "flex",
-						flexDirection: "row",
-						alignItems: "center",
-						padding: 4,
-						gap: 6,
-						borderRadius: 8,
-						backgroundColor: "var(--framer-color-bg-secondary)",
-						cursor: "pointer",
-						height: "100%",
-						gridColumn: "span 2",
-						flex: 1,
-					}}
+					className="flex flex-row items-center p-[4px] gap-[6px] rounded bg-bg-secondary cursor-pointer h-full col-span-2 flex-1"
 				>
 					<div
+						className="h-[22px] min-w-[22px] rounded-[4px] border border-[#000]/10 "
 						style={{
-							height: 22,
-							minWidth: 22,
-							borderRadius: 4,
-							border: "1px solid rgba(0,0,0,0.1)",
 							backgroundColor: value,
 						}}
 					/>
-					<span style={{ flex: 1, fontWeight: 500 }}>{value}</span>
+					<span className="flex-1 font-medium">{value}</span>
 				</div>
 			);
 			break;
@@ -374,10 +299,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 					itemTitles={propertyControl.optionTitles}
 					currentItem={value}
 					onChange={onChange}
-					style={{
-						gridColumn: "span 2",
-						flex: 1,
-					}}
+					className="col-span-2 flex-1"
 				/>
 			);
 			break;
@@ -389,10 +311,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 					itemTitles={["Yes", "No"]}
 					currentItem={value}
 					onChange={onChange}
-					style={{
-						gridColumn: "span 2",
-						flex: 1,
-					}}
+					className="col-span-2 flex-1"
 				/>
 			);
 			break;
@@ -402,47 +321,22 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 
 	return (
 		<div
+			className={`${label ? "flex flex-row" : "grid"} gap-2 h-6 items-center font-medium`}
 			style={{
-				display: label ? "grid" : "flex",
-				flexDirection: "row",
 				gridTemplateColumns: `minmax(0,${labelRatio}fr) repeat(2,minmax(62px,1fr))`,
-				gap: 10,
-				height: 30,
-				alignItems: "center",
-				fontWeight: 500,
 			}}
 		>
-			{label && (
-				<span
-					style={{
-						color: "var(--framer-color-text-secondary)",
-					}}
-				>
-					{label}
-				</span>
-			)}
+			{label && <span className="text-color-secondary">{label}</span>}
 			{controls}
 		</div>
 	);
 }
 
-export function XIcon({ onClick, style = {}, color = "var(--framer-color-text-tertiary)" }) {
+export function XIcon({ onClick, className = "", color = "var(--framer-color-text-tertiary)" }) {
 	return (
-		<div
-			onClick={onClick}
-			style={{
-				position: "relative",
-				cursor: "pointer",
-				...style,
-			}}
-		>
-			<div
-				style={{
-					position: "absolute",
-					inset: -5,
-				}}
-			/>
-			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" style={{ display: "block" }}>
+		<div onClick={onClick} className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer ${className}`}>
+			<div className="absolute -inset-1" />
+			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
 				<path
 					d="M 8 2 L 2 8 M 2 2 L 8 8"
 					fill="transparent"
@@ -463,8 +357,8 @@ export function RoundedClip({ columns, gap = 10, borderRadius, backgroundColor =
 		elements.push(
 			<div
 				key={i}
+				className="flex-1"
 				style={{
-					flex: 1,
 					borderRadius,
 					boxShadow: `0 0 0 ${gap}px ${backgroundColor}`,
 				}}
@@ -473,17 +367,7 @@ export function RoundedClip({ columns, gap = 10, borderRadius, backgroundColor =
 	}
 
 	return (
-		<div
-			style={{
-				position: "absolute",
-				inset: 0,
-				overflow: "hidden",
-				pointerEvents: "none",
-				display: "flex",
-				flexDirection: "row",
-				gap,
-			}}
-		>
+		<div className="absolute inset-0 overflow-hidden pointer-events-none flex flex-row" style={{ gap }}>
 			{elements}
 		</div>
 	);

@@ -21,7 +21,7 @@
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-	display: none;
+	@apply hidden;
 }
 
 .hide-scrollbar {
@@ -29,33 +29,20 @@
 	-ms-overflow-style: none;
 }
 
-.framestack-icon-img {
-	width: 24px;
-	height: 24px;
-	position: relative;
-	object-position: center;
-	top: 16px;
-	left: 16px;
-	pointer-events: none;
+.icon-img {
+	@apply size-[24px] relative object-center top-[14px] left-[14px] pointer-events-none;
 }
 
-[data-framer-theme="dark"] .framestack-icon-img {
+[data-framer-theme="dark"] .dark-invert,
+[data-framer-theme="dark"] .icon-img {
 	filter: invert(90%);
 }
 
-.framestack-icon-div {
-	position: relative;
-	width: 56px;
-	height: 56px;
-	border-radius: 8px;
-	cursor: pointer;
-	order: 10;
+.icon-div {
+	@apply relative size-[52px] rounded cursor-pointer order-10;
 }
 
-.framestack-icon-div:hover {
-	background-color: var(--framer-color-bg-secondary);
+.icon-div:hover {
+	@apply bg-bg-secondary;
 }
 
-.unpinned:hover .pin {
-	display: block !important;
-}
