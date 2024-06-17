@@ -147,7 +147,7 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 				animate={{
 					opacity: i === currentItemIndex || i + 1 === currentItemIndex ? 0 : 1,
 				}}
-				className="absolute w-[1px] h-[16px] top-[7px] bg-divider"
+				className="absolute w-[1px] h-[16px] top-[7px] bg-divider-secondary"
 				style={{
 					left: `${(i + 1) * (100 / items?.length)}%`,
 				}}
@@ -164,21 +164,23 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 				...style,
 			}}
 		>
-			<div className="absolute inset-0.5">
-				<motion.div
-					animate={{
-						left: `${(100 / items?.length) * currentItemIndex}%`,
-					}}
-					className="absolute rounded-[6px] h-full"
-					style={{
-						width: `${100 / items?.length}%`,
-						backgroundColor: "var(--framer-color-segmented-control)",
-						boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
-					}}
-					initial={false}
-					transition={transition}
-				/>
-			</div>
+			{currentItemIndex >= 0 && (
+				<div className="absolute inset-0.5">
+					<motion.div
+						animate={{
+							left: `${(100 / items?.length) * currentItemIndex}%`,
+						}}
+						className="absolute rounded-[6px] h-full"
+						style={{
+							width: `${100 / items?.length}%`,
+							backgroundColor: "var(--framer-color-segmented-control)",
+							boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
+						}}
+						initial={false}
+						transition={transition}
+					/>
+				</div>
+			)}
 			{dividers}
 			{items?.map((item, index) => (
 				<motion.div

@@ -11,6 +11,7 @@ export default {
 			"bg-secondary": "var(--color-bg-secondary)",
 			"bg-tertiary": "var(--color-bg-tertiary)",
 			divider: "var(--framer-color-divider)",
+			"divider-secondary": "var(--framer-color-divider-secondary)",
 			"color-base": "var(--framer-color-text)",
 			"color-reversed": "var(--framer-color-text-reversed)",
 			"color-secondary": "var(--framer-color-text-secondary)",

@@ -84,7 +84,7 @@ export function App() {
 	const selection = useSelection();
 
 	const [iconPack, setIconPack] = useState(iconPacks[0]);
-	const [iconType, setIconType] = useState(iconPacks[0]?.types?.[0]?.[1]);
+	const [iconType, setIconType] = useState(ICON_PACKS[iconPacks[0].name]?.types?.[0]?.[1]);
 	const [icon, setIcon] = useState(null);
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
@@ -123,10 +123,10 @@ export function App() {
 		}
 	}
 
-	function changeIconPack(iconPack) {
-		if (iconPack !== iconPack) {
-			setIconPack(iconPack);
-			setIconType(iconPack.types[0][1]);
+	function changeIconPack(newIconPack) {
+		if (newIconPack && newIconPack !== iconPack) {
+			setIconPack(newIconPack);
+			setIconType(ICON_PACKS[iconPack.name]?.types[0][1]);
 			setIcon(null);
 		}
 	}
