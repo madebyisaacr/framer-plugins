@@ -131,6 +131,10 @@ export function App() {
 		}
 	}
 
+	function onIconTypeChange(newIconType) {
+		setIconType(newIconType);
+	}
+
 	return (
 		<main className="flex flex-col size-full select-none text-color-base">
 			<div className="flex flex-row overflow-hidden flex-1">
@@ -154,19 +158,19 @@ export function App() {
 										(iconPackData.types.length < 5 ? (
 											<SegmentedControl
 												id={iconPack?.name}
-												items={iconPackData.types.map((type) => type[1])}
-												itemTitles={iconPackData.types.map((type) => type[0])}
+												items={iconPackData.types.map((type) => type[0])}
+												// itemTitles={iconPackData.types.map((type) => type[0])}
 												currentItem={iconType}
-												onChange={setIconType}
+												onChange={onIconTypeChange}
 											/>
 										) : (
 											<select
 												value={iconType}
-												className="pl-2 pr-5 w-max"
-												onChange={(event) => setIconType(event.target.value == "null" ? null : event.target.value)}
+												className="pl-2 pr-5 w-full"
+												onChange={(event) => onIconTypeChange(event.target.value)}
 											>
 												{iconPackData.types.map((type) => (
-													<option value={type[1] ?? "null"}>{type[0]}</option>
+													<option value={type[0]}>{type[0]}</option>
 												))}
 											</select>
 										))}
