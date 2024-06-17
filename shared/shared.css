@@ -1,0 +1,22 @@
+[data-framer-theme="light"] {
+	--color-bg-secondary: var(--framer-color-bg-tertiary);
+	--color-bg-tertiary: var(--framer-color-bg-secondary);
+	--color-segmented-control: #fff;
+	--color-divider-secondary: #e6e6e6;
+}
+
+[data-framer-theme="dark"] {
+	--color-bg-secondary: var(--framer-color-bg-secondary);
+	--color-bg-tertiary: var(--framer-color-bg-tertiary);
+	--color-segmented-control: #555;
+	--color-divider-secondary: #444;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.hide-scrollbar {
+	overflow: -moz-scrollbars-none;
+	-ms-overflow-style: none;
+}

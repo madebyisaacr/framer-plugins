@@ -10,7 +10,6 @@ export function Button({
 	primary = false,
 	newTab = false,
 	square = false,
-	color = "var(--framer-color-tint)",
 	children,
 	className = "",
 	style = {},
@@ -22,39 +21,25 @@ export function Button({
 
 	return (
 		<Element
-			className={className}
 			style={{
-				position: "relative",
-				display: "flex",
-				backgroundColor: primary ? color : "var(--framer-color-bg-secondary)",
-				color: primary ? "var(--framer-color-text-reversed)" : "var(--framer-color-text)",
-				alignItems: "center",
-				justifyContent: "center",
-				borderRadius: 8,
-				fontWeight: 600,
-				cursor: "pointer",
-				border: "none",
-				fontSize: "inherit",
-				padding: !square && "0 10px",
-				minHeight: 30,
-				maxHeight: 30,
-				minWidth: square && 30,
-				maxWidth: square && 30,
-				textDecoration: "none",
 				...style,
 			}}
+			className={[
+				"relative flex items-center justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none]",
+				square ? "min-w-6 max-w-6" : "px-2",
+				primary ? "bg-tint text-color-reversed" : "bg-bg-secondary text-color-base",
+				className,
+			].join(" ")}
 			{...elementProps}
 		>
-			<div
-				style={{
-					position: "absolute",
-					inset: 0,
-					borderRadius: "inherit",
-					boxShadow: primary ? `0px 4px 8px 0px ${color}` : "none",
-					opacity: 0.2,
-					pointerEvents: "none",
-				}}
-			/>
+			{primary && (
+				<div
+					className="absolute inset-0 rounded-[inherit] opacity-20 pointer-events-none"
+					style={{
+						boxShadow: "0px 4px 8px 0px var(--framer-color-tint)",
+					}}
+				/>
+			)}
 			{children}
 		</Element>
 	);
@@ -108,7 +93,7 @@ export function SearchBar({ placeholder = "Search...", background = true, style 
 	);
 }
 
-export function SegmentedControl({ items, id, itemTitles = null, currentItem, onChange, style = null }) {
+export function SegmentedControl({ items, id, itemTitles = null, currentItem, onChange, className = "" }) {
 	const transition = { type: "spring", stiffness: "900", damping: "60" };
 
 	const currentItemIndex = items?.indexOf(currentItem) ?? 0;
@@ -132,22 +117,16 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 	}
 
 	return (
-		<div
-			className="relative flex flex-row items-stretch bg-bg-secondary p-0.5 rounded min-h-6"
-			style={{
-				...style,
-			}}
-		>
+		<div className={`relative flex flex-row items-stretch bg-bg-secondary p-0.5 rounded min-h-6 ${className}`}>
 			{currentItemIndex >= 0 && (
 				<div className="absolute inset-0.5">
 					<motion.div
 						animate={{
 							left: `${(100 / items?.length) * currentItemIndex}%`,
 						}}
-						className="absolute rounded-[6px] h-full"
+						className="absolute rounded-[6px] h-full bg-segmented-control"
 						style={{
 							width: `${100 / items?.length}%`,
-							backgroundColor: "var(--framer-color-segmented-control)",
 							boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
 						}}
 						initial={false}
@@ -163,14 +142,14 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 					animate={{
 						color: index === currentItemIndex ? "var(--framer-color-text)" : "var(--framer-color-text-tertiary)",
 					}}
-					className="relative flex flex-1 items-center justify-center cursor-pointer"
-					style={{
-						fontWeight: index === currentItemIndex && "600",
-					}}
+					className={[
+						"relative flex flex-1 items-center justify-center cursor-pointer",
+						index === currentItemIndex ? "font-semibold" : "",
+					].join(" ")}
 					initial={false}
 					transition={transition}
 				>
-					<span style={{ zIndex: 1 }}>{itemTitles ? itemTitles[index] : item}</span>
+					<span className="z-[1]">{itemTitles ? itemTitles[index] : item}</span>
 				</motion.div>
 			))}
 		</div>

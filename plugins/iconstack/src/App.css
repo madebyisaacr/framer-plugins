@@ -1,33 +1,8 @@
+@import url("@shared/shared.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-[data-framer-theme="light"] {
-	--color-bg-secondary: var(--framer-color-bg-tertiary);
-	--color-bg-tertiary: var(--framer-color-bg-secondary);
-
-  --framer-color-segmented-control: #FFF;
-  --framer-color-divider-secondary: #E6E6E6;
-  --framer-color-bg-modal: #FFF;
-}
-
-[data-framer-theme="dark"] {
-	--color-bg-secondary: var(--framer-color-bg-secondary);
-	--color-bg-tertiary: var(--framer-color-bg-tertiary);
-
-  --framer-color-segmented-control: #555;
-  --framer-color-divider-secondary: #444;
-  --framer-color-bg-modal: #191919;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-	@apply hidden;
-}
-
-.hide-scrollbar {
-	overflow: -moz-scrollbars-none;
-	-ms-overflow-style: none;
-}
 
 .icon-img {
 	@apply size-[24px] relative object-center top-[14px] left-[14px] pointer-events-none;
@@ -45,4 +20,3 @@
 .icon-div:hover {
 	@apply bg-bg-secondary;
 }
-
