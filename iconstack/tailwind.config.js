@@ -1,0 +1,48 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+	content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {},
+		colors: {
+			tint: "var(--framer-color-tint)",
+			"tint-dimmed": "var(--framer-color-tint-dimmed)",
+			"tint-dark": "var(--framer-color-tint-dark)",
+			bg: "var(--framer-color-bg)",
+			"bg-secondary": "var(--color-bg-secondary)",
+			"bg-tertiary": "var(--color-bg-tertiary)",
+			divider: "var(--framer-color-divider)",
+			"color-base": "var(--framer-color-text)",
+			"color-reversed": "var(--framer-color-text-reversed)",
+			"color-secondary": "var(--framer-color-text-secondary)",
+			"color-tertiary": "var(--framer-color-text-tertiary)",
+      accent: "var(--framerforms-accent)",
+      "accent-dynamic": "var(--framerforms-accent-dynamic)",
+      "button-tertiary": "var(--color-button-tertiary)",
+		},
+		spacing: {
+			0: "0",
+			0.5: "2px",
+			1: "5px",
+			1.5: "8px",
+			2: "10px",
+			2.5: "12px",
+			3: "15px",
+			3.5: "18px",
+			4: "20px",
+			4.5: "22px",
+			5: "25px",
+			5.5: "28px",
+			6: "30px",
+			7: "35px",
+			8: "40px",
+		},
+		borderRadius: {
+			DEFAULT: "8px",
+			lg: "10px",
+			xl: "15px",
+			full: "1000px",
+		},
+  },
+  plugins: [],
+}
+
