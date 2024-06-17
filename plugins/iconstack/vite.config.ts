@@ -10,9 +10,12 @@ export default defineConfig({
 	build: {
 		target: "ES2022",
 	},
+	css: {
+    postcss: path.resolve(__dirname, '../../postcss.config.js'),
+  },
 	resolve: {
 		alias: {
-			"@shared": path.resolve(__dirname, "../shared"),
+			"@shared": path.resolve(__dirname, "../../shared"),
 		},
 	},
 });

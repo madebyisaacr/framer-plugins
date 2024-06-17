@@ -1,8 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-	content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {},
+	content: [
+		"./plugins/*/index.html",
+		"./plugins/*/src/**/*.{js,jsx,ts,tsx}",
+		"./shared/**/*.{js,jsx,ts,tsx}",
+	],
+	theme: {
+		extend: {},
 		colors: {
 			tint: "var(--framer-color-tint)",
 			"tint-dimmed": "var(--framer-color-tint-dimmed)",
@@ -16,9 +20,9 @@ export default {
 			"color-reversed": "var(--framer-color-text-reversed)",
 			"color-secondary": "var(--framer-color-text-secondary)",
 			"color-tertiary": "var(--framer-color-text-tertiary)",
-      accent: "var(--framerforms-accent)",
-      "accent-dynamic": "var(--framerforms-accent-dynamic)",
-      "button-tertiary": "var(--color-button-tertiary)",
+			accent: "var(--framerforms-accent)",
+			"accent-dynamic": "var(--framerforms-accent-dynamic)",
+			"button-tertiary": "var(--color-button-tertiary)",
 			transparent: "transparent",
 		},
 		spacing: {
@@ -45,7 +49,6 @@ export default {
 			xl: "15px",
 			full: "1000px",
 		},
-  },
-  plugins: [],
-}
-
+	},
+	plugins: [],
+};
