@@ -45,25 +45,15 @@ export function Button({
 	);
 }
 
-export function SearchBar({ placeholder = "Search...", background = true, style = {}, value, onChange, onSubmit = null }) {
+export function SearchBar({ placeholder = "Search...", background = true, value, onChange, onSubmit = null }) {
 	return (
 		<div
-			style={{
-				display: "flex",
-				flexDirection: "row",
-				gap: 6,
-				alignItems: "center",
-				height: 30,
-				minHeight: 30,
-				color: "var(--framer-color-text-tertiary)",
-				fontWeight: 500,
-				padding: background && "0 10px",
-				backgroundColor: background && "var(--framer-color-bg-secondary)",
-				borderRadius: background && 8,
-				...style,
-			}}
+			className={[
+				"relative flex flex-row gap-[6px] items-center h-6 min-h-6 text-color-tertiary font-medium rounded",
+				background ? "bg-bg-secondary" : "",
+			].join(" ")}
 		>
-			<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+			<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" className="absolute left-2">
 				<path
 					d="M 5 0 C 7.761 0 10 2.239 10 5 C 10 6.046 9.679 7.017 9.13 7.819 L 11.164 9.854 C 11.457 10.146 11.457 10.621 11.164 10.914 C 10.871 11.207 10.396 11.207 10.104 10.914 L 8.107 8.918 C 7.254 9.595 6.174 10 5 10 C 2.239 10 0 7.761 0 5 C 0 2.239 2.239 0 5 0 Z M 1.5 5 C 1.5 6.933 3.067 8.5 5 8.5 C 6.933 8.5 8.5 6.933 8.5 5 C 8.5 3.067 6.933 1.5 5 1.5 C 3.067 1.5 1.5 3.067 1.5 5 Z"
 					fill="var(--framer-color-text-tertiary)"
@@ -71,7 +61,6 @@ export function SearchBar({ placeholder = "Search...", background = true, style 
 			</svg>
 			<input
 				type="text"
-				className="framestack-text-input"
 				placeholder={placeholder}
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
@@ -81,14 +70,11 @@ export function SearchBar({ placeholder = "Search...", background = true, style 
 					}
 				}}
 				style={{
-					flex: 1,
-					backgroundColor: "transparent",
-					border: "none",
-					color: "var(--framer-color-text)",
 					...inheritFont,
 				}}
+				className="flex-1 bg-transparent border-none text-color-base !px-6"
 			/>
-			{value?.length ? <XIcon onClick={() => onChange("")} /> : null}
+			{value?.length ? <XIcon onClick={() => onChange("")} className="absolute right-2" /> : null}
 		</div>
 	);
 }

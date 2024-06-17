@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import "./App.css";
 
 import { iconPacks } from "./IconstackData.jsx";
-import { SearchBar, Button, PropertyControl, XIcon, SegmentedControl } from "@shared/components.jsx";
+import { SearchBar, Button, XIcon, SegmentedControl } from "@shared/components.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
 import FeatherIcons from "./icon-packs/FeatherIcons.json";
@@ -87,6 +87,7 @@ export function App() {
 	const [iconType, setIconType] = useState(0);
 	const [icon, setIcon] = useState(null);
 	const [pinnedIconPacks, setPinnedIconPacks] = useState([]);
+	const [searchText, setSearchText] = useState("");
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
 	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
@@ -154,21 +155,24 @@ export function App() {
 											className="pl-2 flex-1"
 											onChange={(event) => changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))}
 										>
-											{pinnedIconPacks.length > 0 && (
-												<>
-													{pinnedIconPacks.map((iconPack) => (
-														<option key={iconPack.name} value={iconPack.name}>
-															{iconPack.name}
-														</option>
-													))}
-													<hr />
-												</>
+											{pinnedIconPacks
+												.slice()
+												.reverse()
+												.map((iconPack) => (
+													<option key={iconPack.name} value={iconPack.name}>
+														{iconPack.name}
+													</option>
+												))}
+											{pinnedIconPacks.length > 0 && <hr />}
+											{iconPacks.map((iconPack) =>
+												pinnedIconPacks.includes(iconPack) ? (
+													<></>
+												) : (
+													<option key={iconPack.name} value={iconPack.name}>
+														{iconPack.name}
+													</option>
+												)
 											)}
-											{iconPacks.map((iconPack) => (
-												<option key={iconPack.name} value={iconPack.name}>
-													{iconPack.name}
-												</option>
-											))}
 										</select>
 										<Button square onClick={onPinButtonClick}>
 											{pinnedIconPacks.includes(iconPack) ? (
@@ -225,11 +229,11 @@ export function App() {
 											</select>
 										))}
 								</div>
-								{/* <SearchBar
-									placeholder={`Search ${iconGroup?.length.toLocaleString() ?? 0} Icons...`}
-									value={iconSearch}
-									onChange={setIconSearch}
-								/> */}
+								<SearchBar
+									placeholder={`Search ${iconPack?.iconIds?.length.toLocaleString() ?? 0} Icons...`}
+									value={searchText}
+									onChange={setSearchText}
+								/>
 								<div className="absolute h-[1px] inset-x-3 bottom-0 bg-divider"></div>
 							</div>
 							<div className="hide-scrollbar flex flex-col overflow-y-auto p-3 pt-0 flex-1">
@@ -370,4 +374,12 @@ export function App() {
 			</div>
 		</main>
 	);
+}
+
+function reverseArray(arr) {
+	let reversedArray = [];
+	for (let i = arr.length - 1; i >= 0; i--) {
+		reversedArray.push(arr[i]);
+	}
+	return reversedArray;
 }
