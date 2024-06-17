@@ -1,7 +1,11 @@
 {
 	"types": [
-		["Outline", "-outline"],
-		["Filled", null]
+		"-outline",
+		null
+	],
+	"typeNames": [
+		"Outline",
+		"Filled"
 	],
 	"iconIds": [
 		"add-column",

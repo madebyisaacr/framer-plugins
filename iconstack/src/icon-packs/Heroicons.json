@@ -1,9 +1,15 @@
 {
 	"types": [
-		["Outline", "-outline"],
-		["Filled", "-solid"],
-		["Mini", "-mini"],
-		["Micro", "-micro"]
+		"-outline",
+		"-solid",
+		"-mini",
+		"-micro"
+	],
+	"typeNames": [
+		"Outline",
+		"Filled",
+		"Mini",
+		"Micro"
 	],
 	"iconIds": [
 		"academic-cap",

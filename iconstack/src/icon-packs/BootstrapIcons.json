@@ -1,7 +1,11 @@
 {
 	"types": [
-		["Outline", null],
-		["Filled", "-fill"]
+		null,
+		"-fill"
+	],
+	"typeNames": [
+		"Outline",
+		"Filled"
 	],
 	"iconIds": [
 		"activity",

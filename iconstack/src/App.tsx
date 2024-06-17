@@ -84,8 +84,9 @@ export function App() {
 	const selection = useSelection();
 
 	const [iconPack, setIconPack] = useState(iconPacks[0]);
-	const [iconType, setIconType] = useState(ICON_PACKS[iconPacks[0].name]?.types?.[0]?.[1]);
+	const [iconType, setIconType] = useState(0);
 	const [icon, setIcon] = useState(null);
+	const [pinnedIconPacks, setPinnedIconPacks] = useState([]);
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
 	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
@@ -126,13 +127,17 @@ export function App() {
 	function changeIconPack(newIconPack) {
 		if (newIconPack && newIconPack !== iconPack) {
 			setIconPack(newIconPack);
-			setIconType(ICON_PACKS[iconPack.name]?.types[0][1]);
+			setIconType(0);
 			setIcon(null);
 		}
 	}
 
-	function onIconTypeChange(newIconType) {
-		setIconType(newIconType);
+	function onPinButtonClick() {
+		if (pinnedIconPacks.includes(iconPack)) {
+			setPinnedIconPacks(pinnedIconPacks.filter((item) => item !== iconPack));
+		} else {
+			setPinnedIconPacks([...pinnedIconPacks, iconPack]);
+		}
 	}
 
 	return (
@@ -143,34 +148,79 @@ export function App() {
 						<>
 							<div className="relative flex flex-col w-full p-3 pt-0 gap-2">
 								<div className="flex flex-col gap-2">
-									<select
-										value={iconPack.name}
-										className="pl-2 w-full"
-										onChange={(event) => changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))}
-									>
-										{iconPacks.map((iconPack) => (
-											<option key={iconPack.name} value={iconPack.name}>
-												{iconPack.name}
-											</option>
-										))}
-									</select>
+									<div className="flex flex-row gap-2">
+										<select
+											value={iconPack.name}
+											className="pl-2 flex-1"
+											onChange={(event) => changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))}
+										>
+											{pinnedIconPacks.length > 0 && (
+												<>
+													{pinnedIconPacks.map((iconPack) => (
+														<option key={iconPack.name} value={iconPack.name}>
+															{iconPack.name}
+														</option>
+													))}
+													<hr />
+												</>
+											)}
+											{iconPacks.map((iconPack) => (
+												<option key={iconPack.name} value={iconPack.name}>
+													{iconPack.name}
+												</option>
+											))}
+										</select>
+										<Button square onClick={onPinButtonClick}>
+											{pinnedIconPacks.includes(iconPack) ? (
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="18"
+													height="18"
+													viewBox="0 0 24 24"
+													fill="currentColor"
+													className="absolute left-[6px] top-[6px]"
+												>
+													<path d="M15.113 3.21l.094 .083l5.5 5.5a1 1 0 0 1 -1.175 1.59l-3.172 3.171l-1.424 3.797a1 1 0 0 1 -.158 .277l-.07 .08l-1.5 1.5a1 1 0 0 1 -1.32 .082l-.095 -.083l-2.793 -2.792l-3.793 3.792a1 1 0 0 1 -1.497 -1.32l.083 -.094l3.792 -3.793l-2.792 -2.793a1 1 0 0 1 -.083 -1.32l.083 -.094l1.5 -1.5a1 1 0 0 1 .258 -.187l.098 -.042l3.796 -1.425l3.171 -3.17a1 1 0 0 1 1.497 -1.26z" />
+												</svg>
+											) : (
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="18"
+													height="18"
+													viewBox="0 0 24 24"
+													stroke="currentColor"
+													strokeWidth="2"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													fill="none"
+													className="absolute left-[6px] top-[6px]"
+												>
+													<path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4" />
+													<path d="M9 15l-4.5 4.5" />
+													<path d="M14.5 4l5.5 5.5" />
+												</svg>
+											)}
+										</Button>
+									</div>
 									{iconPackData?.types &&
 										(iconPackData.types.length < 5 ? (
 											<SegmentedControl
 												id={iconPack?.name}
-												items={iconPackData.types.map((type) => type[0])}
-												// itemTitles={iconPackData.types.map((type) => type[0])}
+												items={Array.from({ length: iconPackData.types.length }, (_, i) => i)}
+												itemTitles={iconPackData.typeNames}
 												currentItem={iconType}
-												onChange={onIconTypeChange}
+												onChange={setIconType}
 											/>
 										) : (
 											<select
 												value={iconType}
 												className="pl-2 pr-5 w-full"
-												onChange={(event) => onIconTypeChange(event.target.value)}
+												onChange={(event) => setIconType(parseInt(event.target.value))}
 											>
-												{iconPackData.types.map((type) => (
-													<option value={type[0]}>{type[0]}</option>
+												{iconPackData.typeNames.map((type, index) => (
+													<option key={type} value={index}>
+														{type}
+													</option>
 												))}
 											</select>
 										))}

@@ -1,8 +1,13 @@
 {
 	"types": [
-		["Filled", null],
-		["Outline", "-outline"],
-		["Sharp", "-sharp"]
+		null,
+		"-outline",
+		"-sharp"
+	],
+	"typeNames": [
+		"Filled",
+		"Outline",
+		"Sharp"
 	],
 	"iconIds": [
 		"accessibility",

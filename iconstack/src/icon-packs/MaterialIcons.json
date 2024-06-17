@@ -1,10 +1,17 @@
 {
 	"types": [
-		["Regular", null],
-		["Outline", "-outline"],
-		["Round", "-round"],
-		["Sharp", "-sharp"],
-		["Two-Tone", "-twotone"]
+		null,
+		"-outline",
+		"-round",
+		"-sharp",
+		"-twotone"
+	],
+	"typeNames": [
+		"Regular",
+		"Outline",
+		"Round",
+		"Sharp",
+		"Two-Tone"
 	],
 	"iconIds": [
 		"baseline-abc",

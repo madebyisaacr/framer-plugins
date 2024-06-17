@@ -19,6 +19,7 @@ export default {
       accent: "var(--framerforms-accent)",
       "accent-dynamic": "var(--framerforms-accent-dynamic)",
       "button-tertiary": "var(--color-button-tertiary)",
+			transparent: "transparent",
 		},
 		spacing: {
 			0: "0",

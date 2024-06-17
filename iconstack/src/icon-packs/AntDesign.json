@@ -1,7 +1,11 @@
 {
 	"types": [
-		["Outline", "-outlined"],
-		["Filled", "-filled"]
+		"-outlined",
+		"-filled"
+	],
+	"typeNames": [
+		"Outline",
+		"Filled"
 	],
 	"iconIds": [
 		"account-book-filled",

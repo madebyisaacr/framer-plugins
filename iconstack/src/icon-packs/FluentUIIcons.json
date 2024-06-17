@@ -1,7 +1,11 @@
 {
 	"types": [
-		["Outline", null],
-		["Filled", "-filled"]
+		null,
+		"-filled"
+	],
+	"typeNames": [
+		"Outline",
+		"Filled"
 	],
 	"iconIds": [
 		"access-time-24-filled",
