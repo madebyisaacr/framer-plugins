@@ -126,14 +126,7 @@ function HomePage({ openPage }) {
 		};
 	}, []);
 
-	const handleAddSvg = async () => {
-		await framer.addSVG({
-			svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path fill="#999" d="M20 0v8h-8L4 0ZM4 8h8l8 8h-8v8l-8-8Z"/></svg>`,
-			name: "Logo.svg",
-		});
-	};
-
-	async function onCopySVGClick() {
+	async function onIconActionButtonClick(copy = true) {
 		const url = `https://files.svgcdn.io/${iconPack.cdnId}/${icon}.svg`;
 
 		try {
@@ -153,7 +146,15 @@ function HomePage({ openPage }) {
 			// .replace(/"currentColor"/g, `"${iconColor}"`);
 
 			// Use the Clipboard API to write the SVG text to the clipboard
-			await navigator.clipboard.writeText(svgText);
+			if (copy) {
+				await navigator.clipboard.writeText(svgText);
+			} else {
+				const iconName = (iconPackData.iconNames ? iconNames[iconPackData.iconIds.indexOf(icon)] : icon) ?? "Icon";
+				await framer.addSVG({
+					svg: svgText,
+					name: `${iconName}.svg`,
+				});
+			}
 		} catch (error) {
 			console.error("Failed to fetch and copy SVG:", error);
 		}
@@ -371,10 +372,10 @@ function HomePage({ openPage }) {
 							</div>
 						</div>
 						<div className="flex flex-row gap-2 items-end flex-1">
-							<Button primary className="flex-1">
+							<Button primary onClick={() => onIconActionButtonClick(false)} className="flex-1">
 								Insert Icon
 							</Button>
-							<Button onClick={onCopySVGClick} className="flex-1">
+							<Button onClick={() => onIconActionButtonClick(true)} className="flex-1">
 								Copy SVG
 							</Button>
 						</div>
@@ -471,7 +472,7 @@ function generateIconGroups(iconPackData) {
 				}
 			}
 
-			newIconGroups[groupIndex].push(iconName);
+			newIconGroups[groupIndex]?.push(iconName);
 		}
 
 		return newIconGroups;
