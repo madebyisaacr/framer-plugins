@@ -1,5 +1,5 @@
 import { framer, CanvasNode } from "framer-plugin";
-import { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import "./App.css";
 

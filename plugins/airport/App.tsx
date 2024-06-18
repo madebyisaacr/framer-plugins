@@ -1,5 +1,5 @@
 import { framer } from "framer-plugin";
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
 import { Button, BackButton } from "@shared/components.jsx";
