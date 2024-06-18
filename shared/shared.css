@@ -20,3 +20,7 @@
 	overflow: -moz-scrollbars-none;
 	-ms-overflow-style: none;
 }
+
+select {
+	background-color: var(--color-bg-secondary);
+}

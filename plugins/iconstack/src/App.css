@@ -20,3 +20,15 @@
 .icon-div:hover {
 	@apply bg-bg-secondary;
 }
+
+.search-hidden {
+	display: none;
+}
+
+.search-exact-match {
+  order: 0 !important;
+}
+
+.search-starts-with {
+  order: 1 !important;
+}

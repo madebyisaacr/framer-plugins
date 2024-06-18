@@ -26,9 +26,9 @@ export function Button({
 				...style,
 			}}
 			className={[
-				"relative flex items-center gap-1.5 justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none]",
+				"relative flex items-center gap-1.5 justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
 				square ? "min-w-6 max-w-6" : "px-2",
-				primary ? "bg-tint text-color-reversed hover:brightness-105 hover:bg-tint transition-[filter]" : "bg-bg-secondary text-color-base hover:bg-bg-tertiary transition-colors",
+				primary ? "framer-button-primary" : "bg-bg-secondary text-color-base hover:bg-bg-tertiary",
 				className,
 			].join(" ")}
 			{...elementProps}
