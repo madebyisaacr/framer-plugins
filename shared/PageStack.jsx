@@ -36,11 +36,11 @@ export function PageStack({ homePage }) {
 						transition={{
 							type: "tween",
 							ease: [0.25, 1, 0.4, 1],
-							duration: 0.4,
+							duration: 0.35,
 							boxShadow: {
 								type: "tween",
 								ease: "linear",
-								duration: 0.4,
+								duration: 0.35,
 							}
 						}}
 					>
