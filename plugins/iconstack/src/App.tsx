@@ -344,7 +344,7 @@ function HomePage({ openPage }) {
 						style={{
 							gridTemplateColumns: `repeat(${ICONS_PER_ROW}, ${ICON_HEIGHT}px)`,
 							gridTemplateRows: `repeat(auto-fill, ${ICON_HEIGHT}px)`,
-							height: ((iconGroup?.length ?? 0) / ICONS_PER_ROW) * ICON_HEIGHT,
+							height: ((filteredIcons?.length ?? 0) / ICONS_PER_ROW) * ICON_HEIGHT,
 						}}
 					>
 						{icons}
