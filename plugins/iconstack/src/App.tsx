@@ -35,6 +35,10 @@ import CssGG from "./icon-packs/CssGG.json";
 import EvaIcons from "./icon-packs/EvaIcons.json";
 import Gridicons from "./icon-packs/Gridicons.json";
 
+const ICON_HEIGHT = 52;
+const MAX_VISIBLE_ROWS = 10;
+const ICONS_PER_ROW = 5;
+
 const ICON_PACKS = {
 	"Tabler Icons": TablerIcons,
 	"Feather Icons": FeatherIcons,
@@ -87,12 +91,40 @@ function HomePage({ openPage }) {
 	const [pinnedIconPacks, setPinnedIconPacks] = useState([]);
 	const [searchText, setSearchText] = useState("");
 	const [iconGroups, setIconGroups] = useState(generateIconGroups(ICON_PACKS[iconPack?.name]));
+	const [rowsVisible, setRowsVisible] = useState(MAX_VISIBLE_ROWS);
+
+	const scrollContainerRef = useRef(null);
+	const rowsVisibleRef = useRef(rowsVisible);
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
 	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
 	const iconGroup = iconGroups[iconType];
 	const searchValue = searchText.toLowerCase().replace(/\s/g, "-");
 	const filteredIcons = searchValue.length > 0 ? iconGroup.filter((iconName) => iconName.includes(searchValue)) : iconGroup;
+
+	useEffect(() => {
+		const scrollContainer = scrollContainerRef.current;
+
+		function onScroll() {
+			const scrollTop = scrollContainer.scrollTop;
+			const newBottomRow = Math.floor(scrollTop / ICON_HEIGHT) + MAX_VISIBLE_ROWS;
+
+			if (newBottomRow > rowsVisibleRef.current) {
+				rowsVisibleRef.current = newBottomRow;
+				setRowsVisible(newBottomRow);
+			}
+		}
+
+		if (scrollContainer) {
+			scrollContainer.addEventListener("scroll", onScroll);
+		}
+
+		return () => {
+			if (scrollContainer) {
+				scrollContainer.removeEventListener("scroll", onScroll);
+			}
+		};
+	}, []);
 
 	const handleAddSvg = async () => {
 		await framer.addSVG({
@@ -127,12 +159,23 @@ function HomePage({ openPage }) {
 		}
 	}
 
+	function changeIconType(newIconType) {
+		setIconType(newIconType);
+		setIcon(null);
+
+		if (scrollContainerRef.current) {
+			scrollContainerRef.current.scrollTop = 0;
+		}
+
+		rowsVisibleRef.current = MAX_VISIBLE_ROWS;
+		setRowsVisible(MAX_VISIBLE_ROWS);
+	}
+
 	function changeIconPack(newIconPack) {
 		if (newIconPack && newIconPack !== iconPack) {
 			setIconPack(newIconPack);
-			setIconType(0);
-			setIcon(null);
 			setIconGroups(generateIconGroups(ICON_PACKS[newIconPack?.name]));
+			changeIconType(0);
 		}
 	}
 
@@ -142,6 +185,61 @@ function HomePage({ openPage }) {
 		} else {
 			setPinnedIconPacks([...pinnedIconPacks, iconPack]);
 		}
+	}
+
+	let visibleIconCount = 0;
+	const visibleIcons = rowsVisible * ICONS_PER_ROW;
+
+	const icons = [];
+
+	for (let i = 0; i < iconPackData?.iconIds?.length; i++) {
+		if (visibleIconCount >= visibleIcons) {
+			break;
+		}
+
+		const iconId = iconPackData?.iconIds[i];
+		const iconName = iconNames[i];
+
+		let searchClassName = "";
+		if (filteredIcons.includes(iconName)) {
+			if (searchValue === iconName) {
+				searchClassName = "search-exact-match";
+			} else if (iconName.startsWith(searchValue)) {
+				searchClassName = "search-starts-with";
+			}
+
+			visibleIconCount++;
+		} else {
+			searchClassName = "search-hidden";
+		}
+
+		icons.push(
+			<div
+				key={iconPack?.cdnId + iconId}
+				className={searchClassName + " icon-div"}
+				onClick={() => setIcon(icon === iconId ? null : iconId)}
+			>
+				{icon === iconId && (
+					<div className="absolute inset-0 border-2 border-tint rounded-[inherit]">
+						<div
+							className="absolute inset-0 bg-tint opacity-10"
+							style={{
+								boxShadow: "0 6px 12px 0 var(--framer-color-tint)",
+							}}
+						/>
+					</div>
+				)}
+				<img
+					className="icon-img"
+					src={`https://files.svgcdn.io/${iconPack?.cdnId}/${iconId}.svg`}
+					alt={iconName}
+					loading="lazy"
+					referrerPolicy="no-referrer"
+					width={24}
+					height={24}
+				/>
+			</div>
+		);
 	}
 
 	return (
@@ -218,7 +316,7 @@ function HomePage({ openPage }) {
 								items={Array.from({ length: iconPackData.types.length }, (_, i) => i)}
 								itemTitles={iconPackData.typeNames}
 								currentItem={iconType}
-								onChange={setIconType}
+								onChange={changeIconType}
 							/>
 						) : (
 							<select
@@ -240,50 +338,16 @@ function HomePage({ openPage }) {
 					/>
 					<div className="absolute h-[1px] inset-x-3 bottom-0 bg-divider"></div>
 				</div>
-				<div className="hide-scrollbar flex flex-col overflow-y-auto p-3 pt-0 flex-1">
-					<div className="grid w-full grid-cols-[52px,52px,52px,52px,52px] pt-3">
-						{iconPackData?.iconIds?.slice(0, 50).map((iconId, index) => {
-							const iconName = iconNames[index];
-
-							let searchClassName = "";
-							if (filteredIcons.includes(iconName)) {
-								if (searchValue === iconName) {
-									searchClassName = "search-exact-match";
-								} else if (iconName.startsWith(searchValue)) {
-									searchClassName = "search-starts-with";
-								}
-							} else {
-								searchClassName = "search-hidden";
-							}
-
-							return (
-								<div
-									key={iconPack?.cdnId + iconId}
-									className={searchClassName + " icon-div"}
-									onClick={() => setIcon(icon === iconId ? null : iconId)}
-								>
-									{icon === iconId && (
-										<div className="absolute inset-0 border-2 border-tint rounded-[inherit]">
-											<div
-												className="absolute inset-0 bg-tint opacity-10"
-												style={{
-													boxShadow: "0 6px 12px 0 var(--framer-color-tint)",
-												}}
-											/>
-										</div>
-									)}
-									<img
-										className="icon-img"
-										src={`https://files.svgcdn.io/${iconPack?.cdnId}/${iconId}.svg`}
-										alt={iconName}
-										loading="lazy"
-										referrerPolicy="no-referrer"
-										width={24}
-										height={24}
-									/>
-								</div>
-							);
-						})}
+				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto p-3 pt-0 flex-1">
+					<div
+						className="grid w-full pt-3"
+						style={{
+							gridTemplateColumns: `repeat(${ICONS_PER_ROW}, ${ICON_HEIGHT}px)`,
+							gridTemplateRows: `repeat(auto-fill, ${ICON_HEIGHT}px)`,
+							height: ((iconGroup?.length ?? 0) / ICONS_PER_ROW) * ICON_HEIGHT,
+						}}
+					>
+						{icons}
 					</div>
 				</div>
 				{icon && (
