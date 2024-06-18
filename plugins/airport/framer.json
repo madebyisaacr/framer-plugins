@@ -2,6 +2,7 @@
   "id": "oIjSKH",
   "name": "Airport",
   "modes": [
+    "default",
     "configureCollection",
     "syncCollection"
   ],
