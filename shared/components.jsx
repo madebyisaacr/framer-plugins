@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 const inheritFont = {
 	fontFamily: "inherit",
@@ -25,9 +26,9 @@ export function Button({
 				...style,
 			}}
 			className={[
-				"relative flex items-center justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none]",
+				"relative flex items-center gap-1.5 justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none]",
 				square ? "min-w-6 max-w-6" : "px-2",
-				primary ? "bg-tint text-color-reversed" : "bg-bg-secondary text-color-base",
+				primary ? "bg-tint text-color-reversed hover:brightness-105 hover:bg-tint transition-[filter]" : "bg-bg-secondary text-color-base hover:bg-bg-tertiary transition-colors",
 				className,
 			].join(" ")}
 			{...elementProps}
@@ -289,6 +290,42 @@ export function XIcon({ onClick, className = "", color = "var(--framer-color-tex
 				></path>
 			</svg>
 		</div>
+	);
+}
+
+export function BackButton({ onClick, className = "" }) {
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			if (event.key === "Escape") {
+				onClick();
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [onClick]);
+
+	return (
+		<span
+			onClick={onClick}
+			className={`text-color-tertiary flex flex-row items-center gap-1 cursor-pointer w-max pr-1 ${className}`}
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+				<g transform="translate(1.5 1)">
+					<path
+						d="M 3.5 0 L 0 4 L 3.5 7.5"
+						fill="transparent"
+						strokeWidth="1.5"
+						stroke="currentColor"
+						strokeLinecap="round"
+					></path>
+				</g>
+			</svg>
+			Back
+		</span>
 	);
 }
 

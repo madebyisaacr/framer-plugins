@@ -58,7 +58,7 @@ export const iconPacks = [
 	{
 		name: "Majesticons",
 		cdnId: "majesticons",
-		website: "https://www.majesticons.com/#pricing",
+		website: "https://www.majesticons.com/",
 		github: "https://github.com/halfmage/majesticons",
 		licenseUrl: "[github]/blob/main/LICENSE",
 		license: "MIT",
@@ -205,7 +205,7 @@ export const iconPacks = [
 		cdnId: "game-icons",
 		website: "https://game-icons.net/",
 		github: "https://github.com/game-icons/icons",
-		licenseUrl: "[github]/blob/master/LICENSE",
+		licenseUrl: "[github]/blob/master/license.txt",
 		license: "CC-BY 3.0 / CC0",
 	},
 ];
