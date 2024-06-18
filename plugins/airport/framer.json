@@ -1,0 +1,9 @@
+{
+  "id": "oIjSKH",
+  "name": "Airport",
+  "modes": [
+    "configureCollection",
+    "syncCollection"
+  ],
+  "icon": "/icon.svg"
+}
