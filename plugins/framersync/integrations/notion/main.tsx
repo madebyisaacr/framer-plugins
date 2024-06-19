@@ -2,14 +2,14 @@ import "./globals.css";
 
 import React, { ReactNode, Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import { App } from "./App";
+import { App } from "./Notion";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
 import { PluginContext, PluginContextUpdate, getPluginContext, synchronizeDatabase } from "./notionHandler";
 
 import { framer } from "framer-plugin";
-import { logSyncResult } from "./debug.ts";
+import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert } from "./utils.ts";
 
