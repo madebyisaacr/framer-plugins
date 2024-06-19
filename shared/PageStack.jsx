@@ -32,7 +32,7 @@ export function PageStack({ homePage }) {
 							exit={{ opacity: 1, translateX: "100%", boxShadow: "0 32px 32px 0 rgba(0,0,0,0)" }}
 							animate={{
 								opacity: index == pageStack.length ? 1 : 0,
-								translateX: index == pageStack.length ? 0 : -50,
+								translateX: index == pageStack.length ? 0 : "-12%",
 								pointerEvents: index == pageStack.length ? "auto" : "none",
 								boxShadow: "0 32px 32px 0 rgba(0,0,0,0.1)",
 							}}

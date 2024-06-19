@@ -9,31 +9,37 @@ import Notion from "./integrations/notion/Notion.tsx";
 const collection = await framer.getCollection();
 
 if (framer.mode === "syncCollection") {
-	await collection.setFields([
-		{
-			id: "abcdefg",
-			name: "Color",
-			type: "enum",
-			cases: [
-				{ id: "red", name: "Red" },
-				{ id: "green", name: "Green" },
-				{ id: "blue", name: "Blue" },
-				{ id: "yellow", name: "Yellow" },
-				{ id: "purple", name: "Purple" },
-			],
-		},
-	]);
+	let pageToOpen = null
+	
+	if (collection) {
+		const integrationType = await collection.getPluginData("integration");
 
-	await collection.addItems([
-		{
-			id: "item1",
-			slug: "item1",
-			title: "Item A",
-			fieldData: {
-				abcdefg: "green",
-			},
-		},
-	]);
+		let context: any = null;
+
+		switch (integrationType) {
+			case "notion":
+				context = Notion.createContext();
+				break;
+		}
+
+		if (!integrationType || !context) {
+			pageToOpen = AppsPage;
+		}
+
+		if (context) {
+			const isAuthenticated = context.isAuthenticated();
+
+			if (isAuthenticated) {
+				await syncCollection(context);
+			} else {
+				pageToOpen = Notion.Page
+			}
+		}
+
+		if (pageToOpen) {
+
+		}
+	}
 
 	await framer.closePlugin();
 } else if (framer.mode === "configureCollection") {
@@ -44,12 +50,16 @@ if (framer.mode === "syncCollection") {
 	});
 }
 
-export function App() {
+function InitialPage(page) {
 	return (
 		<main className="flex flex-col size-full select-none text-color-base">
-			<PageStack homePage={AppsPage} />
+			<PageStack homePage={page} />
 		</main>
 	);
+}
+
+export function App() {
+	return <InitialPage page={AppsPage} />;
 }
 
 function AppsPage({ openPage }) {
@@ -77,6 +87,21 @@ function AppsPage({ openPage }) {
 }
 
 ///////////////////////////////////////////////////////////////////////
+
+async function syncCollection(context) {
+	const fields = context.getFields();
+	const items = context.getItems();
+	const existingItemIds = await collection.getItemIds();
+	const itemIds = items.map((item) => item.id);
+
+	await collection.setFields(fields);
+	await collection.addItems(items);
+
+	const itemsToRemove = existingItemIds.filter((itemId) => !itemIds.includes(itemId));
+	if (itemsToRemove.length > 0) {
+		await collection.removeItems(itemsToRemove);
+	}
+}
 
 function AppButton({ title, onClick = () => {} }) {
 	return (

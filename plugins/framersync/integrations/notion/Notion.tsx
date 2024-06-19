@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { framer } from "framer-plugin";
 
 import { Button, BackButton } from "@shared/components.jsx";
-// import { isAuthenticated } from "./notionHandler";
+import { PluginContext, authorize, getOauthURL, getPluginContext } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/utils";
 
 const notionDatabases = ["Apps", "Buildings", "Fruits & Vegetables", "Database", "Kitchen Appliances"];
@@ -24,7 +24,7 @@ function Page({ openPage, closePage, context }) {
 	return (
 		<div className="flex flex-col size-full px-3 gap-2 overflow-y-auto hide-scrollbar">
 			<BackButton onClick={closePage} />
-			<Page />
+			<Page context={context} />
 		</div>
 	);
 }
@@ -54,17 +54,17 @@ function ConnectAccountPage({ context }) {
 
 		// It is important to call `window.open` directly in the event handler
 		// So that Safari does not block any popups.
-		// window.open(getOauthURL(writeKey), "_blank");
+		window.open(getOauthURL(writeKey), "_blank");
 
-		// authorize({ readKey: generateRandomId(), writeKey })
-		// 	.then(getPluginContext)
-		// 	.then(onAuthenticated)
-		// 	.finally(() => {
-		// 		setIsLoading(false);
-		// 	});
+		authorize({ readKey: generateRandomId(), writeKey })
+			.then(getPluginContext)
+			.then(onAuthenticated)
+			.finally(() => {
+				setIsLoading(false);
+			});
 	};
 	return (
-		<div className="w-full flex-1 flex flex-col items-center justify-center gap-4 pb-4 overflo">
+		<div className="w-full flex-1 flex flex-col items-center justify-center gap-4 pb-4">
 			<div className="max-w-100% rounded-md flex-shrink-0 aspect-[3/2] bg-bg-secondary" />
 			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
@@ -433,24 +433,61 @@ function ConfigureFieldsPage({ context }) {
 }
 
 function createContext() {
-	return {};
+	function getDatabaseLastUpdatedTime() {}
+
+	function isAuthenticated() {
+		return true;
+	}
+
+	function getFields() {
+		return [
+			{
+				id: "abcdefg",
+				name: "Color",
+				type: "enum",
+				cases: [
+					{ id: "red", name: "Red" },
+					{ id: "green", name: "Green" },
+					{ id: "blue", name: "Blue" },
+					{ id: "yellow", name: "Yellow" },
+					{ id: "purple", name: "Purple" },
+				],
+			},
+		]
+	}
+
+	function getItems() {
+		return [
+			{
+				id: "item1",
+				slug: "item1",
+				title: "Item A",
+				fieldData: {
+					abcdefg: "green",
+				},
+			},
+			{
+				id: "item2",
+				slug: "item2",
+				title: "Item 2",
+				fieldData: {
+					abcdefg: "yellow",
+				},
+			},
+		]
+	}
+
+	return {
+		getDatabaseLastUpdatedTime,
+		isAuthenticated,
+		getFields,
+		getItems,
+	};
 }
-
-function getDatabaseLastUpdatedTime() {}
-
-function isAuthenticated() {}
-
-function getFields() {}
-
-function getItems() {}
 
 const Integration = {
 	Page,
 	createContext,
-	getDatabaseLastUpdatedTime,
-	isAuthenticated,
-	getFields,
-	getItems,
 };
 
 export default Integration;
