@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
 
 import { Button, BackButton } from "@shared/components.jsx";
+import {assert, isDefined} from "../../utils"
 
 const stage = "configureFields"; // connectAccount, selectDatabase, configureFields
 const notionDatabases = ["Apps", "Buildings", "Fruits & Vegetables", "Database", "Kitchen Appliances"];
@@ -51,140 +52,140 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 				type: "checkbox",
 				id: "checkbox",
 			},
-			originalFieldName: "checkbox"
+			originalFieldName: "checkbox",
 		},
 		{
 			field: {
 				type: "created_by",
 				id: "created_by",
 			},
-			originalFieldName: "created_by"
+			originalFieldName: "created_by",
 		},
 		{
 			field: {
 				type: "created_time",
 				id: "created_time",
 			},
-			originalFieldName: "created_time"
+			originalFieldName: "created_time",
 		},
 		{
 			field: {
 				type: "date",
 				id: "date",
 			},
-			originalFieldName: "date"
+			originalFieldName: "date",
 		},
 		{
 			field: {
 				type: "email",
 				id: "email",
 			},
-			originalFieldName: "email"
+			originalFieldName: "email",
 		},
 		{
 			field: {
 				type: "files",
 				id: "files",
 			},
-			originalFieldName: "files"
+			originalFieldName: "files",
 		},
 		{
 			field: {
 				type: "formula",
 				id: "formula",
 			},
-			originalFieldName: "formula"
+			originalFieldName: "formula",
 		},
 		{
 			field: {
 				type: "last_edited_by",
 				id: "last_edited_by",
 			},
-			originalFieldName: "last_edited_by"
+			originalFieldName: "last_edited_by",
 		},
 		{
 			field: {
 				type: "last_edited_time",
 				id: "last_edited_time",
 			},
-			originalFieldName: "last_edited_time"
+			originalFieldName: "last_edited_time",
 		},
 		{
 			field: {
 				type: "multi_select",
 				id: "multi_select",
 			},
-			originalFieldName: "multi_select"
+			originalFieldName: "multi_select",
 		},
 		{
 			field: {
 				type: "number",
 				id: "number",
 			},
-			originalFieldName: "number"
+			originalFieldName: "number",
 		},
 		{
 			field: {
 				type: "people",
 				id: "people",
 			},
-			originalFieldName: "people"
+			originalFieldName: "people",
 		},
 		{
 			field: {
 				type: "phone_number",
 				id: "phone_number",
 			},
-			originalFieldName: "phone_number"
+			originalFieldName: "phone_number",
 		},
 		{
 			field: {
 				type: "relation",
 				id: "relation",
 			},
-			originalFieldName: "relation"
+			originalFieldName: "relation",
 		},
 		{
 			field: {
 				type: "rich_text",
 				id: "rich_text",
 			},
-			originalFieldName: "rich_text"
+			originalFieldName: "rich_text",
 		},
 		{
 			field: {
 				type: "rollup",
 				id: "rollup",
 			},
-			originalFieldName: "rollup"
+			originalFieldName: "rollup",
 		},
 		{
 			field: {
 				type: "select",
 				id: "select",
 			},
-			originalFieldName: "select"
+			originalFieldName: "select",
 		},
 		{
 			field: {
 				type: "status",
 				id: "status",
 			},
-			originalFieldName: "status"
+			originalFieldName: "status",
 		},
 		{
 			field: {
 				type: "title",
 				id: "title",
 			},
-			originalFieldName: "title"
+			originalFieldName: "title",
 		},
 		{
 			field: {
 				type: "url",
 				id: "url",
 			},
-			originalFieldName: "url"
+			originalFieldName: "url",
 		},
 	]);
 	// const [disabledFieldIds, setDisabledFieldIds] = useState(
@@ -196,54 +197,54 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 	// );
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>([]);
 
-	// // assert(isFullDatabase(database));
+	// assert(isFullDatabase(database));
 
-	// const handleFieldToggle = (key: string) => {
-	// 	setDisabledFieldIds((current) => {
-	// 		const nextSet = new Set(current);
-	// 		if (nextSet.has(key)) {
-	// 			nextSet.delete(key);
-	// 		} else {
-	// 			nextSet.add(key);
-	// 		}
+	const handleFieldToggle = (key: string) => {
+		setDisabledFieldIds((current) => {
+			const nextSet = new Set(current);
+			if (nextSet.has(key)) {
+				nextSet.delete(key);
+			} else {
+				nextSet.add(key);
+			}
 
-	// 		return nextSet;
-	// 	});
-	// };
+			return nextSet;
+		});
+	};
 
-	// const handleFieldNameChange = (id: string, value: string) => {
-	// 	setFieldNameOverrides((current) => ({
-	// 		...current,
-	// 		[id]: value,
-	// 	}));
-	// };
+	const handleFieldNameChange = (id: string, value: string) => {
+		setFieldNameOverrides((current) => ({
+			...current,
+			[id]: value,
+		}));
+	};
 
-	// const handleSubmit = (e: React.FormEvent) => {
-	// 	e.preventDefault();
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
 
-	// 	if (isLoading) return;
+		if (isLoading) return;
 
-	// 	const allFields = fieldConfig
-	// 		.filter((fieldConfig) => fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id))
-	// 		.map((fieldConfig) => fieldConfig.field)
-	// 		.filter(isDefined)
-	// 		.map((field) => {
-	// 			if (fieldNameOverrides[field.id]) {
-	// 				field.name = fieldNameOverrides[field.id];
-	// 			}
+		const allFields = fieldConfig
+			.filter((fieldConfig) => fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id))
+			.map((fieldConfig) => fieldConfig.field)
+			.filter(isDefined)
+			.map((field) => {
+				if (fieldNameOverrides[field.id]) {
+					field.name = fieldNameOverrides[field.id];
+				}
 
-	// 			return field;
-	// 		});
+				return field;
+			});
 
-	// 	assert(slugFieldId);
+		assert(slugFieldId);
 
-	// 	onSubmit({
-	// 		fields: allFields,
-	// 		ignoredFieldIds: Array.from(disabledFieldIds),
-	// 		slugFieldId,
-	// 		lastSyncedTime: getLastSyncedTime(pluginContext, database, slugFieldId, disabledFieldIds),
-	// 	});
-	// };
+		// onSubmit({
+		// 	fields: allFields,
+		// 	ignoredFieldIds: Array.from(disabledFieldIds),
+		// 	slugFieldId,
+		// 	lastSyncedTime: getLastSyncedTime(pluginContext, database, slugFieldId, disabledFieldIds),
+		// });
+	};
 
 	const isLoading = false;
 	const error = null;
@@ -255,12 +256,6 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 	function richTextToPlainText(text) {
 		return text;
 	}
-
-	function handleSubmit() {}
-
-	function handleFieldToggle(fieldId) {}
-
-	function handleFieldNameChange(fieldId, name) {}
 
 	return (
 		<div className="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scrollbar">
@@ -296,43 +291,43 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 						<div className="w-full h-full pl-2 flex items-center opacity-70 bg-bg-secondary rounded">Text</div>
 
 						{fieldConfig.map((fieldConfig) => {
-							const isUnsupported = !fieldConfig.field;
+							const isDisabled = !fieldConfig.field || disabledFieldIds.has(fieldConfig.field.id);
 
 							return (
 								<Fragment key={fieldConfig.originalFieldName}>
 									<input
 										type="checkbox"
 										disabled={!fieldConfig.field}
-										checked={!!fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id)}
-										className={classNames("mx-auto", isUnsupported && "opacity-50")}
+										checked={!!fieldConfig.field && !isDisabled}
+										className={classNames("mx-auto", isDisabled && "opacity-50")}
 										onChange={() => {
-											// assert(fieldConfig.field);
+											assert(fieldConfig.field);
 
 											handleFieldToggle(fieldConfig.field.id);
 										}}
 									/>
 									<input
 										type="text"
-										className={classNames("w-full", isUnsupported && "opacity-50")}
+										className={classNames("w-full", isDisabled && "opacity-50")}
 										disabled
 										value={fieldConfig.originalFieldName}
 									/>
-									<div className={classNames("flex items-center justify-center", isUnsupported && "opacity-50")}>
+									<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
 										<IconChevron />
 									</div>
 									<input
 										type="text"
-										className={classNames("w-full", isUnsupported && "opacity-50")}
+										className={classNames("w-full", isDisabled && "opacity-50")}
 										disabled={!fieldConfig.field || disabledFieldIds.has(fieldConfig.field.id)}
 										placeholder={fieldConfig.originalFieldName}
 										value={!fieldConfig.field ? "Unsupported Field" : fieldNameOverrides[fieldConfig.field.id] ?? ""}
 										onChange={(e) => {
-											// assert(fieldConfig.field);
+											assert(fieldConfig.field);
 
 											handleFieldNameChange(fieldConfig.field.id, e.target.value);
 										}}
 									></input>
-									<select className="w-full">
+									<select className={classNames("w-full", isDisabled && "opacity-50")}>
 										{propertyConversionTypes[fieldConfig.field.type]?.map((type) => (
 											<option key={type} value={type}>
 												{cmsFieldTypeNames[type]}
