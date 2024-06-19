@@ -15,7 +15,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@notionhq/client": "^2.2.15",
-    "classnames": "^2.5.1"
+    "@notionhq/client": "^2.2.15"
   }
 }

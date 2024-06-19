@@ -2,38 +2,56 @@ import React, { useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
 
 import { Button, BackButton } from "@shared/components.jsx";
-import {assert, isDefined} from "../../utils"
+import { assert, isDefined } from "../../utils";
 
-const stage = "configureFields"; // connectAccount, selectDatabase, configureFields
 const notionDatabases = ["Apps", "Buildings", "Fruits & Vegetables", "Database", "Kitchen Appliances"];
 
 export function NotionPage({ openPage, closePage }) {
+	const isAuthenticated = false;
+	const databaseSelected = false;
+
+	let Page = null
+	if (!isAuthenticated) {
+		Page = ConnectAccountPage;
+	} else if (!databaseSelected) {
+		Page = SelectDatabasePage;
+	} else {
+		Page = ConfigureFieldsPage;
+	}
+
 	return (
-		<div className="flex flex-col size-full p-3 pt-0 gap-2">
+		<div className="flex flex-col size-full px-3 gap-2 overflow-y-auto hide-scrollbar">
 			<BackButton onClick={closePage} />
+			<Page />
+		</div>
+	);
+}
+
+function ConnectAccountPage({}) {
+	return (
+		<div className="flex-1 flex flex-col gap-2 pb-3">
 			<div className="flex-1"></div>
-			<Button primary onClick={() => openPage(SelectDatabasePage)}>
+			<Button primary isLoading>
 				Connect Notion Account
 			</Button>
 		</div>
 	);
 }
 
-function SelectDatabasePage({ openPage, closePage }) {
+function SelectDatabasePage({ }) {
 	return (
-		<div className="flex-1 flex flex-col gap-2 p-3 pt-0">
-			<BackButton onClick={closePage} />
+		<div className="flex-1 flex flex-col gap-2 pb-3">
 			<p>Select a database to sync</p>
 			<div className="flex-1 flex flex-col divide-y divide-divider">
 				{notionDatabases.map((database) => (
-					<NotionDatabaseButton databaseName={database} onClick={() => openPage(ConfigureFieldsPage)} />
+					<NotionDatabaseButton databaseName={database} onClick={() => {}} />
 				))}
 			</div>
 		</div>
 	);
 }
 
-function ConfigureFieldsPage({ openPage, closePage }) {
+function ConfigureFieldsPage({ }) {
 	// const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const slugFields = [
 		{
@@ -258,8 +276,7 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 	}
 
 	return (
-		<div className="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scrollbar">
-			<BackButton onClick={closePage} />
+		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
 				<div className="flex-1 flex flex-col gap-4">
@@ -318,7 +335,7 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 									<input
 										type="text"
 										className={classNames("w-full", isDisabled && "opacity-50")}
-										disabled={!fieldConfig.field || disabledFieldIds.has(fieldConfig.field.id)}
+										disabled={!fieldConfig.field || isDisabled}
 										placeholder={fieldConfig.originalFieldName}
 										value={!fieldConfig.field ? "Unsupported Field" : fieldNameOverrides[fieldConfig.field.id] ?? ""}
 										onChange={(e) => {
@@ -327,7 +344,7 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 											handleFieldNameChange(fieldConfig.field.id, e.target.value);
 										}}
 									></input>
-									<select className={classNames("w-full", isDisabled && "opacity-50")}>
+									<select disabled={isDisabled} className={classNames("w-full", isDisabled && "opacity-50")}>
 										{propertyConversionTypes[fieldConfig.field.type]?.map((type) => (
 											<option key={type} value={type}>
 												{cmsFieldTypeNames[type]}
