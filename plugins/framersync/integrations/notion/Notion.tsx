@@ -23,7 +23,7 @@ function Page({ openPage, closePage, context }) {
 
 	return (
 		<div className="flex flex-col size-full px-3 gap-2 overflow-y-auto hide-scrollbar">
-			<BackButton onClick={closePage} />
+			{closePage && <BackButton onClick={closePage} />}
 			<Page context={context} />
 		</div>
 	);
@@ -432,6 +432,8 @@ function ConfigureFieldsPage({ context }) {
 	);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 function createContext() {
 	function getDatabaseLastUpdatedTime() {}
 
@@ -478,6 +480,7 @@ function createContext() {
 	}
 
 	return {
+		integrationId: "notion",
 		getDatabaseLastUpdatedTime,
 		isAuthenticated,
 		getFields,

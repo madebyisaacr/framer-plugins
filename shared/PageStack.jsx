@@ -47,7 +47,7 @@ export function PageStack({ homePage }) {
 								},
 							}}
 						>
-							<PageComponent openPage={openPage} closePage={closePage} {...page[1]} />
+							<PageComponent openPage={openPage} closePage={index == 0 ? undefined : closePage} {...page[1]} />
 						</motion.div>
 					);
 				})}
