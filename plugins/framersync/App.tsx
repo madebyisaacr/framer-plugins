@@ -4,10 +4,37 @@ import "./App.css";
 
 import { PageStack } from "@shared/PageStack";
 import { AirtablePage } from "./integrations/airtable/Airtable";
-import { NotionPage } from "./integrations/notion/Notion.tsx";
+import { NotionPage } from "./integrations/notion/Notion";
+
+const collection = await framer.getCollection()
 
 if (framer.mode === "syncCollection") {
-	// await importData(collection, rssSourceId)
+	await collection.setFields([
+		{
+			id: "abcdefg",
+			name: "Color",
+			type: "enum",
+			cases: [
+				{ id: "red", name: "Red" },
+				{ id: "green", name: "Green" },
+				{ id: "blue", name: "Blue" },
+				{ id: "yellow", name: "Yellow" },
+				{ id: "purple", name: "Purple" },
+			]
+		}
+	])
+
+	await collection.addItems([
+		{
+			id: "item1",
+			slug: "item1",
+			title: "Item A",
+			fieldData: {
+				abcdefg: "green"
+			}
+		}
+	])
+
 	await framer.closePlugin();
 } else if (framer.mode === "configureCollection") {
 	framer.showUI({
