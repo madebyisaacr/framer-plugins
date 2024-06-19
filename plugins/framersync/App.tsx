@@ -4,44 +4,54 @@ import "./App.css";
 
 import { Button, BackButton } from "@shared/components.jsx";
 import { PageStack } from "@shared/PageStack.jsx";
+import { AirtablePage } from "./integrations/airtable/airtable.jsx";
 
 if (framer.mode === "syncCollection") {
-  // await importData(collection, rssSourceId)
-  await framer.closePlugin()
+	// await importData(collection, rssSourceId)
+	await framer.closePlugin();
 } else if (framer.mode === "configureCollection") {
-  framer.showUI({
+	framer.showUI({
 		title: "FramerSync",
-		width: 300,
-		height: 300,
+		width: 450,
+		height: 450,
 	});
 }
 
 export function App() {
 	return (
 		<main className="flex flex-col size-full select-none text-color-base">
-			<PageStack homePage={HomePage} />
+			<PageStack homePage={AppsPage} />
 		</main>
 	);
 }
 
-function HomePage({openPage}) {
+function AppsPage({ openPage }) {
 	return (
-		<div className="flex flex-col size-full p-3 pt-0">
-			<h1>Sync Airtable with Framer</h1>
-			<div className="flex-1"></div>
-			<Button primary onClick={() => openPage(ConnectPage)}>Connect Airtable Account</Button>
+		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto hide-scrollbar items-center">
+			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
+				<h1 className="text-xl font-bold">Welcome to FramerSync</h1>
+				<p>Select an app to get started</p>
+			</div>
+			<div className="grid grid-cols-3 gap-2 w-full">
+				<AppButton title="Airtable" onClick={() => openPage(AirtablePage)} />
+				<AppButton title="Google Sheets" />
+				<AppButton title="Notion" />
+				<AppButton title="RSS Feed" />
+				<AppButton title="Shopify" />
+			</div>
 		</div>
 	);
 }
 
-function ConnectPage({ closePage }) {
+///////////////////////////////////////////////////////////////////////
+
+function AppButton({ title, onClick = () => {} }) {
 	return (
-		<div className="flex flex-col size-full p-3 pt-0 gap-2">
-			<BackButton onClick={closePage} />
-			<h1 className="text-xl font-bold -mb-1 mt-1">Connect Airtable account</h1>
-			<p>Connect your Airtable account to get started.</p>
-			<div className="flex-1" />
-			<Button primary>Connect</Button>
+		<div
+			onClick={onClick}
+			className="flex flex-col items-center justify-center gap-2 bg-bg-secondary rounded aspect-square text-sm font-semibold cursor-pointer"
+		>
+			{title}
 		</div>
 	);
 }

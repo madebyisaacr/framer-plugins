@@ -5,6 +5,10 @@ export function PageStack({ homePage }) {
 	const [pageStack, setPageStack] = useState([]);
 
 	function openPage(page, replace = false) {
+		if (!page) {
+			return;
+		}
+
 		if (replace) {
 			setPageStack([...pageStack.slice(0, pageStack.length - 1), page]);
 		} else {
