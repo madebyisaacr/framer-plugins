@@ -4,9 +4,9 @@ import "./App.css";
 
 import { PageStack } from "@shared/PageStack";
 import { AirtablePage } from "./integrations/airtable/Airtable";
-import { NotionPage } from "./integrations/notion/Notion";
+import Notion from "./integrations/notion/Notion.tsx";
 
-const collection = await framer.getCollection()
+const collection = await framer.getCollection();
 
 if (framer.mode === "syncCollection") {
 	await collection.setFields([
@@ -20,9 +20,9 @@ if (framer.mode === "syncCollection") {
 				{ id: "blue", name: "Blue" },
 				{ id: "yellow", name: "Yellow" },
 				{ id: "purple", name: "Purple" },
-			]
-		}
-	])
+			],
+		},
+	]);
 
 	await collection.addItems([
 		{
@@ -30,10 +30,10 @@ if (framer.mode === "syncCollection") {
 			slug: "item1",
 			title: "Item A",
 			fieldData: {
-				abcdefg: "green"
-			}
-		}
-	])
+				abcdefg: "green",
+			},
+		},
+	]);
 
 	await framer.closePlugin();
 } else if (framer.mode === "configureCollection") {
@@ -53,6 +53,12 @@ export function App() {
 }
 
 function AppsPage({ openPage }) {
+	function openIntegrationPage(integration) {
+		const context = integration.createContext();
+
+		openPage(integration.Page, { context });
+	}
+
 	return (
 		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto hide-scrollbar items-center">
 			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
@@ -62,7 +68,7 @@ function AppsPage({ openPage }) {
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton title="Airtable" onClick={() => openPage(AirtablePage)} />
 				<AppButton title="Google Sheets" />
-				<AppButton title="Notion" onClick={() => openPage(NotionPage)} />
+				<AppButton title="Notion" onClick={() => openIntegrationPage(Notion)} />
 				<AppButton title="RSS Feed" />
 				<AppButton title="Shopify" />
 			</div>
