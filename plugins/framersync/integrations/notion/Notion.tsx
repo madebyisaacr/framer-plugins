@@ -246,3 +246,26 @@ function IconChevron() {
 		</svg>
 	);
 }
+
+const propertyConversionTypes = {
+	checkbox: ["boolean"],
+	created_by: ["string"],
+	created_time: ["date", "string"],
+	date: ["date", "string"],
+	email: ["string"],
+	files: ["string", "link", "image"],
+	formula: ["string"],
+	last_edited_by: ["string"],
+	last_edited_time: ["date", "string"],
+	multi_select: ["string"],
+	number: ["number"],
+	people: ["string"],
+	phone_number: ["string"],
+	relation: ["string"],
+	rich_text: ["formattedText", "string"],
+	rollup: ["string"],
+	select: ["enum", "string"],
+	status: ["enum", "string"],
+	title: ["string"],
+	url: ["link", "string"],
+};
