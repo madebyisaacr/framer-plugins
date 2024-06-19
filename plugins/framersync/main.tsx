@@ -12,21 +12,20 @@ import Notion from "./integrations/notion/Notion.tsx";
 const collection = await framer.getCollection();
 
 let showUI = false;
+let pageComponent: any = HomePage
+let context: any = null
 
 if (framer.mode === "syncCollection") {
+	let success = false
+
 	if (collection) {
-		const integrationType = "notion" // await collection.getPluginData("integration");
+		const integrationId = await collection.getPluginData("integrationId");
 
-		let context: any = null;
-
-		switch (integrationType) {
+		switch (integrationId) {
 			case "notion":
 				context = Notion.createContext();
+				pageComponent = Notion.Page;
 				break;
-		}
-
-		if (!integrationType || !context) {
-			showUI = true;
 		}
 
 		if (context) {
@@ -34,14 +33,23 @@ if (framer.mode === "syncCollection") {
 
 			if (isAuthenticated) {
 				await syncCollection(context);
-			} else {
-				showUI = true;
+				success = true;
 			}
 		}
-	} else {
+	}
+
+	if (!success) {
 		showUI = true;
 	}
 } else if (framer.mode === "configureCollection") {
+	const integrationId = await collection.getPluginData("integrationId");
+	switch (integrationId) {
+		case "notion":
+			context = Notion.createContext();
+			pageComponent = Notion.Page;
+			break;
+	}
+
 	showUI = true;
 }
 
@@ -52,7 +60,7 @@ if (showUI) {
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
 			<main className="flex flex-col size-full select-none text-color-base">
-				<PageStack homePage={HomePage} />
+				<PageStack homePage={pageComponent} homePageProps={{ context }} />
 			</main>
 		</React.StrictMode>
 	);

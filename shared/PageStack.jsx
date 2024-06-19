@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
 
-export function PageStack({ homePage }) {
+export function PageStack({ homePage, homePageProps = {} }) {
 	const [pageStack, setPageStack] = useState([]);
 
 	function openPage(page, props = {}) {
@@ -21,7 +21,7 @@ export function PageStack({ homePage }) {
 	return (
 		<div className="size-full hide-scrollbar">
 			<AnimatePresence>
-				{[[homePage, {}], ...pageStack].map((page, index) => {
+				{[[homePage, homePageProps], ...pageStack].map((page, index) => {
 					const PageComponent = page[0];
 
 					return (

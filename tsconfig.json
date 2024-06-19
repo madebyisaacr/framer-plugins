@@ -18,6 +18,8 @@
         // "noUnusedLocals": true,
         // "noUnusedParameters": true,
         // "noFallthroughCasesInSwitch": true
+
+        "strictNullChecks": false,
     },
     "include": ["plugins/*/src"]
 }
