@@ -250,7 +250,7 @@ function HomePage({ openPage }) {
 					<div className="flex flex-row gap-2">
 						<select
 							value={iconPack.name}
-							className="pl-2 flex-1"
+							className="flex-1"
 							onChange={(event) => changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))}
 						>
 							{pinnedIconPacks
@@ -322,7 +322,7 @@ function HomePage({ openPage }) {
 						) : (
 							<select
 								value={iconType}
-								className="pl-2 pr-5 w-full"
+								className="w-full"
 								onChange={(event) => setIconType(parseInt(event.target.value))}
 							>
 								{iconPackData.typeNames.map((type, index) => (

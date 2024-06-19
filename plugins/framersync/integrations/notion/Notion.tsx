@@ -48,9 +48,143 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 	const [fieldConfig] = useState([
 		{
 			field: {
-				id: "abc",
+				type: "checkbox",
+				id: "checkbox",
 			},
-			originalFieldName: "abc",
+			originalFieldName: "checkbox"
+		},
+		{
+			field: {
+				type: "created_by",
+				id: "created_by",
+			},
+			originalFieldName: "created_by"
+		},
+		{
+			field: {
+				type: "created_time",
+				id: "created_time",
+			},
+			originalFieldName: "created_time"
+		},
+		{
+			field: {
+				type: "date",
+				id: "date",
+			},
+			originalFieldName: "date"
+		},
+		{
+			field: {
+				type: "email",
+				id: "email",
+			},
+			originalFieldName: "email"
+		},
+		{
+			field: {
+				type: "files",
+				id: "files",
+			},
+			originalFieldName: "files"
+		},
+		{
+			field: {
+				type: "formula",
+				id: "formula",
+			},
+			originalFieldName: "formula"
+		},
+		{
+			field: {
+				type: "last_edited_by",
+				id: "last_edited_by",
+			},
+			originalFieldName: "last_edited_by"
+		},
+		{
+			field: {
+				type: "last_edited_time",
+				id: "last_edited_time",
+			},
+			originalFieldName: "last_edited_time"
+		},
+		{
+			field: {
+				type: "multi_select",
+				id: "multi_select",
+			},
+			originalFieldName: "multi_select"
+		},
+		{
+			field: {
+				type: "number",
+				id: "number",
+			},
+			originalFieldName: "number"
+		},
+		{
+			field: {
+				type: "people",
+				id: "people",
+			},
+			originalFieldName: "people"
+		},
+		{
+			field: {
+				type: "phone_number",
+				id: "phone_number",
+			},
+			originalFieldName: "phone_number"
+		},
+		{
+			field: {
+				type: "relation",
+				id: "relation",
+			},
+			originalFieldName: "relation"
+		},
+		{
+			field: {
+				type: "rich_text",
+				id: "rich_text",
+			},
+			originalFieldName: "rich_text"
+		},
+		{
+			field: {
+				type: "rollup",
+				id: "rollup",
+			},
+			originalFieldName: "rollup"
+		},
+		{
+			field: {
+				type: "select",
+				id: "select",
+			},
+			originalFieldName: "select"
+		},
+		{
+			field: {
+				type: "status",
+				id: "status",
+			},
+			originalFieldName: "status"
+		},
+		{
+			field: {
+				type: "title",
+				id: "title",
+			},
+			originalFieldName: "title"
+		},
+		{
+			field: {
+				type: "url",
+				id: "url",
+			},
+			originalFieldName: "url"
 		},
 	]);
 	// const [disabledFieldIds, setDisabledFieldIds] = useState(
@@ -129,7 +263,7 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 	function handleFieldNameChange(fieldId, name) {}
 
 	return (
-		<div className="flex-1 flex flex-col gap-2 p-3 pt-0">
+		<div className="flex-1 flex flex-col gap-2 px-3 overflow-y-auto hide-scrollbar">
 			<BackButton onClick={closePage} />
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
@@ -147,17 +281,19 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 					<div
 						className="grid gap-2 w-full items-center justify-center"
 						style={{
-							gridTemplateColumns: `16px 1fr 8px 1fr`,
+							gridTemplateColumns: `16px 1fr 8px 1fr minmax(100px, auto)`,
 						}}
 					>
 						<span className="col-start-2 col-span-2">Notion Property</span>
-						<span>Collection Field</span>
+						<span>Collection Field Name</span>
+						<span>Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<input type="text" className="w-full opacity-50" disabled value={"Title"} />
-						<div className="flex items-center justify-center opacity-50">
+						<div className="flex items-center justify-center">
 							<IconChevron />
 						</div>
-						<input type="text" className={"w-full opacity-50"} disabled={true} placeholder={"Title"}></input>
+						<input type="text" className={"w-full"} placeholder={"Title"}></input>
+						<div className="w-full h-full pl-2 flex items-center opacity-70 bg-bg-secondary rounded">Text</div>
 
 						{fieldConfig.map((fieldConfig) => {
 							const isUnsupported = !fieldConfig.field;
@@ -196,13 +332,19 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 											handleFieldNameChange(fieldConfig.field.id, e.target.value);
 										}}
 									></input>
+									<select className="w-full">
+										{propertyConversionTypes[fieldConfig.field.type]?.map((type) => (
+											<option key={type} value={type}>
+												{cmsFieldTypeNames[type]}
+											</option>
+										))}
+									</select>
 								</Fragment>
 							);
 						})}
 					</div>
 				</div>
-
-				<div className="left-0 bottom-0 w-full flex flex-col gap-3 sticky bg-bg pt-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
+				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-bg py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
 					<div className="inline-flex items-center gap-1 min-w-0">
 						{error ? (
 							<span className="text-red-500">{error.message}</span>
@@ -220,7 +362,7 @@ function ConfigureFieldsPage({ openPage, closePage }) {
 							</>
 						)}
 					</div>
-					<Button primary isLoading={isLoading} disabled={!slugFieldId}>
+					<Button primary className="w-auto" isLoading={isLoading} disabled={!slugFieldId}>
 						Import
 					</Button>
 				</div>
@@ -268,4 +410,16 @@ const propertyConversionTypes = {
 	status: ["enum", "string"],
 	title: ["string"],
 	url: ["link", "string"],
+};
+
+const cmsFieldTypeNames = {
+	boolean: "Toggle",
+	color: "Color",
+	number: "Number",
+	string: "Text",
+	formattedText: "Formatted Text",
+	image: "Image",
+	link: "Link",
+	date: "Date",
+	enum: "Option",
 };
