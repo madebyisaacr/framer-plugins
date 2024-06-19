@@ -31,7 +31,7 @@ function ConnectAccountPage({}) {
 	return (
 		<div className="flex-1 flex flex-col gap-2 pb-3">
 			<div className="flex-1"></div>
-			<Button primary isLoading>
+			<Button primary>
 				Connect Notion Account
 			</Button>
 		</div>

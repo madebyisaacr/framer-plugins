@@ -19,6 +19,7 @@ export function Button({
 	href = "",
 	onClick = null,
 	isLoading = false,
+	disabled = false,
 }) {
 	const Element = href.length ? "a" : "button";
 	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
@@ -27,11 +28,13 @@ export function Button({
 		<Element
 			style={style}
 			className={classnames(
-				"relative flex items-center gap-1.5 justify-center rounded font-semibold cursor-pointer border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
+				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
 				square ? "min-w-6 max-w-6" : "px-2",
 				primary ? "framer-button-primary" : "bg-bg-secondary text-color-base hover:bg-bg-tertiary",
+				disabled ? "opacity-60" : "cursor-pointer",
 				className
 			)}
+			disabled={disabled}
 			{...elementProps}
 		>
 			{primary && (
