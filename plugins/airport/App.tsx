@@ -5,22 +5,16 @@ import "./App.css";
 import { Button, BackButton } from "@shared/components.jsx";
 import { PageStack } from "@shared/PageStack.jsx";
 
-// if (framer.mode === "syncCollection") {
-//   // await importData(collection, rssSourceId)
-//   await framer.closePlugin()
-// } else if (framer.mode === "configureCollection") {
-//   framer.showUI({
-// 		title: "Airport",
-// 		width: 315,
-// 		height: 400,
-// 	});
-// }
-
-framer.showUI({
-	title: "Airport",
-	width: 270,
-	height: 300,
-});
+if (framer.mode === "syncCollection") {
+  // await importData(collection, rssSourceId)
+  await framer.closePlugin()
+} else if (framer.mode === "configureCollection") {
+  framer.showUI({
+		title: "Airport",
+		width: 300,
+		height: 300,
+	});
+}
 
 export function App() {
 	return (
