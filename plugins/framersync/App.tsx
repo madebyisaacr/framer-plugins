@@ -2,9 +2,9 @@ import { framer } from "framer-plugin";
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-import { Button, BackButton } from "@shared/components.jsx";
 import { PageStack } from "@shared/PageStack.jsx";
 import { AirtablePage } from "./integrations/airtable/airtable.jsx";
+import { NotionPage } from "./integrations/notion/NotionPage.jsx";
 
 if (framer.mode === "syncCollection") {
 	// await importData(collection, rssSourceId)
@@ -35,7 +35,7 @@ function AppsPage({ openPage }) {
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton title="Airtable" onClick={() => openPage(AirtablePage)} />
 				<AppButton title="Google Sheets" />
-				<AppButton title="Notion" />
+				<AppButton title="Notion" onClick={() => openPage(NotionPage)} />
 				<AppButton title="RSS Feed" />
 				<AppButton title="Shopify" />
 			</div>

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export function PageStack({ homePage }) {
 	const [pageStack, setPageStack] = useState([]);
