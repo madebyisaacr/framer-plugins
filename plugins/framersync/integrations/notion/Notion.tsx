@@ -6,7 +6,7 @@ import { PluginContext, useSynchronizeDatabaseMutation } from "./notionHandler";
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { SelectDatabase } from "./SelectDatabase";
 import { MapDatabaseFields } from "./MapFields";
-// import { logSyncResult } from "./debug";
+import { logSyncResult } from "./debug";
 import { Authentication } from "./Authenticate";
 
 interface AppProps {
@@ -20,7 +20,7 @@ export function AuthenticatedApp({ context }: AppProps) {
 
 	const synchronizeMutation = useSynchronizeDatabaseMutation(databaseConfig, {
 		onSuccess(result) {
-			// logSyncResult(result);
+			logSyncResult(result);
 
 			if (result.status === "success") {
 				framer.closePlugin("Synchronization successful");
