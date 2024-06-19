@@ -2,9 +2,9 @@ import { framer } from "framer-plugin";
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 
-import { PageStack } from "@shared/PageStack.jsx";
-import { AirtablePage } from "./integrations/airtable/airtable.jsx";
-import { NotionPage } from "./integrations/notion/NotionPage.jsx";
+import { PageStack } from "@shared/PageStack";
+import { AirtablePage } from "./integrations/airtable/Airtable";
+import { NotionPage } from "./integrations/notion/Notion.tsx";
 
 if (framer.mode === "syncCollection") {
 	// await importData(collection, rssSourceId)
@@ -12,7 +12,7 @@ if (framer.mode === "syncCollection") {
 } else if (framer.mode === "configureCollection") {
 	framer.showUI({
 		title: "FramerSync",
-		width: 450,
+		width: 600,
 		height: 450,
 	});
 }
