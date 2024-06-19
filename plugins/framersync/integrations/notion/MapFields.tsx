@@ -10,7 +10,7 @@ import {
 	hasFieldConfigurationChanged,
 	pageContentField,
 	richTextToPlainText,
-} from "./notion";
+} from "./App";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
 import { IconChevron } from "./components/Icons";

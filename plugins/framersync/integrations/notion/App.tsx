@@ -1,7 +1,6 @@
 import { framer } from "framer-plugin";
 import { useState } from "react";
-import "./App.css";
-import { PluginContext, useSynchronizeDatabaseMutation } from "./notionHandler";
+import { PluginContext, useSynchronizeDatabaseMutation } from "./notion";
 
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { SelectDatabase } from "./SelectDatabase";

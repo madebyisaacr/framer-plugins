@@ -2,11 +2,11 @@ import "./globals.css";
 
 import React, { ReactNode, Suspense } from "react";
 import ReactDOM from "react-dom/client";
-import { App } from "./Notion";
+import { App } from "./App.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
-import { PluginContext, PluginContextUpdate, getPluginContext, synchronizeDatabase } from "./notionHandler";
+import { PluginContext, PluginContextUpdate, getPluginContext, synchronizeDatabase } from "./notion.ts";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug";

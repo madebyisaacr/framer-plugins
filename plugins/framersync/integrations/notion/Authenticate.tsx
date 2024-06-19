@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { PluginContext, authorize, getOauthURL, getPluginContext } from "./notionHandler";
+import { PluginContext, authorize, getOauthURL, getPluginContext } from "./notion";
 import { Button } from "./components/Button";
 import { generateRandomId } from "./utils";
 import { framer } from "framer-plugin";
