@@ -10,7 +10,7 @@ if (framer.mode === "syncCollection") {
   await framer.closePlugin()
 } else if (framer.mode === "configureCollection") {
   framer.showUI({
-		title: "Airport",
+		title: "FramerSync",
 		width: 300,
 		height: 300,
 	});
