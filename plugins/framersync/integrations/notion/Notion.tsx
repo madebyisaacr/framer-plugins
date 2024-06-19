@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
+import { framer } from "framer-plugin";
 
 import { Button, BackButton } from "@shared/components.jsx";
-import { assert, isDefined } from "../../utils";
+import { assert, isDefined, generateRandomId } from "@plugin/utils";
+import { PluginContext, authorize, getOauthURL, getPluginContext } from "./notionHandler";
 
 const notionDatabases = ["Apps", "Buildings", "Fruits & Vegetables", "Database", "Kitchen Appliances"];
 
@@ -10,7 +12,7 @@ export function NotionPage({ openPage, closePage }) {
 	const isAuthenticated = false;
 	const databaseSelected = false;
 
-	let Page = null
+	let Page: any = null;
 	if (!isAuthenticated) {
 		Page = ConnectAccountPage;
 	} else if (!databaseSelected) {
@@ -28,17 +30,64 @@ export function NotionPage({ openPage, closePage }) {
 }
 
 function ConnectAccountPage({}) {
+	const [isLoading, setIsLoading] = useState(false);
+	const isDocumentVisible = useIsDocumentVisibile();
+	const notifiedForContextRef = useRef<PluginContext | null>(null);
+
+	function onAuthenticated() {}
+
+	useEffect(() => {
+		// after authentication the user may not have returned to Framer yet.
+		// So the toast is only displayed upon document being visible
+		if (!isDocumentVisible) return;
+		// Only notify once per context
+		if (notifiedForContextRef.current === context) return;
+		if (context.type !== "error") return;
+
+		notifiedForContextRef.current = context;
+		framer.notify(context.message, { variant: "error" });
+	}, [context, isDocumentVisible]);
+
+	const handleAuth = () => {
+		setIsLoading(true);
+		const writeKey = generateRandomId();
+
+		// It is important to call `window.open` directly in the event handler
+		// So that Safari does not block any popups.
+		window.open(getOauthURL(writeKey), "_blank");
+
+		authorize({ readKey: generateRandomId(), writeKey })
+			.then(getPluginContext)
+			.then(onAuthenticated)
+			.finally(() => {
+				setIsLoading(false);
+			});
+	};
 	return (
-		<div className="flex-1 flex flex-col gap-2 pb-3">
-			<div className="flex-1"></div>
-			<Button primary>
+		<div className="w-full flex-1 flex flex-col items-center justify-center gap-4 pb-4 overflo">
+			<div className="max-w-100% rounded-md flex-shrink-0 aspect-[3/2] bg-bg-secondary" />
+			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
+				{isLoading ? (
+					<span className="text-center max-w-[80%] block text-secondary">
+						Complete the authentication and return to this page.
+					</span>
+				) : (
+					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex flex-col flex-1">
+						<li>Log in to your Notion account</li>
+						<li>Pick the database you want to import</li>
+						<li>Map the database fields to the CMS</li>
+					</ol>
+				)}
+			</div>
+
+			<Button primary onClick={handleAuth} isLoading={isLoading} disabled={isLoading}>
 				Connect Notion Account
 			</Button>
 		</div>
 	);
 }
 
-function SelectDatabasePage({ }) {
+function SelectDatabasePage({}) {
 	return (
 		<div className="flex-1 flex flex-col gap-2 pb-3">
 			<p>Select a database to sync</p>
@@ -51,7 +100,7 @@ function SelectDatabasePage({ }) {
 	);
 }
 
-function ConfigureFieldsPage({ }) {
+function ConfigureFieldsPage({}) {
 	// const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const slugFields = [
 		{
@@ -435,3 +484,20 @@ const cmsFieldTypeNames = {
 	date: "Date",
 	enum: "Option",
 };
+
+function useIsDocumentVisibile() {
+	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
+
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			setIsVisible(document.visibilityState === "visible");
+		};
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
+	}, []);
+
+	return isVisible;
+}
