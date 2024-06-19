@@ -16,7 +16,7 @@ import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl = "https://notion-plugin-api.niekkruse70.workers.dev";
+const apiBaseUrl = "https://framersync.isaac-b49.workers.dev";
 const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/auth/authorize/callback`);
 
 export const getOauthURL = (writeKey: string) =>
@@ -49,7 +49,8 @@ export const pageContentField: CollectionField = {
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
-	return localStorage.getItem(notionBearerStorageKey) !== null;
+	return true
+	// return localStorage.getItem(notionBearerStorageKey) !== null;
 }
 
 let notion: Client | null = null;
@@ -58,10 +59,12 @@ if (isAuthenticated()) {
 }
 
 export function initNotionClient() {
-	const token = localStorage.getItem(notionBearerStorageKey);
+	// const token = localStorage.getItem(notionBearerStorageKey);
+	const token = import.meta.env.VITE_NOTION_API_KEY;
 	if (!token) throw new Error("Notion API token is missing");
 
 	notion = new Client({
+		auth: token,
 		fetch: async (url, fetchInit) => {
 			const urlObj = new URL(url);
 
@@ -85,7 +88,6 @@ export function initNotionClient() {
 				throw error;
 			}
 		},
-		auth: token,
 	});
 }
 

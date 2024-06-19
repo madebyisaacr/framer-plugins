@@ -5,18 +5,27 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { HomePage } from "./App.tsx";
 import "./App.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { PageStack } from "@shared/PageStack";
 import Notion from "./integrations/notion/Notion.tsx";
 
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			retry: false,
+		},
+	},
+});
+
 const collection = await framer.getCollection();
 
 let showUI = false;
-let pageComponent: any = HomePage
-let context: any = null
+let pageComponent: any = HomePage;
+let context: any = null;
 
 if (framer.mode === "syncCollection") {
-	let success = false
+	let success = false;
 
 	if (collection) {
 		const integrationId = await collection.getPluginData("integrationId");
@@ -59,9 +68,11 @@ if (showUI) {
 
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
-			<main className="flex flex-col size-full select-none text-color-base">
-				<PageStack homePage={pageComponent} homePageProps={{ context }} />
-			</main>
+			<QueryClientProvider client={queryClient}>
+				<main className="flex flex-col size-full select-none text-color-base">
+					<PageStack homePage={pageComponent} homePageProps={{ context }} />
+				</main>
+			</QueryClientProvider>
 		</React.StrictMode>
 	);
 
