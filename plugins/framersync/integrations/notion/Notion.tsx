@@ -154,17 +154,31 @@ function ConfigureFieldsPage() {
 
 		if (isLoading) return;
 
-		const allFields = fieldConfigList
-			.filter((fieldConfig) => fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id))
-			.map((fieldConfig) => fieldConfig.field)
-			.filter(isDefined)
-			.map((field) => {
-				if (fieldNameOverrides[field.id]) {
-					field.name = fieldNameOverrides[field.id];
-				}
+		const collectionFields = {};
 
-				return field;
-			});
+		for (const fieldConfig of fieldConfigList) {
+			if (!fieldConfig || !fieldConfig.property || fieldConfig.unsupported || disabledFieldIds.has(fieldConfig.property.id)) {
+				continue;
+			}
+
+			collectionFields[fieldConfig.property.id] = getCollectionFieldForProperty(
+				fieldConfig.property,
+				fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
+				fieldTypes[fieldConfig.property.id]
+			);
+		}
+
+		// const allFields = fieldConfigList
+		// 	.filter((fieldConfig) => fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id))
+		// 	.map((fieldConfig) => fieldConfig.field)
+		// 	.filter(isDefined)
+		// 	.map((field) => {
+		// 		if (fieldNameOverrides[field.id]) {
+		// 			field.name = fieldNameOverrides[field.id];
+		// 		}
+
+		// 		return field;
+		// 	});
 
 		assert(slugFieldId);
 
@@ -417,7 +431,6 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 
 		result.push({
 			property: property,
-			// field: getCollectionFieldForProperty(property),
 			unsupported: !fieldConversionTypes[property.type]?.length,
 			originalFieldName: property.name,
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
@@ -492,7 +505,6 @@ const fieldConversionTypes = {
 	url: ["link", "string"],
 	page_content: ["formattedText"], // Fake property type for page content
 };
-const notionFieldTypes = Object.keys(fieldConversionTypes);
 
 const cmsFieldTypeNames = {
 	boolean: "Toggle",

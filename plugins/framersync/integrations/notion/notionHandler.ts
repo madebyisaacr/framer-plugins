@@ -49,7 +49,7 @@ export const pageContentField: CollectionField = {
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
-	return true
+	return true;
 	// return localStorage.getItem(notionBearerStorageKey) !== null;
 }
 
@@ -158,65 +158,39 @@ export async function authorize(options: { readKey: string; writeKey: string }) 
  * Given a Notion Database Properties object returns a CollectionField object
  * That maps the Notion Property to the Framer CMS collection property type
  */
-export function getCollectionFieldForProperty(property: NotionProperty): CollectionField | null {
-	switch (property.type) {
-		case "email":
-		case "rich_text": {
-			return {
-				type: "formattedText",
-				id: property.id,
-				name: property.name,
-			};
+export function getCollectionFieldForProperty(
+	property: NotionProperty,
+	name: string,
+	type: string
+): CollectionField | null {
+	if (type == "enum") {
+		let cases: any[] = [];
+
+		if (property.type == "select") {
+			cases = property.select.options.map((option) => ({
+				id: option.id,
+				name: option.name,
+			}));
+		} else if (property.type == "status") {
+			cases = property.status.options.map((option) => ({
+				id: option.id,
+				name: option.name,
+			}));
 		}
-		case "date":
-		case "last_edited_time": {
-			return {
-				type: "date",
-				id: property.id,
-				name: property.name,
-			};
-		}
-		case "select": {
-			return {
-				type: "enum",
-				cases: property.select.options.map((option) => ({
-					id: option.id,
-					name: option.name,
-				})),
-				id: property.id,
-				name: property.name,
-			};
-		}
-		case "number": {
-			return {
-				type: "number",
-				id: property.id,
-				name: property.name,
-			};
-		}
-		case "checkbox": {
-			return {
-				type: "boolean",
-				id: property.id,
-				name: property.name,
-			};
-		}
-		case "created_time": {
-			return {
-				type: "date",
-				id: property.id,
-				name: property.name,
-			};
-		}
-		case "title":
-			// The "title" field is required in Notion and is always used to set the "title" on the CMS item.
-			return null;
-		case "multi_select":
-		default: {
-			// More Field types can be added here
-			return null;
-		}
+
+		return {
+			type: "enum",
+			id: property.id,
+			name,
+			cases,
+		};
 	}
+
+	return {
+		type: type,
+		id: property.id,
+		name,
+	};
 }
 
 export function richTextToPlainText(richText: RichTextItemResponse[]) {
