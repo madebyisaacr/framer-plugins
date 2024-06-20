@@ -117,6 +117,8 @@ function ConfigureFieldsPage() {
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
+	const titleField =
+		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
 
 	// assert(isFullDatabase(database));
 
@@ -192,7 +194,7 @@ function ConfigureFieldsPage() {
 						<span>Collection Field Name</span>
 						<span>Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<input type="text" className="w-full" disabled value={"Title"} />
+						<input type="text" className="w-full" disabled value={titleField?.name ?? "Title"} />
 						<div className="flex items-center justify-center">
 							<IconChevron />
 						</div>
@@ -237,11 +239,12 @@ function ConfigureFieldsPage() {
 										}}
 									></input>
 									<select disabled={isDisabled} className={classNames("w-full", isDisabled && "opacity-50")}>
-										{fieldConfig.field && fieldConversionTypes[fieldConfig.field.type]?.map((type) => (
-											<option key={type} value={type}>
-												{cmsFieldTypeNames[type]}
-											</option>
-										))}
+										{fieldConfig.field &&
+											fieldConversionTypes[fieldConfig.field.type]?.map((type) => (
+												<option key={type} value={type}>
+													{cmsFieldTypeNames[type]}
+												</option>
+											))}
 									</select>
 								</Fragment>
 							);
