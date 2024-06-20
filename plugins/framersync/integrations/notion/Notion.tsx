@@ -35,9 +35,9 @@ function Page() {
 		};
 	}, []);
 
-	// if (!isAuthenticated) {
-	// 	return <AuthenticatePage />;
-	// }
+	if (!pluginContext.isAuthenticated) {
+		return <AuthenticatePage />;
+	}
 
 	if (!pluginContext.databaseId) {
 		return <SelectDatabasePage />;
@@ -64,12 +64,16 @@ async function initialize(pluginContext) {
 }
 
 function AuthenticatePage() {
+	const { openPage } = useContext(PageStackContext);
+
 	return (
-		<div className="p-3 pt-0 flex-1 flex flex-col">
+		<div className="p-3 pt-0 flex-1 flex flex-col gap-2">
 			<BackButton />
-			AuthenticatePage
+			Authenticate Page
 			<div className="flex-1" />
-			<Button primary>Connect Notion Account</Button>
+			<Button primary onClick={() => openPage(<SelectDatabasePage />)}>
+				Connect Notion Account
+			</Button>
 		</div>
 	);
 }
@@ -145,6 +149,8 @@ function FieldConfigurationMenu() {
 	const error = null;
 
 	const database = pluginContext.integrationData?.database || null;
+
+	console.log("database", database);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext.slugFieldId, slugFields));
@@ -291,7 +297,7 @@ function FieldConfigurationMenu() {
 									</div>
 									{!fieldTypes[id] ? (
 										<>
-											<StaticInput disabled>Unsupported Field</StaticInput>
+											<StaticInput disabled>Unsupported Field Type</StaticInput>
 											<StaticInput disabled></StaticInput>
 										</>
 									) : (
@@ -308,7 +314,7 @@ function FieldConfigurationMenu() {
 												}}
 											></input>
 
-											{fieldConversionTypes[fieldConfig.property.type]?.length <= 1 ? (
+											{fieldConfig.conversionTypes?.length <= 1 ? (
 												<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
 											) : (
 												<select
@@ -318,7 +324,7 @@ function FieldConfigurationMenu() {
 													className={classNames("w-full", isDisabled && "opacity-50")}
 												>
 													{fieldConfig.property &&
-														fieldConversionTypes[fieldConfig.property.type]?.map((type) => (
+														fieldConfig.conversionTypes?.map((type) => (
 															<option key={type} value={type}>
 																{cmsFieldTypeNames[type]}
 															</option>
@@ -427,11 +433,11 @@ function useIsDocumentVisibile() {
 }
 
 interface CollectionFieldConfig {
-	// field: CollectionField | null;
 	property: NotionProperty;
 	isNewField: boolean;
 	originalFieldName: string;
 	unsupported: boolean;
+	conversionTypes: string[];
 }
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
@@ -467,6 +473,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		},
 		originalFieldName: pageContentField.name,
 		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
+		conversionTypes: ["formattedText"],
 	});
 
 	for (const key in database.properties) {
@@ -476,11 +483,14 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		// Title is always required in CMS API.
 		if (property.type === "title") continue;
 
+		const conversionTypes = getFieldConversionType(property)
+
 		result.push({
 			property: property,
-			unsupported: !fieldConversionTypes[property.type]?.length,
+			unsupported: !conversionTypes.length,
 			originalFieldName: property.name,
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+			conversionTypes,
 		});
 	}
 
@@ -495,7 +505,7 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[]) {
 			continue;
 		}
 
-		const type = fieldConversionTypes[fieldConfig.property.type]?.[0];
+		const type = fieldConfig.conversionTypes?.[0];
 		if (!type) {
 			continue;
 		}
@@ -529,26 +539,40 @@ function getInitialSlugFieldId(context, fieldOptions: NotionProperty[]): string 
 	return fieldOptions[0]?.id ?? null;
 }
 
-const fieldConversionTypes = {
-	checkbox: ["boolean"],
-	created_by: ["string"],
-	created_time: ["date"],
-	date: ["date"],
-	email: ["string", "link"],
-	files: ["string", "link", "image"],
-	formula: ["string"],
-	last_edited_by: ["string"],
-	last_edited_time: ["date"],
-	multi_select: ["string"],
-	number: ["number"],
-	people: ["string"],
-	phone_number: ["string"],
-	relation: ["string"],
-	rich_text: ["formattedText", "string"],
-	rollup: ["string"],
-	select: ["enum", "string"],
-	status: ["enum", "string"],
-	title: ["string"],
-	url: ["link", "string"],
-	page_content: ["formattedText"], // Fake property type for page content
-};
+function getFieldConversionType(property: NotionProperty) {
+	switch (property.type) {
+		case "checkbox":
+			return ["boolean"];
+		case "title":
+		case "created_by":
+		case "formula":
+		case "last_edited_by":
+		case "rollup":
+		case "multi_select":
+		case "people":
+		case "phone_number":
+		case "relation":
+			return ["string"];
+		case "created_time":
+		case "date":
+		case "last_edited_time":
+			return ["date"];
+		case "email":
+			return ["string", "link"];
+		case "files":
+			return ["string", "link", "image"];
+		case "number":
+			return ["number"];
+		case "rich_text":
+			return ["formattedText", "string"];
+		case "select":
+		case "status":
+			return ["enum", "string"];
+		case "url":
+			return ["link", "string"];
+		case "unique_id":
+			return property.unique_id.prefix ? ["string"] : ["number"]
+		default:
+			return [];
+	}
+}
