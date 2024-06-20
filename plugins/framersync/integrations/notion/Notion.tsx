@@ -18,6 +18,29 @@ import {
 } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/utils";
 import { isFullDatabase } from "@notionhq/client";
+import { PageStackContext } from "@shared/PageStack.jsx";
+import plugin from "tailwindcss";
+
+function Page() {
+	const { isAuthenticated, databaseId } = useContext(PluginContext);
+
+	// if (!isAuthenticated) {
+	// 	return <AuthenticatePage />;
+	// }
+
+	if (!databaseId) {
+		return <SelectDatabasePage />;
+	}
+
+	return <ConfigureFieldsPage />;
+}
+
+const Notion = {
+	id: "notion",
+	Page,
+};
+
+export default Notion;
 
 function AuthenticatePage() {
 	return (
@@ -30,13 +53,16 @@ function AuthenticatePage() {
 }
 
 function SelectDatabasePage() {
-	const { openPage } = useContext(PluginContext);
+	const { openPage } = useContext(PageStackContext);
+	const { integrationData } = useContext(PluginContext);
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 
-	const [selectedDatabase, setSelectedDatabase] = useState(null);
+	const [selectedDatabase, setSelectedDatabase] = useState(integrationData?.database || null);
 
 	function handleSubmit() {
-		context.database = selectedDatabase;
+		if (integrationData) {
+			integrationData.database = selectedDatabase;
+		}
 		openPage(<ConfigureFieldsPage />);
 	}
 
@@ -75,29 +101,179 @@ function SelectDatabasePage() {
 }
 
 function ConfigureFieldsPage() {
-	return <div className="p-3 pt-0 flex-1 flex flex-col">ConfigureFieldsPage</div>;
+	const pluginContext = useContext(PluginContext);
+
+	const isLoading = false;
+	const error = null;
+
+	const database = pluginContext?.integrationData?.database || null;
+
+	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
+	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext?.slugFieldId, slugFields));
+	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
+	const [disabledFieldIds, setDisabledFieldIds] = useState(
+		() => new Set<string>(pluginContext?.type === "update" ? pluginContext?.disabledFieldIds ?? [] : [])
+	);
+	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
+		getFieldNameOverrides(pluginContext)
+	);
+
+	// assert(isFullDatabase(database));
+
+	const handleFieldToggle = (key: string) => {
+		setDisabledFieldIds((current) => {
+			const nextSet = new Set(current);
+			if (nextSet.has(key)) {
+				nextSet.delete(key);
+			} else {
+				nextSet.add(key);
+			}
+
+			return nextSet;
+		});
+	};
+
+	const handleFieldNameChange = (id: string, value: string) => {
+		setFieldNameOverrides((current) => ({
+			...current,
+			[id]: value,
+		}));
+	};
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (isLoading) return;
+
+		const allFields = fieldConfigList
+			.filter((fieldConfig) => fieldConfig.field && !disabledFieldIds.has(fieldConfig.field.id))
+			.map((fieldConfig) => fieldConfig.field)
+			.filter(isDefined)
+			.map((field) => {
+				if (fieldNameOverrides[field.id]) {
+					field.name = fieldNameOverrides[field.id];
+				}
+
+				return field;
+			});
+
+		assert(slugFieldId);
+
+		// onSubmit({
+		// 	fields: allFields,
+		// 	disabledFieldIds: Array.from(disabledFieldIds),
+		// 	slugFieldId,
+		// 	lastSyncedTime: getLastSyncedTime(pluginContext, database, slugFieldId, disabledFieldIds),
+		// });
+	};
+
+	return (
+		<div className="flex-1 flex flex-col gap-2 px-3">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
+				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
+				<div className="flex-1 flex flex-col gap-4">
+					<div className="flex flex-col gap-2 w-full">
+						<label htmlFor="collectionName">Slug Field</label>
+						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
+							{slugFields.map((field) => (
+								<option key={field.id} value={field.id}>
+									{field.name}
+								</option>
+							))}
+						</select>
+					</div>
+					<div
+						className="grid gap-2 w-full items-center justify-center"
+						style={{
+							gridTemplateColumns: `16px 1fr 8px 1fr minmax(100px, auto)`,
+						}}
+					>
+						<span className="col-start-2 col-span-2">Notion Property</span>
+						<span>Collection Field Name</span>
+						<span>Import As</span>
+						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
+						<input type="text" className="w-full" disabled value={"Title"} />
+						<div className="flex items-center justify-center">
+							<IconChevron />
+						</div>
+						<input type="text" className={"w-full"} placeholder={"Title"}></input>
+						<div className="w-full h-full pl-2 flex items-center opacity-70 bg-bg-secondary rounded">Text</div>
+
+						{fieldConfigList.map((fieldConfig) => {
+							const isDisabled = !fieldConfig.field || disabledFieldIds.has(fieldConfig.field.id);
+
+							return (
+								<Fragment key={fieldConfig.originalFieldName}>
+									<input
+										type="checkbox"
+										disabled={!fieldConfig.field}
+										checked={!!fieldConfig.field && !isDisabled}
+										className={classNames("mx-auto", isDisabled && "opacity-50")}
+										onChange={() => {
+											assert(fieldConfig.field);
+
+											handleFieldToggle(fieldConfig.field.id);
+										}}
+									/>
+									<input
+										type="text"
+										className={classNames("w-full", isDisabled && "opacity-50")}
+										disabled
+										value={fieldConfig.originalFieldName}
+									/>
+									<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
+										<IconChevron />
+									</div>
+									<input
+										type="text"
+										className={classNames("w-full", isDisabled && "opacity-50")}
+										disabled={!fieldConfig.field || isDisabled}
+										placeholder={fieldConfig.originalFieldName}
+										value={!fieldConfig.field ? "Unsupported Field" : fieldNameOverrides[fieldConfig.field.id] ?? ""}
+										onChange={(e) => {
+											assert(fieldConfig.field);
+
+											handleFieldNameChange(fieldConfig.field.id, e.target.value);
+										}}
+									></input>
+									<select disabled={isDisabled} className={classNames("w-full", isDisabled && "opacity-50")}>
+										{fieldConfig.field && fieldConversionTypes[fieldConfig.field.type]?.map((type) => (
+											<option key={type} value={type}>
+												{cmsFieldTypeNames[type]}
+											</option>
+										))}
+									</select>
+								</Fragment>
+							);
+						})}
+					</div>
+				</div>
+				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-bg py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
+					<div className="inline-flex items-center gap-1 min-w-0">
+						{error ? (
+							<span className="text-red-500">{error.message}</span>
+						) : (
+							<>
+								<span className="text-tertiary flex-shrink-0">Importing from</span>
+								<a
+									href={database?.url}
+									className="font-semibold text-secondary hover:text-primary truncate"
+									target="_blank"
+									tabIndex={-1}
+								>
+									{database ? richTextToPlainText(database.title) : ""}
+								</a>
+							</>
+						)}
+					</div>
+					<Button primary className="w-auto" isLoading={isLoading} disabled={!slugFieldId || !database}>
+						Import
+					</Button>
+				</div>
+			</form>
+		</div>
+	);
 }
-
-function Page() {
-	const { isAuthenticated, databaseId } = useContext(PluginContext);
-
-	// if (!isAuthenticated) {
-	// 	return <AuthenticatePage />;
-	// }
-
-	if (!databaseId) {
-		return <SelectDatabasePage />;
-	}
-
-	return <ConfigureFieldsPage />;
-}
-
-const Notion = {
-	id: "notion",
-	Page,
-};
-
-export default Notion;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -178,6 +354,10 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginContext): CollectionFieldConfig[] {
+	if (!database || !pluginContext) {
+		return [];
+	}
+
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
@@ -219,7 +399,48 @@ function getFieldNameOverrides(pluginContext: PluginContext): Record<string, str
 }
 
 function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionProperty[]): string | null {
-	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
+	if (!context) {
+		return null;
+	}
+
+	if (context.type === "update" && context.slugFieldId) {
+		return context.slugFieldId;
+	}
 
 	return fieldOptions[0]?.id ?? null;
 }
+
+const fieldConversionTypes = {
+	checkbox: ["boolean"],
+	created_by: ["string"],
+	created_time: ["date", "string"],
+	date: ["date", "string"],
+	email: ["string"],
+	files: ["string", "link", "image"],
+	formula: ["string"],
+	last_edited_by: ["string"],
+	last_edited_time: ["date", "string"],
+	multi_select: ["string"],
+	number: ["number"],
+	people: ["string"],
+	phone_number: ["string"],
+	relation: ["string"],
+	rich_text: ["formattedText", "string"],
+	rollup: ["string"],
+	select: ["enum", "string"],
+	status: ["enum", "string"],
+	title: ["string"],
+	url: ["link", "string"],
+};
+
+const cmsFieldTypeNames = {
+	boolean: "Toggle",
+	color: "Color",
+	number: "Number",
+	string: "Text",
+	formattedText: "Formatted Text",
+	image: "Image",
+	link: "Link",
+	date: "Date",
+	enum: "Option",
+};

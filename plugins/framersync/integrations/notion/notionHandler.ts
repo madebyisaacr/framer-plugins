@@ -99,6 +99,10 @@ const preferedSlugFieldOrder: NotionProperty["type"][] = ["title", "rich_text"];
  * a slug. And a suggested field id to use as a slug.
  */
 export function getPossibleSlugFields(database: GetDatabaseResponse) {
+	if (!database) {
+		return [];
+	}
+
 	const options: NotionProperty[] = [];
 
 	for (const key in database.properties) {

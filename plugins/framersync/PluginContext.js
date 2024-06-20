@@ -4,6 +4,10 @@ import { createContext } from "react";
 // integrationId
 // isAuthenticated
 // databaseId
+// lastSyncedAt
+// disabledFieldIds
+// slugFieldId
+// integrationData
 
 const PluginContext = createContext({});
 export default PluginContext;

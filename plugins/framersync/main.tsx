@@ -10,6 +10,8 @@ import { HomePage } from "./HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
 import PluginContext from "./PluginContext.js";
 
+const integrations = [Notion];
+
 const root = document.getElementById("root");
 if (!root) {
 	throw new Error("Root element not found");
@@ -28,9 +30,9 @@ const collection = await framer.getCollection();
 const integrationId = await collection.getPluginData("integrationId");
 const isAuthenticated = await collection.getPluginData("isAuthenticated");
 const databaseId = await collection.getPluginData("databaseId");
-// const lastSyncedAt = await collection.getPluginData("lastSyncedAt");
-// const disabledFieldIds = await collection.getPluginData("disabledFieldIds");
-// const slugFieldId = await collection.getPluginData("slugFieldId");
+const lastSyncedAt = await collection.getPluginData("lastSyncedAt");
+const disabledFieldIds = await collection.getPluginData("disabledFieldIds");
+const slugFieldId = await collection.getPluginData("slugFieldId");
 
 let action = "";
 
@@ -51,10 +53,9 @@ if (action == "syncCollection") {
 } else {
 	let page: any = null;
 	if (action == "openIntegrationPage") {
-		switch (integrationId) {
-			case "notion":
-				page = <Notion.Page />
-				break;
+		const PageComponent = integrations.find((integration) => integration.id === integrationId)?.Page;
+		if (PageComponent) {
+			page = <PageComponent />;
 		}
 	}
 
@@ -63,10 +64,15 @@ if (action == "syncCollection") {
 			<QueryClientProvider client={queryClient}>
 				<PluginContext.Provider
 					value={{
+						type: databaseId ? "update" : "new",
 						collection,
 						integrationId,
 						isAuthenticated,
 						databaseId,
+						lastSyncedAt,
+						disabledFieldIds,
+						slugFieldId,
+						integrationData: {},
 					}}
 				>
 					<main className="flex flex-col size-full select-none text-color-base">
