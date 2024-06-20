@@ -38,14 +38,14 @@ const collectionFields = await collection.getFields();
 
 let action = "";
 
-const dataKeys = await collection.getPluginDataKeys();
-if (dataKeys.length) {
-	for (const key of dataKeys) {
-		console.log(key, await collection.getPluginData(key));
-	}
-} else {
-	console.log("No data keys found");
-}
+// const dataKeys = await collection.getPluginDataKeys();
+// if (dataKeys.length) {
+// 	for (const key of dataKeys) {
+// 		console.log(key, await collection.getPluginData(key));
+// 	}
+// } else {
+// 	console.log("No data keys found");
+// }
 
 if (!integrationId) {
 	action = "openHomePage";

@@ -31,7 +31,7 @@ function Page() {
 
 		return () => {
 			pluginContext.setIntegrationData?.({});
-			console.log("Cleared integration data");
+			// console.log("Cleared integration data");
 		};
 	}, []);
 
@@ -151,7 +151,7 @@ function FieldConfigurationMenu() {
 
 	const database = pluginContext.integrationData?.database || null;
 
-	console.log("database", database);
+	// console.log("database", database);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext.slugFieldId, slugFields));
