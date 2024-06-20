@@ -50,12 +50,11 @@ if (action == "syncCollection") {
 } else {
 	const Context = createContext({});
 
-	let page: any = HomePage;
-
+	let page: any = null;
 	if (action == "openIntegrationPage") {
 		switch (integrationId) {
 			case "notion":
-				page = Notion.Page;
+				page = <Notion.Page />
 				break;
 		}
 	}
@@ -72,7 +71,7 @@ if (action == "syncCollection") {
 					}}
 				>
 					<main className="flex flex-col size-full select-none text-color-base">
-						<PageStack homePage={page} />
+						<PageStack homePage={page || <HomePage />} />
 					</main>
 				</Context.Provider>
 			</QueryClientProvider>
