@@ -12,13 +12,8 @@
 	--color-divider-secondary: #444;
 }
 
-.hide-scrollbar::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	display: none;
-}
-
-.hide-scrollbar {
-	overflow: -moz-scrollbars-none;
-	-ms-overflow-style: none;
 }
 
 select {

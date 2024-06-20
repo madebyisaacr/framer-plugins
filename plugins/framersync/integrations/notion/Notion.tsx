@@ -117,10 +117,10 @@ function ConfigureFieldsPage() {
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
+	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList));
+
 	const titleField =
 		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
-
-	// assert(isFullDatabase(database));
 
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
@@ -137,6 +137,13 @@ function ConfigureFieldsPage() {
 
 	const handleFieldNameChange = (id: string, value: string) => {
 		setFieldNameOverrides((current) => ({
+			...current,
+			[id]: value,
+		}));
+	};
+
+	const handleFieldTypeChange = (id: string, value: string) => {
+		setFieldTypes((current) => ({
 			...current,
 			[id]: value,
 		}));
@@ -194,58 +201,71 @@ function ConfigureFieldsPage() {
 						<span>Collection Field Name</span>
 						<span>Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<input type="text" className="w-full" disabled value={titleField?.name ?? "Title"} />
+						<StaticInput disabled>{titleField?.name ?? "Title"}</StaticInput>
 						<div className="flex items-center justify-center">
 							<IconChevron />
 						</div>
-						<input type="text" className={"w-full"} placeholder={"Title"}></input>
-						<div className="w-full h-full pl-2 flex items-center opacity-70 bg-bg-secondary rounded">Text</div>
-
+						<StaticInput disabled>Title</StaticInput>
+						<StaticInput disabled>Text</StaticInput>
 						{fieldConfigList.map((fieldConfig) => {
-							const isDisabled = !fieldConfig.field || disabledFieldIds.has(fieldConfig.field.id);
+							const id = fieldConfig.property.id;
+							const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
 							return (
 								<Fragment key={fieldConfig.originalFieldName}>
 									<input
 										type="checkbox"
-										disabled={!fieldConfig.field}
-										checked={!!fieldConfig.field && !isDisabled}
+										disabled={!fieldConfig.property}
+										checked={!!fieldConfig.property && !isDisabled}
 										className={classNames("mx-auto", isDisabled && "opacity-50")}
 										onChange={() => {
-											assert(fieldConfig.field);
+											assert(fieldConfig.property);
 
-											handleFieldToggle(fieldConfig.field.id);
+											handleFieldToggle(id);
 										}}
 									/>
-									<input
-										type="text"
-										className={classNames("w-full", isDisabled && "opacity-50")}
-										disabled
-										value={fieldConfig.originalFieldName}
-									/>
+									<StaticInput disabled={isDisabled}>{fieldConfig.originalFieldName}</StaticInput>
 									<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
 										<IconChevron />
 									</div>
-									<input
-										type="text"
-										className={classNames("w-full", isDisabled && "opacity-50")}
-										disabled={!fieldConfig.field || isDisabled}
-										placeholder={fieldConfig.originalFieldName}
-										value={!fieldConfig.field ? "Unsupported Field" : fieldNameOverrides[fieldConfig.field.id] ?? ""}
-										onChange={(e) => {
-											assert(fieldConfig.field);
+									{!fieldTypes[id] ? (
+										<>
+											<StaticInput disabled>Unsupported Field</StaticInput>
+											<StaticInput disabled></StaticInput>
+										</>
+									) : (
+										<>
+											<input
+												type="text"
+												className={classNames("w-full", isDisabled && "opacity-50")}
+												disabled={isDisabled}
+												placeholder={fieldConfig.originalFieldName}
+												value={fieldNameOverrides[id] ?? ""}
+												onChange={(e) => {
+													assert(fieldConfig.property);
+													handleFieldNameChange(id, e.target.value);
+												}}
+											></input>
 
-											handleFieldNameChange(fieldConfig.field.id, e.target.value);
-										}}
-									></input>
-									<select disabled={isDisabled} className={classNames("w-full", isDisabled && "opacity-50")}>
-										{fieldConfig.field &&
-											fieldConversionTypes[fieldConfig.field.type]?.map((type) => (
-												<option key={type} value={type}>
-													{cmsFieldTypeNames[type]}
-												</option>
-											))}
-									</select>
+											{fieldConversionTypes[fieldConfig.property.type]?.length <= 1 ? (
+												<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
+											) : (
+												<select
+													disabled={isDisabled}
+													value={fieldTypes[id]}
+													onChange={(e) => handleFieldTypeChange(id, e.target.value)}
+													className={classNames("w-full", isDisabled && "opacity-50")}
+												>
+													{fieldConfig.property &&
+														fieldConversionTypes[fieldConfig.property.type]?.map((type) => (
+															<option key={type} value={type}>
+																{cmsFieldTypeNames[type]}
+															</option>
+														))}
+												</select>
+											)}
+										</>
+									)}
 								</Fragment>
 							);
 						})}
@@ -286,6 +306,14 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 			<input type="checkbox" name="database" id={databaseName} checked={selected} onChange={onClick} />
 			{databaseName}
 		</label>
+	);
+}
+
+function StaticInput({ children = "", disabled = false }) {
+	return (
+		<div className={classNames("w-full h-6 px-2 flex items-center bg-bg-secondary rounded", disabled && "opacity-50")}>
+			{children}
+		</div>
 	);
 }
 
@@ -338,18 +366,20 @@ function useIsDocumentVisibile() {
 }
 
 interface CollectionFieldConfig {
-	field: CollectionField | null;
+	// field: CollectionField | null;
+	property: NotionProperty;
 	isNewField: boolean;
 	originalFieldName: string;
+	unsupported: boolean;
 }
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
-	if (!fieldA.field && !fieldB.field) {
+	if (fieldA.unsupported && fieldB.unsupported) {
 		return 0;
-	} else if (!fieldA.field) {
+	} else if (fieldA.unsupported) {
 		return 1;
-	} else if (!fieldB.field) {
+	} else if (fieldB.unsupported) {
 		return -1;
 	}
 
@@ -368,7 +398,12 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 	);
 
 	result.push({
-		field: pageContentField,
+		property: {
+			id: "page-content",
+			name: "Content",
+			type: "page_content",
+			unsupported: false,
+		},
 		originalFieldName: pageContentField.name,
 		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
 	});
@@ -381,13 +416,34 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 		if (property.type === "title") continue;
 
 		result.push({
-			field: getCollectionFieldForProperty(property),
+			property: property,
+			// field: getCollectionFieldForProperty(property),
+			unsupported: !fieldConversionTypes[property.type]?.length,
 			originalFieldName: property.name,
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
 		});
 	}
 
 	return result.sort(sortField);
+}
+
+function createFieldTypesList(fieldConfigList: CollectionFieldConfig[]) {
+	const result = {};
+
+	for (const fieldConfig of fieldConfigList) {
+		if (!fieldConfig.property) {
+			continue;
+		}
+
+		const type = fieldConversionTypes[fieldConfig.property.type]?.[0];
+		if (!type) {
+			continue;
+		}
+
+		result[fieldConfig.property.id] = type;
+	}
+
+	return result;
 }
 
 function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
@@ -416,13 +472,13 @@ function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionPrope
 const fieldConversionTypes = {
 	checkbox: ["boolean"],
 	created_by: ["string"],
-	created_time: ["date", "string"],
-	date: ["date", "string"],
+	created_time: ["date"],
+	date: ["date"],
 	email: ["string"],
 	files: ["string", "link", "image"],
 	formula: ["string"],
 	last_edited_by: ["string"],
-	last_edited_time: ["date", "string"],
+	last_edited_time: ["date"],
 	multi_select: ["string"],
 	number: ["number"],
 	people: ["string"],
@@ -434,7 +490,9 @@ const fieldConversionTypes = {
 	status: ["enum", "string"],
 	title: ["string"],
 	url: ["link", "string"],
+	page_content: ["formattedText"], // Fake property type for page content
 };
+const notionFieldTypes = Object.keys(fieldConversionTypes);
 
 const cmsFieldTypeNames = {
 	boolean: "Toggle",

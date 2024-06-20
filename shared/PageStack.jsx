@@ -21,7 +21,7 @@ export function PageStack({ homePage }) {
 	}
 
 	return (
-		<div className="size-full hide-scrollbar">
+		<div className="size-full">
 			<PageStackContext.Provider value={{ openPage, closePage }}>
 				<AnimatePresence>
 					{[homePage, ...pageStack].map((page, index) => {

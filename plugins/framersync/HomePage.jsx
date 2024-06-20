@@ -6,7 +6,7 @@ export function HomePage() {
 	const { openPage } = useContext(PageStackContext);
 
 	return (
-		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto hide-scrollbar items-center">
+		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto items-center">
 			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
 				<h1 className="text-xl font-bold">Welcome to FramerSync</h1>
 				<p>Select an app to get started</p>
