@@ -11,11 +11,12 @@ export default defineConfig({
 		target: "ES2022",
 	},
 	css: {
-    postcss: path.resolve(__dirname, '../../postcss.config.js'),
-  },
+		postcss: path.resolve(__dirname, "../../postcss.config.js"),
+	},
 	resolve: {
 		alias: {
 			"@shared": path.resolve(__dirname, "../../shared"),
+			"@plugin": path.resolve(__dirname),
 		},
 	},
 });

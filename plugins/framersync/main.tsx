@@ -8,6 +8,7 @@ import "./App.css";
 import { PageStack } from "@shared/PageStack";
 import { HomePage } from "./HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
+import PluginContext from "./PluginContext.js";
 
 const root = document.getElementById("root");
 if (!root) {
@@ -48,8 +49,6 @@ if (!integrationId) {
 if (action == "syncCollection") {
 	syncCollection();
 } else {
-	const Context = createContext({});
-
 	let page: any = null;
 	if (action == "openIntegrationPage") {
 		switch (integrationId) {
@@ -62,7 +61,7 @@ if (action == "syncCollection") {
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
-				<Context.Provider
+				<PluginContext.Provider
 					value={{
 						collection,
 						integrationId,
@@ -73,7 +72,7 @@ if (action == "syncCollection") {
 					<main className="flex flex-col size-full select-none text-color-base">
 						<PageStack homePage={page || <HomePage />} />
 					</main>
-				</Context.Provider>
+				</PluginContext.Provider>
 			</QueryClientProvider>
 		</React.StrictMode>
 	);
