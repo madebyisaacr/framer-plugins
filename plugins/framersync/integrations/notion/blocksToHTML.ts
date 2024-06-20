@@ -1,5 +1,5 @@
 import { BlockObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
-import { assert } from "@plugin/utils";
+import { assert } from "@plugin/src/utils";
 
 export function richTextToHTML(texts: RichTextItemResponse[]) {
 	return texts

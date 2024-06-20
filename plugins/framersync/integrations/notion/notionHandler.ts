@@ -9,7 +9,7 @@ import {
 } from "@notionhq/client";
 import pLimit from "p-limit";
 import { GetDatabaseResponse, PageObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify } from "@plugin/utils";
+import { assert, formatDate, isDefined, isString, slugify } from "@plugin/src/utils";
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";

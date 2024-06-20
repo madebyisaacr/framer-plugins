@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useEffect, useMemo, Fragment } fro
 import classNames from "classnames";
 import { framer, CollectionField } from "framer-plugin";
 import { Button, BackButton } from "@shared/components.jsx";
-import PluginContext from "@plugin/PluginContext";
+import PluginContext from "@plugin/src/PluginContext";
 import {
 	authorize,
 	getOauthURL,
@@ -17,32 +17,49 @@ import {
 	pageContentField,
 	getDatabase,
 } from "./notionHandler";
-import { assert, isDefined, generateRandomId } from "@plugin/utils";
+import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
 import { isFullDatabase } from "@notionhq/client";
 import { PageStackContext } from "@shared/PageStack.jsx";
-import plugin from "tailwindcss";
+import { cmsFieldTypeNames, pluginDataKeys } from "@plugin/src/shared";
 
 function Page() {
 	const pluginContext = useContext(PluginContext);
+	const { pageCount, closePage } = useContext(PageStackContext);
 
 	useEffect(() => {
 		initialize(pluginContext);
 
 		return () => {
-			pluginContext.integrationData = {};
+			pluginContext.setIntegrationData?.({});
+			console.log("Cleared integration data");
 		};
 	}, []);
 
-	// if (!isAuthenticated) {
-	// 	return <AuthenticatePage />;
-	// }
+	let page: any = null;
 
+	// if (!isAuthenticated) {
+	// 	page = <AuthenticatePage />;
+	// } else
 	if (!pluginContext.databaseId) {
-		return <SelectDatabasePage />;
+		page = <SelectDatabasePage />;
+	} else {
+		page = <ConfigureCollectionPage />;
 	}
 
-	return <ConfigureCollectionPage />;
+	return (
+		<div className="flex flex-col size-full gap-2">
+			{pageCount > 1 && <BackButton onClick={closePage} />}
+			{page}
+		</div>
+	);
 }
+
+const Notion = {
+	id: "notion",
+	Page,
+};
+
+export default Notion;
 
 async function initialize(pluginContext) {
 	if (pluginContext.databaseId && !pluginContext.integrationData?.database) {
@@ -53,13 +70,6 @@ async function initialize(pluginContext) {
 		});
 	}
 }
-
-const Notion = {
-	id: "notion",
-	Page,
-};
-
-export default Notion;
 
 function AuthenticatePage() {
 	return (
@@ -82,10 +92,7 @@ function SelectDatabasePage() {
 		if (integrationData) {
 			integrationData.database = selectedDatabase;
 		}
-		if (collection) {
-			collection.setPluginData("databaseId", selectedDatabase?.id);
-		}
-		openPage(<ConfigureFieldsPage />);
+		openPage(<ConfigureCollectionPage />);
 	}
 
 	return (
@@ -198,6 +205,15 @@ function FieldConfigurationMenu() {
 				fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
 				fieldTypes[fieldConfig.property.id]
 			);
+		}
+
+		const { collection } = pluginContext;
+		if (collection) {
+			collection.setPluginData(pluginDataKeys.integrationId, Notion.id);
+			collection.setPluginData(pluginDataKeys.databaseId, database.id);
+			collection.setPluginData(pluginDataKeys.lastSyncedAt, new Date().toISOString());
+			collection.setPluginData(pluginDataKeys.disabledFieldIds, JSON.stringify(Array.from(disabledFieldIds)));
+			collection.setPluginData(pluginDataKeys.slugFieldId, slugFieldId);
 		}
 
 		// const allFields = fieldConfigList
@@ -440,7 +456,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
-		pluginContext.type === "update" && pluginContext.collectionFields?.map((field) => field.id) || []
+		(pluginContext.type === "update" && pluginContext.collectionFields?.map((field) => field.id)) || []
 	);
 
 	result.push({
@@ -536,16 +552,4 @@ const fieldConversionTypes = {
 	title: ["string"],
 	url: ["link", "string"],
 	page_content: ["formattedText"], // Fake property type for page content
-};
-
-const cmsFieldTypeNames = {
-	boolean: "Toggle",
-	color: "Color",
-	number: "Number",
-	string: "Text",
-	formattedText: "Formatted Text",
-	image: "Image",
-	link: "Link",
-	date: "Date",
-	enum: "Option",
 };

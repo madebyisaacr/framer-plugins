@@ -22,7 +22,7 @@ export function PageStack({ homePage }) {
 
 	return (
 		<div className="size-full">
-			<PageStackContext.Provider value={{ openPage, closePage }}>
+			<PageStackContext.Provider value={{ openPage, closePage, pageCount: pageStack.length + 1 }}>
 				<AnimatePresence>
 					{[homePage, ...pageStack].map((page, index) => {
 						return (

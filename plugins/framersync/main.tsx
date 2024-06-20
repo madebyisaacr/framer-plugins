@@ -6,9 +6,9 @@ import { framer, Collection } from "framer-plugin";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./App.css";
 import { PageStack } from "@shared/PageStack";
-import { HomePage } from "./HomePage";
+import { HomePage } from "./src/HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
-import { PluginContextProvider } from "./PluginContext";
+import { PluginContextProvider } from "./src/PluginContext";
 
 const integrations = [Notion];
 
@@ -36,6 +36,15 @@ const slugFieldId = await collection.getPluginData("slugFieldId");
 const collectionFields = await collection.getFields();
 
 let action = "";
+
+const dataKeys = await collection.getPluginDataKeys()
+if (dataKeys.length) {
+	for (const key of dataKeys) {
+		console.log(key, await collection.getPluginData(key));
+	}
+} else {
+	console.log("No data keys found");
+}
 
 if (!integrationId) {
 	action = "openHomePage";

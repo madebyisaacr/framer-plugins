@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import Notion from "./integrations/notion/Notion.tsx";
+import Notion from "@plugin/integrations/notion/Notion.tsx";
 import { PageStackContext } from "@shared/PageStack";
 
 export function HomePage() {
