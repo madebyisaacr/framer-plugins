@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useState, createContext } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 
 export const PageStackContext = createContext({});
 

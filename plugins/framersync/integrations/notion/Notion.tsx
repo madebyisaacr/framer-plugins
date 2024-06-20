@@ -35,22 +35,15 @@ function Page() {
 		};
 	}, []);
 
-	let page: any = null;
-
 	// if (!isAuthenticated) {
-	// 	page = <AuthenticatePage />;
-	// } else
+	// 	return <AuthenticatePage />;
+	// }
+
 	if (!pluginContext.databaseId) {
-		page = <SelectDatabasePage />;
-	} else {
-		page = <ConfigureCollectionPage />;
+		return <SelectDatabasePage />;
 	}
 
-	return (
-		<div className="flex flex-col size-full gap-2">
-			{page}
-		</div>
-	);
+	return <ConfigureCollectionPage />;
 }
 
 const Notion = {
@@ -73,6 +66,7 @@ async function initialize(pluginContext) {
 function AuthenticatePage() {
 	return (
 		<div className="p-3 pt-0 flex-1 flex flex-col">
+			<BackButton />
 			AuthenticatePage
 			<div className="flex-1" />
 			<Button primary>Connect Notion Account</Button>
@@ -96,6 +90,7 @@ function SelectDatabasePage() {
 
 	return (
 		<div className="flex-1 flex flex-col gap-2 p-3 pt-0">
+			<BackButton />
 			<div className="flex flex-row justify-between items-center">
 				<p>Select a Notion database to sync</p>
 				<button
@@ -131,11 +126,16 @@ function SelectDatabasePage() {
 function ConfigureCollectionPage() {
 	const { integrationData } = useContext(PluginContext);
 
-	if (integrationData.database) {
-		return <FieldConfigurationMenu />;
-	} else {
-		return <div className="flex flex-col items-center justify-center flex-1">Loading...</div>;
-	}
+	return (
+		<div className="flex flex-col gap-2 size-full px-3">
+			<BackButton />
+			{integrationData?.database ? (
+				<FieldConfigurationMenu />
+			) : (
+				<div className="flex flex-col items-center justify-center flex-1">Loading...</div>
+			)}
+		</div>
+	);
 }
 
 function FieldConfigurationMenu() {
@@ -238,7 +238,7 @@ function FieldConfigurationMenu() {
 	};
 
 	return (
-		<div className="flex-1 flex flex-col gap-2 px-3">
+		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
 				<div className="flex-1 flex flex-col gap-4">
@@ -372,7 +372,7 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 
 function StaticInput({ children = "", disabled = false }) {
 	return (
-		<div className={classNames("w-full h-6 px-2 flex items-center bg-bg-secondary rounded", disabled && "opacity-50")}>
+		<div className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-bg-secondary rounded", disabled && "opacity-50")}>
 			{children}
 		</div>
 	);
