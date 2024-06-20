@@ -483,7 +483,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		// Title is always required in CMS API.
 		if (property.type === "title") continue;
 
-		const conversionTypes = getFieldConversionType(property)
+		const conversionTypes = getFieldConversionType(property);
 
 		result.push({
 			property: property,
@@ -571,7 +571,7 @@ function getFieldConversionType(property: NotionProperty) {
 		case "url":
 			return ["link", "string"];
 		case "unique_id":
-			return property.unique_id.prefix ? ["string"] : ["number"]
+			return property.unique_id.prefix ? ["string"] : ["number"];
 		default:
 			return [];
 	}
