@@ -1,6 +1,6 @@
 import "framer-plugin/framer.css";
 
-import { framer } from "framer-plugin";
+import { framer, Collection, CollectionField } from "framer-plugin";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HomePage } from "./App.tsx";
@@ -103,3 +103,31 @@ async function syncCollection(context) {
 
 	await collection.setPluginData("integrationId", context.integrationId);
 }
+
+
+export interface PluginContextNew {
+	type: "new";
+	collection: Collection;
+	isAuthenticated: boolean;
+}
+
+export interface PluginContextUpdate {
+	type: "update";
+	integration: string;
+	integrationContext: object;
+	collection: Collection;
+	collectionFields: CollectionField[];
+	lastSyncedTime: string;
+	hasChangedFields: boolean;
+	disabledFieldIds: string[];
+	slugFieldId: string | null;
+	isAuthenticated: boolean;
+}
+
+export interface PluginContextError {
+	type: "error";
+	message: string;
+	isAuthenticated: false;
+}
+
+export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;

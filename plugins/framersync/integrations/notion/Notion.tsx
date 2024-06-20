@@ -1,10 +1,23 @@
 import React, { useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
-import { framer } from "framer-plugin";
-
+import { framer, CollectionField } from "framer-plugin";
 import { Button, BackButton } from "@shared/components.jsx";
-import { PluginContext, authorize, getOauthURL, getPluginContext, useDatabasesQuery, richTextToPlainText } from "./notionHandler";
+import {
+	PluginContext,
+	authorize,
+	getOauthURL,
+	getPluginContext,
+	useDatabasesQuery,
+	richTextToPlainText,
+	NotionProperty,
+	SynchronizeMutationOptions,
+	getCollectionFieldForProperty,
+	getPossibleSlugFields,
+	hasFieldConfigurationChanged,
+	pageContentField,
+} from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/utils";
+import { isFullDatabase } from "@notionhq/client";
 
 const notionDatabases = ["Apps", "Buildings", "Fruits & Vegetables", "Database", "Kitchen Appliances"];
 
@@ -24,7 +37,7 @@ function Page({ openPage, closePage, context }) {
 	return (
 		<div className="flex flex-col size-full px-3 gap-2 overflow-y-auto hide-scrollbar">
 			{closePage && <BackButton onClick={closePage} />}
-			<Page context={context} />
+			<Page context={context} openPage={openPage} />
 		</div>
 	);
 }
@@ -87,13 +100,14 @@ function ConnectAccountPage({ context }) {
 	);
 }
 
-function SelectDatabasePage({ context }) {
+function SelectDatabasePage({ context, openPage }) {
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 
-	const [selectedDatabaseId, setSelectedDatabaseId] = useState(null);
+	const [selectedDatabase, setSelectedDatabase] = useState(null);
 
 	function handleSubmit() {
-		console.log(selectedDatabaseId);
+		context.database = selectedDatabase;
+		openPage(ConfigureFieldsPage, { context });
 	}
 
 	return (
@@ -108,7 +122,7 @@ function SelectDatabasePage({ context }) {
 					<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
 				</button>
 			</div>
-			{isRefetching || isLoading ? (
+			{isLoading ? (
 				<div className="flex items-center justify-center h-[200px]">Loading Databases...</div>
 			) : (
 				<div className="flex-1 flex flex-col divide-y divide-divider">
@@ -116,14 +130,14 @@ function SelectDatabasePage({ context }) {
 						<NotionDatabaseButton
 							key={database.id}
 							databaseName={richTextToPlainText(database.title)}
-							selected={selectedDatabaseId === database.id}
-							onClick={() => setSelectedDatabaseId(selectedDatabaseId === database.id ? null : database.id)}
+							selected={selectedDatabase === database}
+							onClick={() => setSelectedDatabase(selectedDatabase === database ? null : database)}
 						/>
 					))}
 				</div>
 			)}
 			<div className="flex-1" />
-			<Button primary disabled={!selectedDatabaseId || isLoading || isRefetching} onClick={handleSubmit}>
+			<Button primary disabled={!selectedDatabase || isLoading || isRefetching} onClick={handleSubmit}>
 				Import Database
 			</Button>
 		</div>
@@ -131,170 +145,19 @@ function SelectDatabasePage({ context }) {
 }
 
 function ConfigureFieldsPage({ context }) {
-	// const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
-	const slugFields = [
-		{
-			field: {
-				id: "abc",
-			},
-			originalFieldName: "abc",
-		},
-	];
-	// const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext, slugFields));
-	const [slugFieldId, setSlugFieldId] = useState("");
-	// const [fieldConfig] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
-	const [fieldConfig] = useState([
-		{
-			field: {
-				type: "checkbox",
-				id: "checkbox",
-			},
-			originalFieldName: "checkbox",
-		},
-		{
-			field: {
-				type: "created_by",
-				id: "created_by",
-			},
-			originalFieldName: "created_by",
-		},
-		{
-			field: {
-				type: "created_time",
-				id: "created_time",
-			},
-			originalFieldName: "created_time",
-		},
-		{
-			field: {
-				type: "date",
-				id: "date",
-			},
-			originalFieldName: "date",
-		},
-		{
-			field: {
-				type: "email",
-				id: "email",
-			},
-			originalFieldName: "email",
-		},
-		{
-			field: {
-				type: "files",
-				id: "files",
-			},
-			originalFieldName: "files",
-		},
-		{
-			field: {
-				type: "formula",
-				id: "formula",
-			},
-			originalFieldName: "formula",
-		},
-		{
-			field: {
-				type: "last_edited_by",
-				id: "last_edited_by",
-			},
-			originalFieldName: "last_edited_by",
-		},
-		{
-			field: {
-				type: "last_edited_time",
-				id: "last_edited_time",
-			},
-			originalFieldName: "last_edited_time",
-		},
-		{
-			field: {
-				type: "multi_select",
-				id: "multi_select",
-			},
-			originalFieldName: "multi_select",
-		},
-		{
-			field: {
-				type: "number",
-				id: "number",
-			},
-			originalFieldName: "number",
-		},
-		{
-			field: {
-				type: "people",
-				id: "people",
-			},
-			originalFieldName: "people",
-		},
-		{
-			field: {
-				type: "phone_number",
-				id: "phone_number",
-			},
-			originalFieldName: "phone_number",
-		},
-		{
-			field: {
-				type: "relation",
-				id: "relation",
-			},
-			originalFieldName: "relation",
-		},
-		{
-			field: {
-				type: "rich_text",
-				id: "rich_text",
-			},
-			originalFieldName: "rich_text",
-		},
-		{
-			field: {
-				type: "rollup",
-				id: "rollup",
-			},
-			originalFieldName: "rollup",
-		},
-		{
-			field: {
-				type: "select",
-				id: "select",
-			},
-			originalFieldName: "select",
-		},
-		{
-			field: {
-				type: "status",
-				id: "status",
-			},
-			originalFieldName: "status",
-		},
-		{
-			field: {
-				type: "title",
-				id: "title",
-			},
-			originalFieldName: "title",
-		},
-		{
-			field: {
-				type: "url",
-				id: "url",
-			},
-			originalFieldName: "url",
-		},
-	]);
-	// const [disabledFieldIds, setDisabledFieldIds] = useState(
-	// 	() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
-	// );
-	const [disabledFieldIds, setDisabledFieldIds] = useState(new Set());
-	// const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
-	// 	getFieldNameOverrides(pluginContext)
-	// );
-	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>([]);
+	const database = context.database;
 
-	// assert(isFullDatabase(database));
+	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
+	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext, slugFields));
+	const [fieldConfig] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
+	const [disabledFieldIds, setDisabledFieldIds] = useState(
+		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
+	);
+	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
+		getFieldNameOverrides(pluginContext)
+	);
+
+	assert(isFullDatabase(database));
 
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
@@ -345,17 +208,17 @@ function ConfigureFieldsPage({ context }) {
 
 	const isLoading = false;
 	const error = null;
-	const database = {
-		url: "https://www.notion.so/abc",
-		title: "Database Name",
-	};
+	// const database = {
+	// 	url: "https://www.notion.so/abc",
+	// 	title: "Database Name",
+	// };
 
 	function richTextToPlainText(text) {
 		return text;
 	}
 
 	return (
-		<div className="flex-1 flex flex-col gap-2">
+		<div className="flex-1 flex flex-col gap-2 px-3">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
 				<div className="flex-1 flex flex-col gap-4">
@@ -379,7 +242,7 @@ function ConfigureFieldsPage({ context }) {
 						<span>Collection Field Name</span>
 						<span>Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<input type="text" className="w-full opacity-50" disabled value={"Title"} />
+						<input type="text" className="w-full" disabled value={"Title"} />
 						<div className="flex items-center justify-center">
 							<IconChevron />
 						</div>
@@ -424,7 +287,7 @@ function ConfigureFieldsPage({ context }) {
 										}}
 									></input>
 									<select disabled={isDisabled} className={classNames("w-full", isDisabled && "opacity-50")}>
-										{propertyConversionTypes[fieldConfig.field.type]?.map((type) => (
+										{fieldConversionTypes[fieldConfig.field.type]?.map((type) => (
 											<option key={type} value={type}>
 												{cmsFieldTypeNames[type]}
 											</option>
@@ -615,4 +478,70 @@ function useIsDocumentVisibile() {
 	}, []);
 
 	return isVisible;
+}
+
+interface CollectionFieldConfig {
+	field: CollectionField | null;
+	isNewField: boolean;
+	originalFieldName: string;
+}
+
+function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
+	// Sort unsupported fields to bottom
+	if (!fieldA.field && !fieldB.field) {
+		return 0;
+	} else if (!fieldA.field) {
+		return 1;
+	} else if (!fieldB.field) {
+		return -1;
+	}
+
+	return -1;
+}
+
+function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginContext): CollectionFieldConfig[] {
+	const result: CollectionFieldConfig[] = [];
+
+	const existingFieldIds = new Set(
+		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
+	);
+
+	result.push({
+		field: pageContentField,
+		originalFieldName: pageContentField.name,
+		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
+	});
+
+	for (const key in database.properties) {
+		const property = database.properties[key];
+		assert(property);
+
+		// Title is always required in CMS API.
+		if (property.type === "title") continue;
+
+		result.push({
+			field: getCollectionFieldForProperty(property),
+			originalFieldName: property.name,
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+		});
+	}
+
+	return result.sort(sortField);
+}
+
+function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
+	const result: Record<string, string> = {};
+	if (pluginContext.type !== "update") return result;
+
+	for (const field of pluginContext.collectionFields) {
+		result[field.id] = field.name;
+	}
+
+	return result;
+}
+
+function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionProperty[]): string | null {
+	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
+
+	return fieldOptions[0]?.id ?? null;
 }
