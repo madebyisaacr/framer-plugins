@@ -303,42 +303,6 @@ export function XIcon({ onClick, className = "", color = "var(--framer-color-tex
 	);
 }
 
-export function BackButton({ onClick, className = "" }) {
-	useEffect(() => {
-		const handleKeyDown = (event) => {
-			if (event.key === "Escape") {
-				onClick();
-			}
-		};
-
-		document.addEventListener("keydown", handleKeyDown);
-
-		return () => {
-			document.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [onClick]);
-
-	return (
-		<span
-			onClick={onClick}
-			className={`text-color-tertiary flex flex-row items-center gap-1 cursor-pointer w-max pr-1 ${className}`}
-		>
-			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-				<g transform="translate(1.5 1)">
-					<path
-						d="M 3.5 0 L 0 4 L 3.5 7.5"
-						fill="transparent"
-						strokeWidth="1.5"
-						stroke="currentColor"
-						strokeLinecap="round"
-					></path>
-				</g>
-			</svg>
-			Back
-		</span>
-	);
-}
-
 export function RoundedClip({ columns, gap = 10, borderRadius, backgroundColor = "var(--framer-color-bg)" }) {
 	const elements = [];
 	for (let i = 0; i < columns; i++) {

@@ -3,8 +3,8 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { motion } from "framer-motion";
 import "./App.css";
 import { iconPacks } from "./IconstackData.jsx";
-import { SearchBar, Button, XIcon, SegmentedControl, BackButton } from "@shared/components.jsx";
-import { PageStack, PageStackContext } from "@shared/PageStack.jsx";
+import { SearchBar, Button, XIcon, SegmentedControl } from "@shared/components.jsx";
+import { PageStack, PageStackContext, BackButton } from "@shared/PageStack.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
 import FeatherIcons from "./icon-packs/FeatherIcons.json";
@@ -391,7 +391,7 @@ function IconPackInfoPage(iconPack) {
 
 	return (
 		<div className="flex flex-col size-full p-3 pt-0 gap-2">
-			<BackButton onClick={closePage} />
+			<BackButton />
 			<h1 className="text-xl font-bold -mb-1 mt-1">{iconPack?.name}</h1>
 			<p>{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
 			<div className="flex-1" />

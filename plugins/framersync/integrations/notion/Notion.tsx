@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
 import { framer, CollectionField } from "framer-plugin";
-import { Button, BackButton } from "@shared/components.jsx";
+import { Button } from "@shared/components.jsx";
 import PluginContext from "@plugin/src/PluginContext";
 import {
 	authorize,
@@ -19,7 +19,7 @@ import {
 } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
 import { isFullDatabase } from "@notionhq/client";
-import { PageStackContext } from "@shared/PageStack.jsx";
+import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys } from "@plugin/src/shared";
 
 function Page() {
@@ -48,7 +48,6 @@ function Page() {
 
 	return (
 		<div className="flex flex-col size-full gap-2">
-			{pageCount > 1 && <BackButton onClick={closePage} />}
 			{page}
 		</div>
 	);
