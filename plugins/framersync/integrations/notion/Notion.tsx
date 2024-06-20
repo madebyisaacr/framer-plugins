@@ -339,7 +339,7 @@ function FieldConfigurationMenu() {
 						})}
 					</div>
 				</div>
-				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-bg py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
+				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
 					<div className="inline-flex items-center gap-1 min-w-0">
 						{error ? (
 							<span className="text-red-500">{error.message}</span>
@@ -379,7 +379,7 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 
 function StaticInput({ children = "", disabled = false }) {
 	return (
-		<div className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-bg-secondary rounded", disabled && "opacity-50")}>
+		<div className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-secondary rounded", disabled && "opacity-50")}>
 			{children}
 		</div>
 	);

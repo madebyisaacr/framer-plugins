@@ -18,7 +18,7 @@
 }
 
 .icon-div:hover {
-	@apply bg-bg-secondary;
+	@apply bg-secondary;
 }
 
 .search-hidden {

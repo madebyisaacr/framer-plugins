@@ -1,30 +1,30 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-	content: [
-		"./index.html",
-		"./**/*.{js,jsx,ts,tsx}",
-		"../../shared/**/*.{js,jsx,ts,tsx}",
-	],
+	content: ["./index.html", "./**/*.{js,jsx,ts,tsx}", "../../shared/**/*.{js,jsx,ts,tsx}"],
 	theme: {
 		extend: {},
-		colors: {
+		backgroundColor: {
+			primary: "var(--framer-color-bg)",
+			secondary: "var(--color-bg-secondary)",
+			tertiary: "var(--color-bg-tertiary)",
+			divider: "var(--framer-color-divider)",
+			"divider-secondary": "var(--color-divider-secondary)",
 			tint: "var(--framer-color-tint)",
 			"tint-dimmed": "var(--framer-color-tint-dimmed)",
 			"tint-dark": "var(--framer-color-tint-dark)",
-			bg: "var(--framer-color-bg)",
-			"bg-secondary": "var(--color-bg-secondary)",
-			"bg-tertiary": "var(--color-bg-tertiary)",
-			divider: "var(--framer-color-divider)",
-			"divider-secondary": "var(--color-divider-secondary)",
-			"color-base": "var(--framer-color-text)",
-			"color-reversed": "var(--framer-color-text-reversed)",
-			"color-secondary": "var(--framer-color-text-secondary)",
-			"color-tertiary": "var(--framer-color-text-tertiary)",
-			accent: "var(--framerforms-accent)",
-			"accent-dynamic": "var(--framerforms-accent-dynamic)",
-			"button-tertiary": "var(--color-button-tertiary)",
 			"segmented-control": "var(--color-segmented-control)",
 			transparent: "transparent",
+		},
+		colors: {
+			primary: "var(--framer-color-text)",
+			secondary: "var(--framer-color-text-secondary)",
+			tertiary: "var(--framer-color-text-tertiary)",
+			inverted: "var(--framer-color-text-inverted)",
+		},
+		borderColor: {
+			divider: "var(--framer-color-divider)",
+			"divider-secondary": "var(--color-divider-secondary)",
+			tint: "var(--framer-color-tint)",
 		},
 		spacing: {
 			0: "0",

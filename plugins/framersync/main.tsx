@@ -92,7 +92,7 @@ if (action == "syncCollection") {
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
 				<PluginContextProvider value={pluginContext}>
-					<main className="flex flex-col size-full select-none text-color-base">
+					<main className="flex flex-col size-full select-none text-primary">
 						<PageStack homePage={page || <HomePage />} />
 					</main>
 				</PluginContextProvider>

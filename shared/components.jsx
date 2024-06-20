@@ -30,7 +30,7 @@ export function Button({
 			className={classnames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
 				square ? "min-w-6 max-w-6" : "px-2",
-				primary ? "framer-button-primary" : "bg-bg-secondary text-color-base hover:bg-bg-tertiary",
+				primary ? "framer-button-primary" : "bg-secondary text-primary hover:bg-tertiary",
 				disabled ? "opacity-60" : "cursor-pointer",
 				className
 			)}
@@ -60,8 +60,8 @@ export function SearchBar({ placeholder = "Search...", background = true, value,
 	return (
 		<div
 			className={[
-				"relative flex flex-row gap-[6px] items-center h-6 min-h-6 text-color-tertiary font-medium rounded",
-				background ? "bg-bg-secondary" : "",
+				"relative flex flex-row gap-[6px] items-center h-6 min-h-6 text-tertiary font-medium rounded",
+				background ? "bg-secondary" : "",
 			].join(" ")}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" className="absolute left-2">
@@ -83,7 +83,7 @@ export function SearchBar({ placeholder = "Search...", background = true, value,
 				style={{
 					...inheritFont,
 				}}
-				className="flex-1 bg-transparent border-none text-color-base !px-6"
+				className="flex-1 bg-transparent border-none text-primary !px-6"
 			/>
 			{value?.length ? <XIcon onClick={() => onChange("")} className="absolute right-2" /> : null}
 		</div>
@@ -114,7 +114,7 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 	}
 
 	return (
-		<div className={`relative flex flex-row items-stretch bg-bg-secondary p-0.5 rounded min-h-6 ${className}`}>
+		<div className={`relative flex flex-row items-stretch bg-secondary p-0.5 rounded min-h-6 ${className}`}>
 			{currentItemIndex >= 0 && (
 				<div className="absolute inset-0.5">
 					<motion.div
@@ -169,7 +169,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 					min={propertyControl.min}
 					max={propertyControl.max}
 					step={1 / multiplier}
-					className="bg-bg-secondary text-color-base rounded pl-[7px] pb-[1px] border-none h-full"
+					className="bg-secondary text-primary rounded pl-[7px] pb-[1px] border-none h-full"
 					style={inheritFont}
 				/>
 			);
@@ -194,7 +194,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 				controls.push(
 					<div
 						key="stepper"
-						className="relative flex flex-row items-center h-full cursor-pointer bg-bg-secondary rounded text-color-tertiary"
+						className="relative flex flex-row items-center h-full cursor-pointer bg-secondary rounded text-tertiary"
 					>
 						<div onClick={() => increment(false)} className="flex-1 flex items-center justify-center h-full">
 							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
@@ -213,14 +213,10 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 							</svg>
 						</div>
 						<div
+							className="absolute w-[1px] h-[14px] bg-divider-secondary pointer-events-none"
 							style={{
-								position: "absolute",
 								left: "calc(50% - 0.5px)",
 								top: "calc(50% - 7px)",
-								width: 1,
-								height: 14,
-								backgroundColor: "var(--framer-color-divider-secondary)",
-								pointerEvents: "none",
 							}}
 						></div>
 					</div>
@@ -231,7 +227,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 			controls.push(
 				<div
 					key="color"
-					className="flex flex-row items-center p-[4px] gap-[6px] rounded bg-bg-secondary cursor-pointer h-full col-span-2 flex-1"
+					className="flex flex-row items-center p-[4px] gap-[6px] rounded bg-secondary cursor-pointer h-full col-span-2 flex-1"
 				>
 					<div
 						className="h-[22px] min-w-[22px] rounded-[4px] border border-[#000]/10 "
@@ -278,13 +274,13 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 				gridTemplateColumns: `minmax(0,${labelRatio}fr) repeat(2,minmax(62px,1fr))`,
 			}}
 		>
-			{label && <span className="text-color-secondary">{label}</span>}
+			{label && <span className="text-secondary">{label}</span>}
 			{controls}
 		</div>
 	);
 }
 
-export function XIcon({ onClick, className = "", color = "var(--framer-color-text-tertiary)" }) {
+export function XIcon({ onClick, className = "" }) {
 	return (
 		<div onClick={onClick} className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer ${className}`}>
 			<div className="absolute -inset-1" />

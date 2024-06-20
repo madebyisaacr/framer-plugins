@@ -17,4 +17,3 @@ export const cmsFieldTypeNames = {
 	date: "Date",
 	enum: "Option",
 };
-

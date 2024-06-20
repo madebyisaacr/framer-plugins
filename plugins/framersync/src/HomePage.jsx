@@ -28,7 +28,7 @@ function AppButton({ title, icon, onClick = () => {} }) {
 	return (
 		<div
 			onClick={onClick}
-			className="flex flex-col items-center justify-center gap-4 bg-bg-secondary rounded aspect-square text-sm font-semibold cursor-pointer hover:bg-bg-tertiary transition-colors"
+			className="flex flex-col items-center justify-center gap-4 bg-secondary rounded aspect-square text-sm font-semibold cursor-pointer hover:bg-tertiary transition-colors"
 		>
 			<img src={icon} alt={title} className="size-10 object-contain" />
 			{title}

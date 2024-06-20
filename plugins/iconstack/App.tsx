@@ -77,7 +77,7 @@ framer.showUI({
 
 export function App() {
 	return (
-		<main className="flex flex-col size-full select-none text-color-base">
+		<main className="flex flex-col size-full select-none text-primary">
 			<PageStack homePage={<HomePage />} />
 		</main>
 	);
@@ -350,13 +350,13 @@ function HomePage() {
 				</div>
 				{icon && (
 					<div
-						className="relative flex flex-col p-3 gap-3 bg-bg border-t border-divider"
+						className="relative flex flex-col p-3 gap-3 bg-primary border-t border-divider"
 						style={{
 							boxShadow: "0 -12px 12px -12px rgba(0,0,0,0.05)",
 						}}
 					>
 						<div className="flex flex-row gap-2 flex-1 pt-0.5">
-							<div className="relative size-[80px] bg-bg-secondary rounded">
+							<div className="relative size-[80px] bg-secondary rounded">
 								<img
 									className="dark-invert absolute size-[64px] top-1.5 left-1.5"
 									src={`https://files.svgcdn.io/${iconPack.cdnId}/${icon}.svg`}
@@ -365,7 +365,7 @@ function HomePage() {
 							</div>
 							<div className="flex flex-col gap-1 flex-1 pt-0.5">
 								<span className="font-semibold">{iconNames[iconPackData?.iconIds?.indexOf(icon)]}</span>
-								<span className="text-color-secondary">{iconPack?.name}</span>
+								<span className="text-secondary">{iconPack?.name}</span>
 							</div>
 						</div>
 						<div className="flex flex-row gap-2 items-end flex-1">
@@ -384,9 +384,7 @@ function HomePage() {
 	);
 }
 
-function IconPackInfoPage(iconPack) {
-	const { closePage } = useContext(PageStackContext);
-
+function IconPackInfoPage({ iconPack }) {
 	const iconPackData = ICON_PACKS[iconPack?.name];
 
 	return (
