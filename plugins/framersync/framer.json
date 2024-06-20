@@ -1,0 +1,10 @@
+{
+  "id": "oIjSKH",
+  "name": "FramerSync",
+  "modes": [
+    "default",
+    "configureCollection",
+    "syncCollection"
+  ],
+  "icon": "/icon.svg"
+}
