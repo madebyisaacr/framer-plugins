@@ -98,7 +98,7 @@ if (action == "syncCollection") {
 
 	framer.showUI({
 		title: "FramerSync",
-		width: 600,
+		width: 620,
 		height: 500,
 	});
 }
