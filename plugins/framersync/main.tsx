@@ -8,7 +8,7 @@ import "./App.css";
 import { PageStack } from "@shared/PageStack";
 import { HomePage } from "./HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
-import PluginContext from "./PluginContext.js";
+import { PluginContextProvider } from "./PluginContext";
 
 const integrations = [Notion];
 
@@ -33,6 +33,7 @@ const databaseId = await collection.getPluginData("databaseId");
 const lastSyncedAt = await collection.getPluginData("lastSyncedAt");
 const disabledFieldIds = await collection.getPluginData("disabledFieldIds");
 const slugFieldId = await collection.getPluginData("slugFieldId");
+const collectionFields = await collection.getFields();
 
 let action = "";
 
@@ -48,12 +49,14 @@ if (!integrationId) {
 	}
 }
 
+const integration = integrations.find((integration) => integration.id === integrationId);
+
 if (action == "syncCollection") {
 	syncCollection();
 } else {
 	let page: any = null;
 	if (action == "openIntegrationPage") {
-		const PageComponent = integrations.find((integration) => integration.id === integrationId)?.Page;
+		const PageComponent = integration?.Page;
 		if (PageComponent) {
 			page = <PageComponent />;
 		}
@@ -62,7 +65,7 @@ if (action == "syncCollection") {
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
-				<PluginContext.Provider
+				<PluginContextProvider
 					value={{
 						type: databaseId ? "update" : "new",
 						collection,
@@ -72,13 +75,14 @@ if (action == "syncCollection") {
 						lastSyncedAt,
 						disabledFieldIds,
 						slugFieldId,
+						collectionFields,
 						integrationData: {},
 					}}
 				>
 					<main className="flex flex-col size-full select-none text-color-base">
 						<PageStack homePage={page || <HomePage />} />
 					</main>
-				</PluginContext.Provider>
+				</PluginContextProvider>
 			</QueryClientProvider>
 		</React.StrictMode>
 	);

@@ -2,7 +2,7 @@ import React, { useContext, useState, useRef, useEffect, useMemo, Fragment } fro
 import classNames from "classnames";
 import { framer, CollectionField } from "framer-plugin";
 import { Button, BackButton } from "@shared/components.jsx";
-import PluginContext from "@plugin/PluginContext.js";
+import PluginContext from "@plugin/PluginContext";
 import {
 	authorize,
 	getOauthURL,
@@ -15,6 +15,7 @@ import {
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	pageContentField,
+	getDatabase,
 } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/utils";
 import { isFullDatabase } from "@notionhq/client";
@@ -22,17 +23,35 @@ import { PageStackContext } from "@shared/PageStack.jsx";
 import plugin from "tailwindcss";
 
 function Page() {
-	const { isAuthenticated, databaseId } = useContext(PluginContext);
+	const pluginContext = useContext(PluginContext);
+
+	useEffect(() => {
+		initialize(pluginContext);
+
+		return () => {
+			pluginContext.integrationData = {};
+		};
+	}, []);
 
 	// if (!isAuthenticated) {
 	// 	return <AuthenticatePage />;
 	// }
 
-	if (!databaseId) {
+	if (!pluginContext.databaseId) {
 		return <SelectDatabasePage />;
 	}
 
-	return <ConfigureFieldsPage />;
+	return <ConfigureCollectionPage />;
+}
+
+async function initialize(pluginContext) {
+	if (pluginContext.databaseId && !pluginContext.integrationData?.database) {
+		const database = await getDatabase(pluginContext.databaseId);
+		pluginContext.setIntegrationData?.({
+			...pluginContext.integrationData,
+			database,
+		});
+	}
 }
 
 const Notion = {
@@ -54,7 +73,7 @@ function AuthenticatePage() {
 
 function SelectDatabasePage() {
 	const { openPage } = useContext(PageStackContext);
-	const { integrationData } = useContext(PluginContext);
+	const { integrationData, collection } = useContext(PluginContext);
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 
 	const [selectedDatabase, setSelectedDatabase] = useState(integrationData?.database || null);
@@ -62,6 +81,9 @@ function SelectDatabasePage() {
 	function handleSubmit() {
 		if (integrationData) {
 			integrationData.database = selectedDatabase;
+		}
+		if (collection) {
+			collection.setPluginData("databaseId", selectedDatabase?.id);
 		}
 		openPage(<ConfigureFieldsPage />);
 	}
@@ -100,19 +122,29 @@ function SelectDatabasePage() {
 	);
 }
 
-function ConfigureFieldsPage() {
+function ConfigureCollectionPage() {
+	const { integrationData } = useContext(PluginContext);
+
+	if (integrationData.database) {
+		return <FieldConfigurationMenu />;
+	} else {
+		return <div className="flex flex-col items-center justify-center flex-1">Loading...</div>;
+	}
+}
+
+function FieldConfigurationMenu() {
 	const pluginContext = useContext(PluginContext);
 
 	const isLoading = false;
 	const error = null;
 
-	const database = pluginContext?.integrationData?.database || null;
+	const database = pluginContext.integrationData?.database || null;
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
-	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext?.slugFieldId, slugFields));
+	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext.slugFieldId, slugFields));
 	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
-		() => new Set<string>(pluginContext?.type === "update" ? pluginContext?.disabledFieldIds ?? [] : [])
+		() => new Set<string>(pluginContext.type === "update" ? pluginContext.disabledFieldIds ?? [] : [])
 	);
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
@@ -400,7 +432,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginContext): CollectionFieldConfig[] {
+function createFieldConfig(database: GetDatabaseResponse, pluginContext): CollectionFieldConfig[] {
 	if (!database || !pluginContext) {
 		return [];
 	}
@@ -408,7 +440,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
-		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
+		pluginContext.type === "update" && pluginContext.collectionFields?.map((field) => field.id) || []
 	);
 
 	result.push({
@@ -459,18 +491,18 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[]) {
 	return result;
 }
 
-function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
+function getFieldNameOverrides(pluginContext): Record<string, string> {
 	const result: Record<string, string> = {};
 	if (pluginContext.type !== "update") return result;
 
-	for (const field of pluginContext.collectionFields) {
+	for (const field of pluginContext.collectionFields ?? []) {
 		result[field.id] = field.name;
 	}
 
 	return result;
 }
 
-function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionProperty[]): string | null {
+function getInitialSlugFieldId(context, fieldOptions: NotionProperty[]): string | null {
 	if (!context) {
 		return null;
 	}
@@ -487,7 +519,7 @@ const fieldConversionTypes = {
 	created_by: ["string"],
 	created_time: ["date"],
 	date: ["date"],
-	email: ["string"],
+	email: ["string", "link"],
 	files: ["string", "link", "image"],
 	formula: ["string"],
 	last_edited_by: ["string"],

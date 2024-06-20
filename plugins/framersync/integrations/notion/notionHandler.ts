@@ -645,3 +645,10 @@ export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime:
 
 	return lastSynced > lastEdited;
 }
+
+export async function getDatabase(databaseId: string) {
+	assert(notion, "Notion client is not initialized");
+
+	const database = await notion?.databases.retrieve({ database_id: databaseId });
+	return database ?? null;
+}
