@@ -46,15 +46,8 @@ function Page() {
 	return <ConfigureCollectionPage />;
 }
 
-const Notion = {
-	id: "notion",
-	Page,
-};
-
-export default Notion;
-
 async function initialize(pluginContext) {
-	if (pluginContext.databaseId && !pluginContext.integrationData?.database) {
+	if (pluginContext.integrationId == Notion.id && pluginContext.databaseId && !pluginContext.integrationData?.database) {
 		const database = await getDatabase(pluginContext.databaseId);
 		pluginContext.setIntegrationData?.({
 			...pluginContext.integrationData,
@@ -62,6 +55,14 @@ async function initialize(pluginContext) {
 		});
 	}
 }
+
+const Notion = {
+	id: "notion",
+	Page,
+	initialize,
+};
+
+export default Notion;
 
 function AuthenticatePage() {
 	const { openPage } = useContext(PageStackContext);

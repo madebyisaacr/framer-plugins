@@ -9,6 +9,7 @@ import { PageStack } from "@shared/PageStack";
 import { HomePage } from "./src/HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
 import { PluginContextProvider } from "./src/PluginContext";
+import plugin from "tailwindcss";
 
 const integrations = [Notion];
 
@@ -37,7 +38,7 @@ const collectionFields = await collection.getFields();
 
 let action = "";
 
-const dataKeys = await collection.getPluginDataKeys()
+const dataKeys = await collection.getPluginDataKeys();
 if (dataKeys.length) {
 	for (const key of dataKeys) {
 		console.log(key, await collection.getPluginData(key));
@@ -60,8 +61,24 @@ if (!integrationId) {
 
 const integration = integrations.find((integration) => integration.id === integrationId);
 
+const pluginContext = {
+	type: databaseId ? "update" : "new",
+	collection,
+	integrationId,
+	isAuthenticated,
+	databaseId,
+	lastSyncedAt,
+	disabledFieldIds,
+	slugFieldId,
+	collectionFields,
+	integrationData: {},
+};
+
 if (action == "syncCollection") {
-	syncCollection();
+	if (integration) {
+		await integration.initialize(pluginContext);
+		syncCollection();
+	}
 } else {
 	let page: any = null;
 	if (action == "openIntegrationPage") {
@@ -74,20 +91,7 @@ if (action == "syncCollection") {
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
-				<PluginContextProvider
-					value={{
-						type: databaseId ? "update" : "new",
-						collection,
-						integrationId,
-						isAuthenticated,
-						databaseId,
-						lastSyncedAt,
-						disabledFieldIds,
-						slugFieldId,
-						collectionFields,
-						integrationData: {},
-					}}
-				>
+				<PluginContextProvider value={pluginContext}>
 					<main className="flex flex-col size-full select-none text-color-base">
 						<PageStack homePage={page || <HomePage />} />
 					</main>
