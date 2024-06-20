@@ -13,5 +13,8 @@
   "main": "postcss.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@notionhq/client": "^2.2.15"
+  }
 }
