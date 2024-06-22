@@ -20,7 +20,7 @@ import {
 import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
 import { isFullDatabase } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
-import { cmsFieldTypeNames, pluginDataKeys } from "@plugin/src/shared";
+import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
 import plugin from "vite-plugin-mkcert";
 
 function Page() {
@@ -58,7 +58,14 @@ async function initialize(pluginContext) {
 }
 
 async function syncCollection(pluginContext) {
-	// const database =
+	const database = pluginContext.integrationData?.database;
+	assert(database);
+
+	const items = getItems(pluginContext);
+
+	await syncCollectionFields(pluginContext, pluginContext.fields)
+	await syncCollectionItems(pluginContext, items)
+	await framer.closePlugin();
 }
 
 const Notion = {
@@ -205,14 +212,14 @@ function FieldConfigurationMenu() {
 
 		if (isLoading) return;
 
-		const collectionFields = {};
+		const fields = {};
 
 		for (const fieldConfig of fieldConfigList) {
 			if (!fieldConfig || !fieldConfig.property || fieldConfig.unsupported || disabledFieldIds.has(fieldConfig.property.id)) {
 				continue;
 			}
 
-			collectionFields[fieldConfig.property.id] = getCollectionFieldForProperty(
+			fields[fieldConfig.property.id] = getCollectionFieldForProperty(
 				fieldConfig.property,
 				fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
 				fieldTypes[fieldConfig.property.id]
@@ -220,6 +227,7 @@ function FieldConfigurationMenu() {
 		}
 
 		assert(pluginContext.setContext);
+		assert(slugFieldId);
 
 		const { collection } = pluginContext;
 		if (collection) {
@@ -236,7 +244,9 @@ function FieldConfigurationMenu() {
 				collection.setPluginData(key, data[key]);
 			}
 
-			pluginContext.setContext((prev) => ({ ...prev, ...data }));
+			pluginContext.setContext((prev) => ({ ...prev, ...data, fields }));
+
+			syncCollection(pluginContext);
 		}
 
 		// const allFields = fieldConfigList
@@ -250,8 +260,6 @@ function FieldConfigurationMenu() {
 
 		// 		return field;
 		// 	});
-
-		assert(slugFieldId);
 
 		// onSubmit({
 		// 	fields: allFields,
@@ -479,7 +487,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
-		(pluginContext.type === "update" && pluginContext.collectionFields?.map((field) => field.id)) || []
+		(pluginContext.type === "update" && pluginContext.originalFields?.map((field) => field.id)) || []
 	);
 
 	result.push({
@@ -593,4 +601,13 @@ function getFieldConversionType(property: NotionProperty) {
 		default:
 			return [];
 	}
+}
+
+function getItems(pluginContext) {
+	const collection = pluginContext.collection;
+	const fields = pluginContext.fields;
+
+	
+
+	return [];
 }

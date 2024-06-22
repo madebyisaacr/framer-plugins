@@ -70,14 +70,15 @@ const pluginContext = {
 	[pluginDataKeys.lastSyncedAt]: lastSyncedAt,
 	[pluginDataKeys.disabledFieldIds]: disabledFieldIds,
 	[pluginDataKeys.slugFieldId]: slugFieldId,
-	collectionFields,
+	originalFields: collectionFields,
+	fields: collectionFields,
 	integrationData: {},
 };
 
 if (action == "syncCollection") {
 	if (integration) {
 		await integration.initialize(pluginContext);
-		syncCollection();
+		await integration.syncCollection(pluginContext);
 	}
 } else {
 	let page: any = null;
@@ -106,5 +107,3 @@ if (action == "syncCollection") {
 		height: 500,
 	});
 }
-
-function syncCollection() {}
