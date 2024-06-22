@@ -20,5 +20,5 @@ export const PluginContextProvider = ({ value, children }) => {
 		setContext({ ...context, integrationData: data });
 	}
 
-	return <PluginContext.Provider value={{...context, setIntegrationData}}>{children}</PluginContext.Provider>;
+	return <PluginContext.Provider value={{...context, setIntegrationData, setContext}}>{children}</PluginContext.Provider>;
 };

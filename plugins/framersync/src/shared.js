@@ -4,6 +4,7 @@ export const pluginDataKeys = {
 	lastSyncedAt: "lastSyncedAt",
 	disabledFieldIds: "disabledFieldIds",
 	slugFieldId: "slugFieldId",
+	isAuthenticated: "isAuthenticated",
 };
 
 export const cmsFieldTypeNames = {

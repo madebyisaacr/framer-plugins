@@ -21,6 +21,7 @@ import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
 import { isFullDatabase } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys } from "@plugin/src/shared";
+import plugin from "vite-plugin-mkcert";
 
 function Page() {
 	const pluginContext = useContext(PluginContext);
@@ -56,10 +57,15 @@ async function initialize(pluginContext) {
 	}
 }
 
+async function syncCollection(pluginContext) {
+	// const database =
+}
+
 const Notion = {
 	id: "notion",
 	Page,
 	initialize,
+	syncCollection,
 };
 
 export default Notion;
@@ -154,7 +160,7 @@ function FieldConfigurationMenu() {
 	// console.log("database", database);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
-	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext.slugFieldId, slugFields));
+	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext, slugFields));
 	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.disabledFieldIds ?? [] : [])
@@ -213,13 +219,24 @@ function FieldConfigurationMenu() {
 			);
 		}
 
+		assert(pluginContext.setContext);
+
 		const { collection } = pluginContext;
 		if (collection) {
-			collection.setPluginData(pluginDataKeys.integrationId, Notion.id);
-			collection.setPluginData(pluginDataKeys.databaseId, database.id);
-			collection.setPluginData(pluginDataKeys.lastSyncedAt, new Date().toISOString());
-			collection.setPluginData(pluginDataKeys.disabledFieldIds, JSON.stringify(Array.from(disabledFieldIds)));
-			collection.setPluginData(pluginDataKeys.slugFieldId, slugFieldId);
+			const data = {
+				[pluginDataKeys.integrationId]: Notion.id,
+				[pluginDataKeys.databaseId]: database.id,
+				[pluginDataKeys.lastSyncedAt]: new Date().toISOString(),
+				[pluginDataKeys.disabledFieldIds]: JSON.stringify(Array.from(disabledFieldIds)),
+				[pluginDataKeys.slugFieldId]: slugFieldId,
+				[pluginDataKeys.isAuthenticated]: "true",
+			};
+
+			for (const key of Object.keys(data)) {
+				collection.setPluginData(key, data[key]);
+			}
+
+			pluginContext.setContext((prev) => ({ ...prev, ...data }));
 		}
 
 		// const allFields = fieldConfigList

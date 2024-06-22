@@ -9,7 +9,7 @@ import { PageStack } from "@shared/PageStack";
 import { HomePage } from "./src/HomePage";
 import Notion from "./integrations/notion/Notion.tsx";
 import { PluginContextProvider } from "./src/PluginContext";
-import plugin from "tailwindcss";
+import { pluginDataKeys } from "./src/shared";
 
 const integrations = [Notion];
 
@@ -28,12 +28,12 @@ const queryClient = new QueryClient({
 
 const collection = await framer.getCollection();
 
-const integrationId = await collection.getPluginData("integrationId");
-const isAuthenticated = await collection.getPluginData("isAuthenticated");
-const databaseId = await collection.getPluginData("databaseId");
-const lastSyncedAt = await collection.getPluginData("lastSyncedAt");
-const disabledFieldIds = await collection.getPluginData("disabledFieldIds");
-const slugFieldId = await collection.getPluginData("slugFieldId");
+const integrationId = await collection.getPluginData(pluginDataKeys.integrationId);
+const isAuthenticated = await collection.getPluginData(pluginDataKeys.isAuthenticated);
+const databaseId = await collection.getPluginData(pluginDataKeys.databaseId);
+const lastSyncedAt = await collection.getPluginData(pluginDataKeys.lastSyncedAt);
+const disabledFieldIds = await collection.getPluginData(pluginDataKeys.disabledFieldIds);
+const slugFieldId = await collection.getPluginData(pluginDataKeys.slugFieldId);
 const collectionFields = await collection.getFields();
 
 let action = "";
@@ -64,12 +64,12 @@ const integration = integrations.find((integration) => integration.id === integr
 const pluginContext = {
 	type: databaseId ? "update" : "new",
 	collection,
-	integrationId,
-	isAuthenticated,
-	databaseId,
-	lastSyncedAt,
-	disabledFieldIds,
-	slugFieldId,
+	[pluginDataKeys.integrationId]: integrationId,
+	[pluginDataKeys.isAuthenticated]: isAuthenticated,
+	[pluginDataKeys.databaseId]: databaseId,
+	[pluginDataKeys.lastSyncedAt]: lastSyncedAt,
+	[pluginDataKeys.disabledFieldIds]: disabledFieldIds,
+	[pluginDataKeys.slugFieldId]: slugFieldId,
 	collectionFields,
 	integrationData: {},
 };
