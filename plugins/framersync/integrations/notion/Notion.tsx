@@ -60,11 +60,12 @@ async function initialize(pluginContext) {
 async function syncCollection(pluginContext) {
 	const database = pluginContext.integrationData?.database;
 	assert(database);
+	
+	await syncCollectionFields(pluginContext, pluginContext.fields);
 
 	const items = getItems(pluginContext);
 
-	await syncCollectionFields(pluginContext, pluginContext.fields)
-	await syncCollectionItems(pluginContext, items)
+	await syncCollectionItems(pluginContext, items);
 	await framer.closePlugin();
 }
 
@@ -234,7 +235,6 @@ function FieldConfigurationMenu() {
 			const data = {
 				[pluginDataKeys.integrationId]: Notion.id,
 				[pluginDataKeys.databaseId]: database.id,
-				[pluginDataKeys.lastSyncedAt]: new Date().toISOString(),
 				[pluginDataKeys.disabledFieldIds]: JSON.stringify(Array.from(disabledFieldIds)),
 				[pluginDataKeys.slugFieldId]: slugFieldId,
 				[pluginDataKeys.isAuthenticated]: "true",
@@ -601,13 +601,4 @@ function getFieldConversionType(property: NotionProperty) {
 		default:
 			return [];
 	}
-}
-
-function getItems(pluginContext) {
-	const collection = pluginContext.collection;
-	const fields = pluginContext.fields;
-
-	
-
-	return [];
 }

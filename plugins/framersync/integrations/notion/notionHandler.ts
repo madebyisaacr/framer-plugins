@@ -13,6 +13,7 @@ import { assert, formatDate, isDefined, isString, slugify } from "@plugin/src/ut
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
+import { pluginDataKeys } from "@plugin/src/shared";
 
 export type FieldId = string;
 
@@ -398,7 +399,7 @@ async function processAllItems(
 
 export async function synchronizeDatabase(
 	database: GetDatabaseResponse,
-	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
+	{ fields, disabledFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
 	assert(isFullDatabase(database));
 	assert(notion);
@@ -430,13 +431,7 @@ export async function synchronizeDatabase(
 		const itemsToDelete = Array.from(unsyncedItemIds);
 		await collection.removeItems(itemsToDelete);
 
-		await Promise.all([
-			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginDatabaseIdKey, database.id),
-			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
-			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(databaseNameKey, richTextToPlainText(database.title)),
-		]);
+		collection.setPluginData(pluginDataKeys.lastSyncedAt, new Date().toISOString());
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",
