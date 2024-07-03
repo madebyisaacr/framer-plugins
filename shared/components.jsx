@@ -282,14 +282,14 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 
 export function XIcon({ onClick, className = "" }) {
 	return (
-		<div onClick={onClick} className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer ${className}`}>
+		<div onClick={onClick} className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer text-tertiary ${className}`}>
 			<div className="absolute -inset-1" />
 			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
 				<path
 					d="M 8 2 L 2 8 M 2 2 L 8 8"
 					fill="transparent"
 					strokeWidth="1.5"
-					stroke={color}
+					stroke="currentColor"
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeDasharray=""
