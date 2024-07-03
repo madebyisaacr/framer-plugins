@@ -2,8 +2,6 @@
   "build": {
     "env": {
       "NODE_ENV": "production"
-    },
-    "cwd": "../../",
-    "output": "packages/iconstack/dist"
+    }
   }
 }
