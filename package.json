@@ -11,8 +11,7 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "iconstack",
-    "shared"
+    "plugins/*"
   ],
   "dependencies": {
     "@tanstack/react-query": "^5.45.1",
