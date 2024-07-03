@@ -1,5 +1,5 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install"
+  "installCommand": "cd ../.. && npm install && cd plugins/iconstack && npm install"
 }

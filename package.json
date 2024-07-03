@@ -11,7 +11,8 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "plugins/*"
+    "plugins/iconstack",
+    "plugins/framersync"
   ],
   "dependencies": {
     "@tanstack/react-query": "^5.45.1",
