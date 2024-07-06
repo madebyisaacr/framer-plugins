@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import Notion from "@plugin/integrations/notion/Notion.tsx";
 import { PageStackContext } from "@shared/PageStack";
 
@@ -14,7 +14,7 @@ export function HomePage() {
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton icon={IntegrationIcons.Airtable} title="Airtable" />
 				<AppButton icon={IntegrationIcons.GoogleSheets} title="Google Sheets" />
-				<AppButton icon={IntegrationIcons.Notion} title="Notion" onClick={() => openPage(<Notion.Page />)} />
+				<AppButton icon={IntegrationIcons.Notion} title="Notion" onClick={(ref) => openPage(<Notion.Page />, ref)} />
 				<AppButton icon={IntegrationIcons.RSS} title="RSS Feed" />
 				<AppButton icon={IntegrationIcons.Shopify} title="Shopify" />
 			</div>
@@ -24,10 +24,13 @@ export function HomePage() {
 
 ///////////////////////////////////////////////////////////////////////
 
-function AppButton({ title, icon, onClick = () => {} }) {
+function AppButton({ title, icon, page, onClick = () => {} }) {
+	const ref = useRef(null);
+
 	return (
 		<div
-			onClick={onClick}
+			ref={ref}
+			onClick={() => onClick(ref)}
 			className="flex flex-col items-center justify-center gap-4 bg-secondary rounded aspect-square text-sm font-semibold cursor-pointer hover:bg-tertiary transition-colors"
 		>
 			<img src={icon} alt={title} className="size-10 object-contain" />

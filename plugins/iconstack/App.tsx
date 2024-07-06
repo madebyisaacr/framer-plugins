@@ -1,6 +1,5 @@
-import { framer, CanvasNode } from "framer-plugin";
+import { framer } from "framer-plugin";
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { motion } from "framer-motion";
 import "./App.css";
 import { iconPacks } from "./IconstackData.jsx";
 import { SearchBar, Button, XIcon, SegmentedControl } from "@shared/components.jsx";

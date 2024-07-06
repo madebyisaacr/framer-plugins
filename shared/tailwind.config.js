@@ -46,6 +46,7 @@ export default {
 			10: "50px",
 		},
 		borderRadius: {
+			none: "0",
 			DEFAULT: "8px",
 			sm: "5px",
 			lg: "10px",

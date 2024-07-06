@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { forwardRef } from "react";
 import { Spinner } from "./spinner/Spinner";
 import classnames from "classnames";
 
@@ -9,23 +9,27 @@ const inheritFont = {
 	fontWeight: "500",
 };
 
-export function Button({
-	primary = false,
-	newTab = false,
-	square = false,
-	children,
-	className = "",
-	style = {},
-	href = "",
-	onClick = null,
-	isLoading = false,
-	disabled = false,
-}) {
+export const Button = forwardRef(function Button(
+	{
+		primary = false,
+		newTab = false,
+		square = false,
+		children,
+		className = "",
+		style = {},
+		href = "",
+		onClick = null,
+		isLoading = false,
+		disabled = false,
+	},
+	ref
+) {
 	const Element = href.length ? "a" : "button";
 	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
 
 	return (
 		<Element
+			ref={ref}
 			style={style}
 			className={classnames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
@@ -54,7 +58,7 @@ export function Button({
 			)}
 		</Element>
 	);
-}
+});
 
 export function SearchBar({ placeholder = "Search...", background = true, value, onChange, onSubmit = null }) {
 	return (
@@ -282,7 +286,10 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 
 export function XIcon({ onClick, className = "" }) {
 	return (
-		<div onClick={onClick} className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer text-tertiary ${className}`}>
+		<div
+			onClick={onClick}
+			className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer text-tertiary ${className}`}
+		>
 			<div className="absolute -inset-1" />
 			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
 				<path
