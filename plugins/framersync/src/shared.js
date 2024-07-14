@@ -1,3 +1,5 @@
+import { framer } from "framer-plugin";
+
 export const pluginDataKeys = {
 	integrationId: "integrationId",
 	databaseId: "databaseId",

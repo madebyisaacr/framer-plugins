@@ -18,7 +18,6 @@ const scaleTransition = {
 // Page:
 // component
 // buttonRef
-// buttonScale
 
 export function PageStack({ homePage }) {
 	const [pageStack, setPageStack] = useState([]);
@@ -138,7 +137,7 @@ export function PageStack({ homePage }) {
 							return (
 								<motion.div
 									key={index}
-									className="size-full flex flex-col absolute inset-0 bg-primary"
+									className="size-full flex flex-col absolute inset-0 bg-primary overflow-hidden rounded-bl-xl"
 									initial={index == 0 ? {} : { opacity: 1, translateX: "100%", boxShadow: "0 32px 32px 0 rgba(0,0,0,0.2)" }}
 									exit={{ opacity: 1, translateX: "100%", boxShadow: "0 32px 32px 0 rgba(0,0,0,0)" }}
 									animate={animate}
