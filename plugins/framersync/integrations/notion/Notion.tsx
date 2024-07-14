@@ -6,7 +6,6 @@ import PluginContext from "@plugin/src/PluginContext";
 import {
 	authorize,
 	getOauthURL,
-	getPluginContext,
 	useDatabasesQuery,
 	richTextToPlainText,
 	NotionProperty,
@@ -16,12 +15,12 @@ import {
 	hasFieldConfigurationChanged,
 	pageContentField,
 	getDatabase,
+	synchronizeDatabase,
 } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
-import { isFullDatabase } from "@notionhq/client";
+import { isFullDatabase, collectPaginatedAPI } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
-import plugin from "vite-plugin-mkcert";
 
 function Page() {
 	const pluginContext = useContext(PluginContext);
@@ -60,13 +59,24 @@ async function initialize(pluginContext) {
 async function syncCollection(pluginContext) {
 	const database = pluginContext.integrationData?.database;
 	assert(database);
+
+	console.log(pluginContext.fields)
+
+	synchronizeDatabase(database, {
+		fields: pluginContext.fields,
+		disabledFieldIds: pluginContext.disabledFieldIds,
+		lastSyncedTime: pluginContext.lastSyncedTime,
+		slugFieldId: pluginContext.slugFieldId,
+	});
+
+	// await syncCollectionFields(pluginContext, pluginContext.fields);
+
+	// const items = getItems(pluginContext.integrationData.database);
+	// console.log("items", items);
+
+	// await syncCollectionItems(pluginContext, items);
 	
-	await syncCollectionFields(pluginContext, pluginContext.fields);
-
-	const items = getItems(pluginContext);
-
-	await syncCollectionItems(pluginContext, items);
-	await framer.closePlugin();
+	// await framer.closePlugin();
 }
 
 const Notion = {
@@ -146,7 +156,7 @@ function ConfigureCollectionPage() {
 	const { integrationData } = useContext(PluginContext);
 
 	return (
-		<div className="flex flex-col gap-2 size-full px-3">
+		<div className="flex flex-col gap-2 size-full px-3 overflow-y-auto">
 			<BackButton />
 			{integrationData?.database ? (
 				<FieldConfigurationMenu />
@@ -246,7 +256,7 @@ function FieldConfigurationMenu() {
 
 			pluginContext.setContext((prev) => ({ ...prev, ...data, fields }));
 
-			syncCollection(pluginContext);
+			syncCollection({...pluginContext, ...data, fields});
 		}
 
 		// const allFields = fieldConfigList
@@ -274,7 +284,7 @@ function FieldConfigurationMenu() {
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
 				<div className="flex-1 flex flex-col gap-4">
-					<div className="flex flex-col gap-2 w-full">
+					<div className="flex flex-col gap-2 w-full pl-[26px]">
 						<label htmlFor="collectionName">Slug Field</label>
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
 							{slugFields.map((field) => (

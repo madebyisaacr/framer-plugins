@@ -4,11 +4,12 @@ import { createContext, useState } from "react";
 // integrationId
 // isAuthenticated
 // databaseId
-// lastSyncedAt
+// lastSyncedTime
 // disabledFieldIds
 // slugFieldId
 // integrationData
 // collectionFields
+// fields
 
 const PluginContext = createContext({});
 export default PluginContext;

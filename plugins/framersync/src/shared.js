@@ -3,7 +3,7 @@ import { framer } from "framer-plugin";
 export const pluginDataKeys = {
 	integrationId: "integrationId",
 	databaseId: "databaseId",
-	lastSyncedAt: "lastSyncedAt",
+	lastSyncedTime: "lastSyncedTime",
 	disabledFieldIds: "disabledFieldIds",
 	slugFieldId: "slugFieldId",
 	isAuthenticated: "isAuthenticated",

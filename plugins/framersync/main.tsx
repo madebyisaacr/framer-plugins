@@ -31,7 +31,7 @@ const collection = await framer.getCollection();
 const integrationId = await collection.getPluginData(pluginDataKeys.integrationId);
 const isAuthenticated = await collection.getPluginData(pluginDataKeys.isAuthenticated);
 const databaseId = await collection.getPluginData(pluginDataKeys.databaseId);
-const lastSyncedAt = await collection.getPluginData(pluginDataKeys.lastSyncedAt);
+const lastSyncedTime = await collection.getPluginData(pluginDataKeys.lastSyncedTime);
 const disabledFieldIds = await collection.getPluginData(pluginDataKeys.disabledFieldIds);
 const slugFieldId = await collection.getPluginData(pluginDataKeys.slugFieldId);
 const collectionFields = await collection.getFields();
@@ -67,7 +67,7 @@ const pluginContext = {
 	[pluginDataKeys.integrationId]: integrationId,
 	[pluginDataKeys.isAuthenticated]: isAuthenticated,
 	[pluginDataKeys.databaseId]: databaseId,
-	[pluginDataKeys.lastSyncedAt]: lastSyncedAt,
+	[pluginDataKeys.lastSyncedTime]: lastSyncedTime,
 	[pluginDataKeys.disabledFieldIds]: disabledFieldIds,
 	[pluginDataKeys.slugFieldId]: slugFieldId,
 	originalFields: collectionFields,

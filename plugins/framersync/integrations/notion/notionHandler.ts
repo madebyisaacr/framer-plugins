@@ -371,7 +371,7 @@ async function processItem(
 type FieldsById = Map<FieldId, CollectionField>;
 
 // Function to process all items concurrently with a limit
-async function processAllItems(
+export async function processAllItems(
 	data: PageObjectResponse[],
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
@@ -396,6 +396,23 @@ async function processAllItems(
 		status,
 	};
 }
+
+// export async function getItems(database) {
+// 	const data = await collectPaginatedAPI(notion.databases.query, {
+// 		database_id: database.id,
+// 	});
+
+// 	// let items: any[] = [];
+// 	// for (const item of data) {
+// 	// 	items.push({
+// 	// 		id: item.id,
+// 	// 	});
+// 	// }
+
+// 	const { collectionItems, status } = await processAllItems(data, fieldsById, slugFieldId, unsyncedItemIds, lastSyncedTime);
+
+// 	return [];
+// }
 
 export async function synchronizeDatabase(
 	database: GetDatabaseResponse,
@@ -431,7 +448,7 @@ export async function synchronizeDatabase(
 		const itemsToDelete = Array.from(unsyncedItemIds);
 		await collection.removeItems(itemsToDelete);
 
-		collection.setPluginData(pluginDataKeys.lastSyncedAt, new Date().toISOString());
+		collection.setPluginData(pluginDataKeys.lastSyncedTime, new Date().toISOString());
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",
