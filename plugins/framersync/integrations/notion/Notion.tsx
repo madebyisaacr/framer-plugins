@@ -22,6 +22,24 @@ import { isFullDatabase, collectPaginatedAPI } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
 
+const timeMessage = "Time is not supported, so only the date will be imported.";
+const peopleMessage =
+	"People fields cannot be imported because the FramerSync Notion integration does not have access to user information, including their name.";
+const fieldConversionMessages = {
+	"date - date": timeMessage,
+	"created_time - date": timeMessage,
+	"last_edited_time - date": timeMessage,
+	"multi_select - string": "Values are imported as a comma-separated list of option names.",
+	"files - string": "Files are importated as a comma-separated list of URLs.",
+	"files - link": "Only the first file's URL will be included.",
+	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
+	"page-icon - string": "Only emoji icons are imported.",
+	button: "Button fields cannot be imported.",
+	people: peopleMessage,
+	last_edited_by: peopleMessage,
+	created_by: peopleMessage,
+};
+
 function Page() {
 	const pluginContext = useContext(PluginContext);
 	const { pageCount, closePage } = useContext(PageStackContext);
@@ -282,6 +300,7 @@ function FieldConfigurationMenu() {
 		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
+				<h1 className="text-lg font-bold pl-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
 					<div className="flex flex-col gap-2 w-full pl-[26px]">
 						<label htmlFor="collectionName">Slug Field</label>
