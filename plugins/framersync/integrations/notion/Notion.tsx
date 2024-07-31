@@ -33,9 +33,9 @@ const fieldConversionMessages = {
 	"files - link": "Only the first file's URL will be included.",
 	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
 	"page-icon - string":
-		'Only emoji icons are imported. To import Notion icons or custom image icons, switch the import type to "Image"',
+		'Only emoji icons are imported. To import Notion icons or custom image icons, change the import type to "Image"',
 	"page-icon - image":
-		'Only Notion icons and custom image icons are imported. To import emoji icons, switch the import type to "Text"',
+		'Only Notion icons and custom image icons are imported. To import emoji icons, change the import type to "Text"',
 	button: "Button fields cannot be imported.",
 	people: peopleMessage,
 	last_edited_by: peopleMessage,
@@ -304,17 +304,20 @@ function FieldConfigurationMenu() {
 
 		return (
 			<Fragment key={fieldConfig.originalFieldName}>
-				<input
-					type="checkbox"
-					disabled={!fieldConfig.property}
-					checked={!!fieldConfig.property && !isDisabled}
-					className={classNames("mx-auto", isDisabled && "opacity-50")}
-					onChange={() => {
-						assert(fieldConfig.property);
+				<label htmlFor={`${id}-checkbox`} className="size-full flex items-center">
+					<input
+						type="checkbox"
+						id={`${id}-checkbox`}
+						disabled={!fieldConfig.property}
+						checked={!!fieldConfig.property && !isDisabled}
+						className={classNames("mx-auto", isDisabled && "opacity-50")}
+						onChange={() => {
+							assert(fieldConfig.property);
 
-						handleFieldToggle(id);
-					}}
-				/>
+							handleFieldToggle(id);
+						}}
+					/>
+				</label>
 				<StaticInput disabled={isDisabled}>{fieldConfig.originalFieldName}</StaticInput>
 				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
 					<IconChevron />
@@ -336,7 +339,6 @@ function FieldConfigurationMenu() {
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
-
 						{fieldConfig.conversionTypes?.length <= 1 ? (
 							<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
 						) : (
@@ -356,6 +358,11 @@ function FieldConfigurationMenu() {
 						)}
 					</>
 				)}
+				<FieldInfoTooltip
+					fieldType={fieldTypes[id]}
+					propertyType={fieldConfig.property.type}
+					unsupported={fieldConfig.unsupported}
+				/>
 			</Fragment>
 		);
 	}
@@ -364,9 +371,9 @@ function FieldConfigurationMenu() {
 		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
-				<h1 className="text-lg font-bold pl-[26px] mb-2">Configure Collection Fields</h1>
+				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
-					<div className="flex flex-col gap-2 w-full pl-[26px]">
+					<div className="flex flex-col gap-2 w-full px-[26px]">
 						<label htmlFor="collectionName">Slug Field</label>
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
 							{slugFields.map((field) => (
@@ -379,12 +386,12 @@ function FieldConfigurationMenu() {
 					<div
 						className="grid gap-2 w-full items-center justify-center"
 						style={{
-							gridTemplateColumns: `16px 1fr 8px 1fr minmax(100px, auto)`,
+							gridTemplateColumns: `16px 1fr 8px 1fr minmax(100px, auto) 16px`,
 						}}
 					>
 						<span className="col-start-2 col-span-2">Notion Property</span>
 						<span>Collection Field Name</span>
-						<span>Import As</span>
+						<span className="col-span-2">Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<StaticInput disabled>{titleField?.name ?? "Title"}</StaticInput>
 						<div className="flex items-center justify-center">
@@ -392,6 +399,7 @@ function FieldConfigurationMenu() {
 						</div>
 						<StaticInput disabled>Title</StaticInput>
 						<StaticInput disabled>Text</StaticInput>
+						<div />
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
 						<div className="h-[1px] bg-divider col-span-full"></div>
 						{fieldConfigList
@@ -454,6 +462,23 @@ function IconChevron() {
 		<svg xmlns="http://www.w3.org/2000/svg" width="5" height="8">
 			<path d="M 1 1 L 4 4 L 1 7" fill="transparent" strokeWidth="1.5" stroke="currentColor" strokeLinecap="round"></path>
 		</svg>
+	);
+}
+
+function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
+	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+
+	return (
+		<div className="size-full flex items-center justify-center text-tertiary" title={text}>
+			{text && (
+				<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
+					<path
+						d="M6 0a6 6 0 1 1 0 12A6 6 0 0 1 6 0Zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 9a1 1 0 0 0 2 0V6a1 1 0 0 0-2 0Z"
+						fill="currentColor"
+					></path>
+				</svg>
+			)}
+		</div>
 	);
 }
 
@@ -522,7 +547,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 			property: {
 				id: "page-content",
 				name: "Content",
-				type: "page_content",
+				type: "page-content",
 				unsupported: false,
 			},
 			originalFieldName: "Content",
@@ -532,26 +557,26 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		},
 		{
 			property: {
-				id: "page-icon",
-				name: "Page Icon",
-				type: "page_icon",
-				unsupported: false,
-			},
-			originalFieldName: "Page Icon",
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
-			conversionTypes: ["image", "string"],
-			isPageLevelField: true,
-		},
-		{
-			property: {
 				id: "page-cover",
 				name: "Cover Image",
-				type: "page_cover",
+				type: "page-cover",
 				unsupported: false,
 			},
 			originalFieldName: "Cover Image",
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-cover"),
 			conversionTypes: ["image"],
+			isPageLevelField: true,
+		},
+		{
+			property: {
+				id: "page-icon",
+				name: "Page Icon",
+				type: "page-icon",
+				unsupported: false,
+			},
+			originalFieldName: "Page Icon",
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
+			conversionTypes: ["image", "string"],
 			isPageLevelField: true,
 		}
 	);
