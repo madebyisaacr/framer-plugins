@@ -285,6 +285,8 @@ async function processItem(
 
 	const fieldData: Record<string, unknown> = {};
 
+	console.log(item);
+
 	// Mark the item as seen
 	unsyncedItemIds.delete(item.id);
 

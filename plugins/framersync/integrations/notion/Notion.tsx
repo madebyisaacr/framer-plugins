@@ -9,7 +9,6 @@ import {
 	useDatabasesQuery,
 	richTextToPlainText,
 	NotionProperty,
-	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
@@ -24,7 +23,7 @@ import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionF
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
-	"People fields cannot be imported because the FramerSync Notion integration does not have access to user information, including their name.";
+	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
 const fieldConversionMessages = {
 	"date - date": timeMessage,
 	"created_time - date": timeMessage,
@@ -33,7 +32,10 @@ const fieldConversionMessages = {
 	"files - string": "Files are importated as a comma-separated list of URLs.",
 	"files - link": "Only the first file's URL will be included.",
 	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
-	"page-icon - string": "Only emoji icons are imported.",
+	"page-icon - string":
+		'Only emoji icons are imported. To import Notion icons or custom image icons, switch the import type to "Image"',
+	"page-icon - image":
+		'Only Notion icons and custom image icons are imported. To import emoji icons, switch the import type to "Text"',
 	button: "Button fields cannot be imported.",
 	people: peopleMessage,
 	last_edited_by: peopleMessage,
@@ -296,6 +298,68 @@ function FieldConfigurationMenu() {
 		// });
 	};
 
+	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {
+		const id = fieldConfig.property.id;
+		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
+
+		return (
+			<Fragment key={fieldConfig.originalFieldName}>
+				<input
+					type="checkbox"
+					disabled={!fieldConfig.property}
+					checked={!!fieldConfig.property && !isDisabled}
+					className={classNames("mx-auto", isDisabled && "opacity-50")}
+					onChange={() => {
+						assert(fieldConfig.property);
+
+						handleFieldToggle(id);
+					}}
+				/>
+				<StaticInput disabled={isDisabled}>{fieldConfig.originalFieldName}</StaticInput>
+				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
+					<IconChevron />
+				</div>
+				{!fieldTypes[id] ? (
+					<StaticInput disabled className="col-span-2">
+						Unsupported Field Type
+					</StaticInput>
+				) : (
+					<>
+						<input
+							type="text"
+							className={classNames("w-full", isDisabled && "opacity-50")}
+							disabled={isDisabled}
+							placeholder={fieldConfig.originalFieldName}
+							value={fieldNameOverrides[id] ?? ""}
+							onChange={(e) => {
+								assert(fieldConfig.property);
+								handleFieldNameChange(id, e.target.value);
+							}}
+						></input>
+
+						{fieldConfig.conversionTypes?.length <= 1 ? (
+							<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
+						) : (
+							<select
+								disabled={isDisabled}
+								value={fieldTypes[id]}
+								onChange={(e) => handleFieldTypeChange(id, e.target.value)}
+								className={classNames("w-full", isDisabled && "opacity-50")}
+							>
+								{fieldConfig.property &&
+									fieldConfig.conversionTypes?.map((type) => (
+										<option key={type} value={type}>
+											{cmsFieldTypeNames[type]}
+										</option>
+									))}
+							</select>
+						)}
+					</>
+				)}
+			</Fragment>
+		);
+	}
+
 	return (
 		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
@@ -328,68 +392,13 @@ function FieldConfigurationMenu() {
 						</div>
 						<StaticInput disabled>Title</StaticInput>
 						<StaticInput disabled>Text</StaticInput>
-						{fieldConfigList.map((fieldConfig) => {
-							const id = fieldConfig.property.id;
-							const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
-
-							return (
-								<Fragment key={fieldConfig.originalFieldName}>
-									<input
-										type="checkbox"
-										disabled={!fieldConfig.property}
-										checked={!!fieldConfig.property && !isDisabled}
-										className={classNames("mx-auto", isDisabled && "opacity-50")}
-										onChange={() => {
-											assert(fieldConfig.property);
-
-											handleFieldToggle(id);
-										}}
-									/>
-									<StaticInput disabled={isDisabled}>{fieldConfig.originalFieldName}</StaticInput>
-									<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
-										<IconChevron />
-									</div>
-									{!fieldTypes[id] ? (
-										<>
-											<StaticInput disabled>Unsupported Field Type</StaticInput>
-											<StaticInput disabled></StaticInput>
-										</>
-									) : (
-										<>
-											<input
-												type="text"
-												className={classNames("w-full", isDisabled && "opacity-50")}
-												disabled={isDisabled}
-												placeholder={fieldConfig.originalFieldName}
-												value={fieldNameOverrides[id] ?? ""}
-												onChange={(e) => {
-													assert(fieldConfig.property);
-													handleFieldNameChange(id, e.target.value);
-												}}
-											></input>
-
-											{fieldConfig.conversionTypes?.length <= 1 ? (
-												<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
-											) : (
-												<select
-													disabled={isDisabled}
-													value={fieldTypes[id]}
-													onChange={(e) => handleFieldTypeChange(id, e.target.value)}
-													className={classNames("w-full", isDisabled && "opacity-50")}
-												>
-													{fieldConfig.property &&
-														fieldConfig.conversionTypes?.map((type) => (
-															<option key={type} value={type}>
-																{cmsFieldTypeNames[type]}
-															</option>
-														))}
-												</select>
-											)}
-										</>
-									)}
-								</Fragment>
-							);
-						})}
+						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
+						<div className="h-[1px] bg-divider col-span-full"></div>
+						{fieldConfigList
+							.filter((fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported)
+							.map(createFieldConfigRow)}
+						<div className="h-[1px] bg-divider col-span-full"></div>
+						{fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported).map(createFieldConfigRow)}
 					</div>
 				</div>
 				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
@@ -430,9 +439,11 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 	);
 }
 
-function StaticInput({ children = "", disabled = false }) {
+function StaticInput({ children = "", disabled = false, className = "" }) {
 	return (
-		<div className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-secondary rounded", disabled && "opacity-50")}>
+		<div
+			className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-secondary rounded", disabled && "opacity-50", className)}
+		>
 			{children}
 		</div>
 	);
@@ -492,19 +503,7 @@ interface CollectionFieldConfig {
 	originalFieldName: string;
 	unsupported: boolean;
 	conversionTypes: string[];
-}
-
-function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
-	// Sort unsupported fields to bottom
-	if (fieldA.unsupported && fieldB.unsupported) {
-		return 0;
-	} else if (fieldA.unsupported) {
-		return 1;
-	} else if (fieldB.unsupported) {
-		return -1;
-	}
-
-	return -1;
+	isPageLevelField: boolean;
 }
 
 function createFieldConfig(database: GetDatabaseResponse, pluginContext): CollectionFieldConfig[] {
@@ -518,17 +517,44 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		(pluginContext.type === "update" && pluginContext.originalFields?.map((field) => field.id)) || []
 	);
 
-	result.push({
-		property: {
-			id: "page-content",
-			name: "Content",
-			type: "page_content",
-			unsupported: false,
+	result.push(
+		{
+			property: {
+				id: "page-content",
+				name: "Content",
+				type: "page_content",
+				unsupported: false,
+			},
+			originalFieldName: "Content",
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
+			conversionTypes: ["formattedText"],
+			isPageLevelField: true,
 		},
-		originalFieldName: pageContentField.name,
-		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
-		conversionTypes: ["formattedText"],
-	});
+		{
+			property: {
+				id: "page-icon",
+				name: "Page Icon",
+				type: "page_icon",
+				unsupported: false,
+			},
+			originalFieldName: "Page Icon",
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
+			conversionTypes: ["image", "string"],
+			isPageLevelField: true,
+		},
+		{
+			property: {
+				id: "page-cover",
+				name: "Cover Image",
+				type: "page_cover",
+				unsupported: false,
+			},
+			originalFieldName: "Cover Image",
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-cover"),
+			conversionTypes: ["image"],
+			isPageLevelField: true,
+		}
+	);
 
 	for (const key in database.properties) {
 		const property = database.properties[key];
@@ -548,7 +574,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		});
 	}
 
-	return result.sort(sortField);
+	return result;
 }
 
 function createFieldTypesList(fieldConfigList: CollectionFieldConfig[]) {
