@@ -31,7 +31,6 @@ function Page() {
 
 		return () => {
 			pluginContext.setIntegrationData?.({});
-			// console.log("Cleared integration data");
 		};
 	}, []);
 
@@ -60,8 +59,6 @@ async function syncCollection(pluginContext) {
 	const database = pluginContext.integrationData?.database;
 	assert(database);
 
-	console.log(pluginContext.fields)
-
 	synchronizeDatabase(database, {
 		fields: pluginContext.fields,
 		disabledFieldIds: pluginContext.disabledFieldIds,
@@ -75,7 +72,7 @@ async function syncCollection(pluginContext) {
 	// console.log("items", items);
 
 	// await syncCollectionItems(pluginContext, items);
-	
+
 	// await framer.closePlugin();
 }
 
@@ -223,17 +220,19 @@ function FieldConfigurationMenu() {
 
 		if (isLoading) return;
 
-		const fields = {};
+		const fields: any[] = [];
 
 		for (const fieldConfig of fieldConfigList) {
 			if (!fieldConfig || !fieldConfig.property || fieldConfig.unsupported || disabledFieldIds.has(fieldConfig.property.id)) {
 				continue;
 			}
 
-			fields[fieldConfig.property.id] = getCollectionFieldForProperty(
-				fieldConfig.property,
-				fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
-				fieldTypes[fieldConfig.property.id]
+			fields.push(
+				getCollectionFieldForProperty(
+					fieldConfig.property,
+					fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
+					fieldTypes[fieldConfig.property.id]
+				)
 			);
 		}
 
@@ -256,7 +255,7 @@ function FieldConfigurationMenu() {
 
 			pluginContext.setContext((prev) => ({ ...prev, ...data, fields }));
 
-			syncCollection({...pluginContext, ...data, fields});
+			syncCollection({ ...pluginContext, ...data, fields });
 		}
 
 		// const allFields = fieldConfigList
@@ -519,7 +518,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		// Title is always required in CMS API.
 		if (property.type === "title") continue;
 
-		const conversionTypes = getFieldConversionType(property);
+		const conversionTypes = getFieldConversionTypes(property);
 
 		result.push({
 			property: property,
@@ -575,7 +574,7 @@ function getInitialSlugFieldId(context, fieldOptions: NotionProperty[]): string 
 	return fieldOptions[0]?.id ?? null;
 }
 
-function getFieldConversionType(property: NotionProperty) {
+function getFieldConversionTypes(property: NotionProperty) {
 	switch (property.type) {
 		case "checkbox":
 			return ["boolean"];

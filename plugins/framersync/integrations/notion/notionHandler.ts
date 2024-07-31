@@ -93,7 +93,7 @@ export function initNotionClient() {
 }
 
 // The order in which we display slug fields
-const preferedSlugFieldOrder: NotionProperty["type"][] = ["title", "rich_text"];
+const preferedSlugFieldOrder: NotionProperty["type"][] = ["title", "unique_id", "rich_text", "formula"];
 
 /**
  * Given a Notion Database returns a list of possible fields that can be used as
@@ -111,9 +111,10 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 		assert(property);
 
 		switch (property.type) {
-			// TODO: Other field types that qualify as slug?
 			case "title":
 			case "rich_text":
+			case "unique_id":
+			case "formula":
 				options.push(property);
 				break;
 		}
