@@ -579,12 +579,12 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "checkbox":
 			return ["boolean"];
 		case "title":
-		case "created_by":
 		case "formula":
-		case "last_edited_by":
+		// case "created_by":
+		// case "last_edited_by":
+		// case "people":
 		case "rollup":
 		case "multi_select":
-		case "people":
 		case "phone_number":
 		case "relation":
 		case "email":

@@ -303,7 +303,7 @@ async function processItem(
 		assert(property);
 
 		if (property.type === "title") {
-			const resolvedTitle = getPropertyValue(property, { supportsHtml: false });
+			const resolvedTitle = getPropertyValue(property, "string");
 			if (!resolvedTitle || typeof resolvedTitle !== "string") {
 				continue;
 			}
@@ -312,7 +312,7 @@ async function processItem(
 		}
 
 		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, { supportsHtml: false });
+			const resolvedSlug = getPropertyValue(property, "string");
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
