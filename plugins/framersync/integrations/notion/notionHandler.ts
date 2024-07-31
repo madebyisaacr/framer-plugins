@@ -160,11 +160,7 @@ export async function authorize(options: { readKey: string; writeKey: string }) 
  * Given a Notion Database Properties object returns a CollectionField object
  * That maps the Notion Property to the Framer CMS collection property type
  */
-export function getCollectionFieldForProperty(
-	property: NotionProperty,
-	name: string,
-	type: string
-): CollectionField | null {
+export function getCollectionFieldForProperty(property: NotionProperty, name: string, type: string): CollectionField | null {
 	if (type == "enum") {
 		let cases: any[] = [];
 
@@ -199,51 +195,46 @@ export function richTextToPlainText(richText: RichTextItemResponse[]) {
 	return richText.map((value) => value.plain_text).join("");
 }
 
-export function getPropertyValue(
-	property: PageObjectResponse["properties"][string],
-	{ supportsHtml }: { supportsHtml: boolean }
-): unknown | undefined {
+export function getPropertyValue(property: PageObjectResponse["properties"][string], fieldType: string): unknown | undefined {
+	const value = property[property.type];
+
 	switch (property.type) {
-		case "checkbox": {
-			return property.checkbox;
-		}
-		case "last_edited_time": {
-			return property.last_edited_time;
-		}
-		case "created_time": {
-			return property.created_time;
-		}
-		case "rich_text": {
-			if (supportsHtml) {
-				return richTextToHTML(property.rich_text);
-			}
-
-			return richTextToPlainText(property.rich_text);
-		}
-		case "select": {
-			if (!property.select) return null;
-
-			return property.select.id;
-		}
+		case "checkbox":
+		case "created_time":
+		case "last_edited_time":
+		case "url":
+		case "number":
+		case "phone_number":
+		case "email":
+			return value;
 		case "title":
-			if (supportsHtml) {
-				return richTextToHTML(property.title);
-			}
-
-			return richTextToPlainText(property.title);
-		case "number": {
-			return property.number;
-		}
-		case "url": {
-			return property.url;
-		}
-		case "unique_id": {
-			return property.unique_id.number;
-		}
-		case "date": {
-			return property.date?.start;
-		}
+		case "rich_text":
+			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
+		case "created_by":
+		case "last_edited_by":
+			return value?.id;
+		case "formula":
+			return String(value[value.type] ?? "");
+		case "rollup":
+			return ""; // TODO: Handle rollups
+		case "multi_select":
+			return value.map((option) => option.name).join(", ");
+		case "people":
+			return value.map((person) => person.id).join(", ");
+		case "relation":
+			return ""; // TODO: Handle relations
+		case "date":
+			return value?.start;
+		case "files":
+			return ""; // TODO: Handle files
+		case "select":
+		case "status":
+			return fieldType == "enum" ? value?.id : value?.name;
+		case "unique_id":
+			return fieldType == "string" ? (value.prefix ? `${value.prefix}-${value.number}` : String(value.number)) : value.number;
 	}
+
+	return null;
 }
 
 export interface SynchronizeMutationOptions {
@@ -335,7 +326,7 @@ async function processItem(
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(property, { supportsHtml: field.type === "formattedText" });
+		const fieldValue = getPropertyValue(property, field.type);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,

@@ -587,13 +587,12 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "people":
 		case "phone_number":
 		case "relation":
+		case "email":
 			return ["string"];
 		case "created_time":
 		case "date":
 		case "last_edited_time":
 			return ["date"];
-		case "email":
-			return ["string", "link"];
 		case "files":
 			return ["string", "link", "image"];
 		case "number":
@@ -606,7 +605,7 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "url":
 			return ["link", "string"];
 		case "unique_id":
-			return property.unique_id.prefix ? ["string"] : ["number"];
+			return property.unique_id.prefix ? ["string", "number"] : ["number"];
 		default:
 			return [];
 	}
