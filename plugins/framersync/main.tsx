@@ -32,7 +32,7 @@ const integrationId = await collection.getPluginData(pluginDataKeys.integrationI
 const isAuthenticated = await collection.getPluginData(pluginDataKeys.isAuthenticated);
 const databaseId = await collection.getPluginData(pluginDataKeys.databaseId);
 const lastSyncedTime = await collection.getPluginData(pluginDataKeys.lastSyncedTime);
-const disabledFieldIds = await collection.getPluginData(pluginDataKeys.disabledFieldIds);
+const disabledFieldIds = JSON.parse((await collection.getPluginData(pluginDataKeys.disabledFieldIds)) || "[]");
 const slugFieldId = await collection.getPluginData(pluginDataKeys.slugFieldId);
 const collectionFields = await collection.getFields();
 

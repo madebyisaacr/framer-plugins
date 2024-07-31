@@ -33,7 +33,7 @@ const fieldConversionMessages = {
 	"files - link": "Only the first file's URL will be included.",
 	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
 	"page-icon - string":
-		'Only emoji icons are imported. To import Notion icons or custom image icons, change the import type to "Image"',
+		'Only emoji icons are imported. To import Notion icons and custom image icons, change the import type to "Image"',
 	"page-icon - image":
 		'Only Notion icons and custom image icons are imported. To import emoji icons, change the import type to "Text"',
 	button: "Button fields cannot be imported.",
@@ -191,8 +191,6 @@ function FieldConfigurationMenu() {
 	const error = null;
 
 	const database = pluginContext.integrationData?.database || null;
-
-	// console.log("database", database);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const [slugFieldId, setSlugFieldId] = useState(() => getInitialSlugFieldId(pluginContext, slugFields));
@@ -625,7 +623,7 @@ function getFieldNameOverrides(pluginContext): Record<string, string> {
 	const result: Record<string, string> = {};
 	if (pluginContext.type !== "update") return result;
 
-	for (const field of pluginContext.collectionFields ?? []) {
+	for (const field of pluginContext.originalFields ?? []) {
 		result[field.id] = field.name;
 	}
 
