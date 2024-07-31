@@ -302,13 +302,20 @@ function FieldConfigurationMenu() {
 
 		return (
 			<Fragment key={fieldConfig.originalFieldName}>
-				<label htmlFor={`${id}-checkbox`} className="size-full flex items-center">
+				<label
+					htmlFor={`${id}-checkbox`}
+					className={classNames("size-full flex items-center", !fieldConfig.unsupported && "cursor-pointer")}
+				>
 					<input
 						type="checkbox"
 						id={`${id}-checkbox`}
 						disabled={!fieldConfig.property}
 						checked={!!fieldConfig.property && !isDisabled}
-						className={classNames("mx-auto", isDisabled && "opacity-50")}
+						className={classNames(
+							"mx-auto",
+							!fieldConfig.property && "opacity-50",
+							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
+						)}
 						onChange={() => {
 							assert(fieldConfig.property);
 
