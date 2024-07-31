@@ -278,7 +278,7 @@ async function processItem(
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
-	lastSyncedTime: string | null
+	lastSyncedTime: string | null,
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 	let titleValue: null | string = null;
@@ -341,9 +341,36 @@ async function processItem(
 		fieldData[field.id] = fieldValue;
 	}
 
-	if (fieldsById.has(pageContentField.id) && item.id) {
+	if (fieldsById.has(pageContentField.id)) {
 		const contentHTML = await getPageBlocksAsRichText(item.id);
 		fieldData[pageContentField.id] = contentHTML;
+	}
+
+	if (fieldsById.has("page-cover") && item.cover && item.cover.type === "external") {
+		fieldData["page-cover"] = item.cover.external.url;
+		console.log("cover", item.cover.external.url);
+	}
+
+	if (fieldsById.has("page-icon") && item.icon) {
+		const iconFieldType = fieldsById.get("page-icon")?.type;
+
+		let value: string | null = null;
+		if (iconFieldType === "string") {
+			if (item.icon.type === "emoji") {
+				value = item.icon.emoji;
+			}
+		} else if (iconFieldType === "image") {
+			if (item.icon.type === "external") {
+				value = item.icon.external.url;
+			} else if (item.icon.type === "file") {
+				value = item.icon.file.url;
+			}
+		}
+
+		if (value) {
+			fieldData["page-icon"] = value;
+			console.log("icon", value);
+		}
 	}
 
 	if (!slugValue || !titleValue) {

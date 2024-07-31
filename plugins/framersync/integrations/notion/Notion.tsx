@@ -570,11 +570,11 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 		{
 			property: {
 				id: "page-icon",
-				name: "Page Icon",
+				name: "Icon",
 				type: "page-icon",
 				unsupported: false,
 			},
-			originalFieldName: "Page Icon",
+			originalFieldName: "Icon",
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
 			conversionTypes: ["image", "string"],
 			isPageLevelField: true,
