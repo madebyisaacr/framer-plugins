@@ -20,6 +20,7 @@ import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
 import { isFullDatabase, collectPaginatedAPI } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
+import { cmsFieldIcons } from "@plugin/src/FieldIcons.jsx";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -344,23 +345,12 @@ function FieldConfigurationMenu() {
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
-						{fieldConfig.conversionTypes?.length <= 1 ? (
-							<StaticInput disabled={isDisabled}>{cmsFieldTypeNames[fieldTypes[id]]}</StaticInput>
-						) : (
-							<select
-								disabled={isDisabled}
-								value={fieldTypes[id]}
-								onChange={(e) => handleFieldTypeChange(id, e.target.value)}
-								className={classNames("w-full", isDisabled && "opacity-50")}
-							>
-								{fieldConfig.property &&
-									fieldConfig.conversionTypes?.map((type) => (
-										<option key={type} value={type}>
-											{cmsFieldTypeNames[type]}
-										</option>
-									))}
-							</select>
-						)}
+						<FieldTypeSelector
+							fieldType={fieldTypes[id]}
+							availableFieldTypes={fieldConfig.conversionTypes}
+							disabled={isDisabled}
+							onChange={(value) => handleFieldTypeChange(id, value)}
+						/>
 					</>
 				)}
 				<FieldInfoTooltip
@@ -403,7 +393,7 @@ function FieldConfigurationMenu() {
 							<IconChevron />
 						</div>
 						<StaticInput disabled>Title</StaticInput>
-						<StaticInput disabled>Text</StaticInput>
+						<FieldTypeSelector fieldType="string" availableFieldTypes={["string"]} disabled={true} />
 						<div />
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
 						<div className="h-[1px] bg-divider col-span-full"></div>
@@ -482,6 +472,27 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 						fill="currentColor"
 					></path>
 				</svg>
+			)}
+		</div>
+	);
+}
+
+function FieldTypeSelector({ fieldType, availableFieldTypes, disabled, onChange = (value) => {} }) {
+	return (
+		<div className="relative">
+			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">{cmsFieldIcons[fieldType]}</div>
+			{availableFieldTypes?.length > 1 ? (
+				<select disabled={disabled} value={fieldType} onChange={(e) => onChange(e.target.value)} className="pl-[34px] w-full">
+					{availableFieldTypes?.map((type) => (
+						<option key={type} value={type}>
+							{cmsFieldTypeNames[type]}
+						</option>
+					))}
+				</select>
+			) : (
+				<StaticInput disabled={disabled} className="pl-[34px]">
+					{cmsFieldTypeNames[fieldType]}
+				</StaticInput>
 			)}
 		</div>
 	);
@@ -654,7 +665,6 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "checkbox":
 			return ["boolean"];
 		case "title":
-		case "formula":
 		// case "created_by":
 		// case "last_edited_by":
 		// case "people":
@@ -681,6 +691,8 @@ function getFieldConversionTypes(property: NotionProperty) {
 			return ["link", "string"];
 		case "unique_id":
 			return property.unique_id.prefix ? ["string", "number"] : ["number"];
+		case "formula":
+			return ["string", "number"];
 		default:
 			return [];
 	}

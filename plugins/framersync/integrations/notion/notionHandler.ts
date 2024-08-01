@@ -214,7 +214,7 @@ export function getPropertyValue(property: PageObjectResponse["properties"][stri
 		case "last_edited_by":
 			return value?.id;
 		case "formula":
-			return String(value[value.type] ?? "");
+			return fieldType === "number" ? Number(value[value.type] ?? 0) : String(value[value.type] ?? "");
 		case "rollup":
 			return ""; // TODO: Handle rollups
 		case "multi_select":
@@ -278,7 +278,7 @@ async function processItem(
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
-	lastSyncedTime: string | null,
+	lastSyncedTime: string | null
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 	let titleValue: null | string = null;
