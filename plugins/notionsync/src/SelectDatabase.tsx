@@ -35,7 +35,7 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 
 	return (
 		<div className="flex flex-row gap-3 size-full px-3 pb-3">
-			<div className="flex flex-col gap-4 w-[280px]">
+			<div className="flex flex-col gap-3 w-[280px]">
 				<img src={notionConnectSrc} className="rounded" />
 				<p>
 					Connect your databases: open a database in Notion, click the ... button in the top-right corner of the page, then pick
@@ -43,7 +43,7 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 				</p>
 			</div>
 			<div className="w-[1px] bg-divider" />
-			<div className="flex flex-col gap-3 flex-1 justify-between">
+			<div className="flex flex-col gap-2 flex-1 justify-between">
 				<div className="flex items-center justify-between">
 					<span>Select a Notion database to sync</span>
 					<button
@@ -60,7 +60,7 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 						Loading Databases...
 					</div>
 				) : (
-					<div className="flex-1 flex flex-col divide-y divide-divider">
+					<div className="flex-1 flex flex-col">
 						{data?.map((database) => (
 							<NotionDatabaseButton
 								key={database.id}

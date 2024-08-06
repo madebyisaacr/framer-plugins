@@ -7,7 +7,7 @@ export function ErrorBoundaryFallback() {
 				return (
 					<div className="flex flex-col w-full h-full gap-2 items-center justify-center">
 						<span>Something went wrong...</span>
-						<button onClick={reset}>Try again</button>
+						<button onClick={reset} className="w-fit px-2">Try again</button>
 					</div>
 				);
 			}}

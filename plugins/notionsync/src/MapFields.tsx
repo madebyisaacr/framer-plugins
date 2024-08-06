@@ -234,7 +234,7 @@ export function MapDatabaseFields({
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
-	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext.collectionFields));
+	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext));
 
 	const titleField =
 		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
@@ -372,7 +372,7 @@ export function MapDatabaseFields({
 				onSubmit={handleSubmit}
 				className={classNames(
 					"flex flex-col gap-3 flex-1 transition-opacity relative",
-					isLoading && "opacity-40 pointer-events-none"
+					isLoading && "opacity-50 blur-sm pointer-events-none"
 				)}
 			>
 				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
@@ -429,12 +429,12 @@ export function MapDatabaseFields({
 					</div>
 				</div>
 				<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
-					<div className="inline-flex items-center gap-1 min-w-0 flex-1">
+					<div className="inline-flex items-center min-w-0 flex-1">
 						{error ? (
 							<span className="text-[#f87171]">{error.message}</span>
 						) : (
 							<>
-								<span className="text-tertiary flex-shrink-0">Importing from</span>
+								<span className="text-tertiary flex-shrink-0 whitespace-pre">Importing from </span>
 								<a
 									href={database?.url}
 									className="font-semibold text-secondary hover:text-primary truncate"
@@ -447,7 +447,7 @@ export function MapDatabaseFields({
 						)}
 					</div>
 					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
-						Import
+						{pluginContext.type === "update" ? "Save & Import" : "Import"}
 					</Button>
 				</div>
 			</form>
@@ -517,8 +517,8 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 	);
 }
 
-function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], collectionFields: CollectionField[]) {
-	const result = {};
+function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginContext: PluginContext) {
+	const result: Record<string, string> = {};
 
 	for (const fieldConfig of fieldConfigList) {
 		const conversionTypes = fieldConfig.conversionTypes;
@@ -526,12 +526,16 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], collecti
 			continue;
 		}
 
-		const field = collectionFields.find((field) => field.id === fieldConfig.property.id);
-
-		if (field && conversionTypes.includes(field.type)) {
-			result[fieldConfig.property.id] = field.type;
-		} else {
+		if (pluginContext.type !== "update") {
 			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
+		} else {
+			const field = pluginContext.collectionFields.find((field) => field.id === fieldConfig.property.id);
+
+			if (field && conversionTypes.includes(field.type)) {
+				result[fieldConfig.property.id] = field.type;
+			} else {
+				result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
+			}
 		}
 	}
 
