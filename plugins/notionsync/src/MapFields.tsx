@@ -18,6 +18,7 @@ import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
+import { plugin } from "postcss";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -327,6 +328,14 @@ export function MapDatabaseFields({
 				</label>
 				<StaticInput disabled={isDisabled} leftText={notionPropertyTypes[fieldConfig.property.type]}>
 					{fieldConfig.originalFieldName}
+					{fieldConfig.isNewField && !fieldConfig.unsupported && (
+						<div
+							className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
+							style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
+						>
+							New
+						</div>
+					)}
 				</StaticInput>
 				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
 					<IconChevron />
@@ -364,6 +373,13 @@ export function MapDatabaseFields({
 			</Fragment>
 		);
 	}
+
+	const newFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported);
+	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
+	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
+	const otherFields = fieldConfigList.filter(
+		(fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
+	);
 
 	return (
 		<div className="flex-1 flex flex-col gap-2 px-3">
@@ -418,13 +434,13 @@ export function MapDatabaseFields({
 						<StaticInput disabled>Slug</StaticInput>
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
-						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
-						<div className="h-[1px] bg-divider col-span-full"></div>
-						{fieldConfigList
-							.filter((fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported)
-							.map(createFieldConfigRow)}
-						<div className="h-[1px] bg-divider col-span-full"></div>
-						{fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported).map(createFieldConfigRow)}
+						{pageLevelFields.map(createFieldConfigRow)}
+						{newFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{newFields.map(createFieldConfigRow)}
+						{otherFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{otherFields.map(createFieldConfigRow)}
+						{unsupportedFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{unsupportedFields.map(createFieldConfigRow)}
 					</div>
 				</div>
 				<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
@@ -484,7 +500,7 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 					</svg>
 					<div
 						className={classNames(
-							"flex flex-col gap-1.5 rounded-lg p-3 w-[280px] z-10 text-secondary bg-primary pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
+							"flex flex-col gap-1.5 rounded-lg p-3 w-[280px] z-10 text-secondary bg-modal pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
 							hover ? "opacity-100" : "opacity-0"
 						)}
 						style={{
@@ -497,7 +513,7 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 							xmlns="http://www.w3.org/2000/svg"
 							width="28"
 							height="8"
-							className="rotate-90 text-[var(--framer-color-bg)] absolute right-[-18px] top-[50%] translate-y-[-50%]"
+							className="rotate-90 text-[var(--color-bg-modal)] absolute right-[-18px] top-[50%] translate-y-[-50%]"
 						>
 							<path
 								d="M 12.833 1.333 C 13.451 0.627 14.549 0.627 15.167 1.333 L 18.012 4.585 C 19.911 6.755 22.654 8 25.538 8 L 28 8 L 0 8 L 2.462 8 C 5.346 8 8.089 6.755 9.988 4.585 Z"
@@ -536,7 +552,7 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 	return (
 		<div
 			className={classNames(
-				"w-full h-6 flex items-center bg-secondary rounded gap-2",
+				"w-full h-6 flex items-center bg-secondary rounded gap-1.5",
 				disabled && "opacity-50",
 				leftText ? "px-2" : "pl-2 pr-5",
 				className

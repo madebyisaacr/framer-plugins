@@ -13,6 +13,7 @@ export default {
 			"tint-dimmed": "var(--framer-color-tint-dimmed)",
 			"tint-dark": "var(--framer-color-tint-dark)",
 			"segmented-control": "var(--color-segmented-control)",
+			"modal": "var(--color-bg-modal)",
 			transparent: "transparent",
 		},
 		colors: {

@@ -3,6 +3,7 @@
 	--color-bg-tertiary: var(--framer-color-bg-secondary);
 	--color-segmented-control: #fff;
 	--color-divider-secondary: #e6e6e6;
+	--color-bg-modal: #FFF:
 }
 
 [data-framer-theme="dark"] {
@@ -10,6 +11,7 @@
 	--color-bg-tertiary: var(--framer-color-bg-tertiary);
 	--color-segmented-control: #555;
 	--color-divider-secondary: #444;
+	--color-bg-modal: #181818;
 }
 
 *::-webkit-scrollbar {
