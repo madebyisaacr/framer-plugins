@@ -46,7 +46,7 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 	ReactDOM.createRoot(root).render(
 		<React.StrictMode>
 			<QueryClientProvider client={queryClient}>
-				<div className="w-full flex flex-col overflow-auto flex-1">
+				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
 						<Suspense fallback={<CenteredSpinner />}>{app}</Suspense>
 					</ErrorBoundary>

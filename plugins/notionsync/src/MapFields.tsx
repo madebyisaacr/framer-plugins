@@ -62,6 +62,9 @@ const notionPropertyTypes = {
 	url: "URL",
 	button: "Button",
 	unique_id: "ID",
+	"page-icon": "Image / Emoji",
+	"page-cover": "Image",
+	"page-content": "Page Content",
 };
 const cmsFieldTypeNames = {
 	boolean: "Toggle",
@@ -373,19 +376,25 @@ export function MapDatabaseFields({
 				)}
 			>
 				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
-				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
+				<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
 					<div
 						className="grid gap-2 w-full items-center justify-center"
 						style={{
-							gridTemplateColumns: `16px 1fr 8px 1fr minmax(100px, auto) 16px`,
+							gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) 16px`,
 						}}
 					>
-						<span className="col-start-2 col-span-2">Notion Property</span>
-						<span>Collection Field Name</span>
-						<span className="col-span-2">Import As</span>
+						<div className="col-start-2 flex flex-row justify-between px-2">
+							<span>Notion Property</span>
+							<span className="text-tertiary">Type</span>
+						</div>
+						<div></div>
+						<span className="pl-2">Collection Field Name</span>
+						<span className="col-span-2 pl-[4px]">Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<StaticInput disabled>{titleField?.name ?? "Title"}</StaticInput>
+						<StaticInput disabled leftText="Title">
+							{titleField?.name ?? "Title"}
+						</StaticInput>
 						<div className="flex items-center justify-center">
 							<IconChevron />
 						</div>
@@ -501,7 +510,9 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 			)}
 		>
 			{children}
-			{leftText && <span className="flex-1 text-right text-tertiary">{leftText}</span>}
+			{leftText && (
+				<span className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}>{leftText}</span>
+			)}
 		</div>
 	);
 }
