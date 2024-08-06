@@ -582,8 +582,6 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "title":
 		case "multi_select":
 		case "phone_number":
-		// case "rollup":
-		// case "relation":
 		case "email":
 			return ["string"];
 		case "created_time":
@@ -602,12 +600,15 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "url":
 			return ["link", "string"];
 		case "unique_id":
-			return property.unique_id.prefix ? ["string", "number"] : ["number"];
-		case "formula":
 			return ["string", "number"];
+		case "formula":
+		case "rollup":
+			return ["string", "number", "boolean", "date", "link", "image"];
 		// case "created_by":
 		// case "last_edited_by":
 		// case "people":
+		// case "relation":
+		// case "button":
 		default:
 			return [];
 	}

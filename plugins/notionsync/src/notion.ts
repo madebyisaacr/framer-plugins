@@ -90,7 +90,7 @@ export function initNotionClient() {
 }
 
 // The order in which we display slug fields
-const preferedSlugFieldOrder: NotionProperty["type"][] = ["title", "rich_text"];
+const slugFieldTypes: NotionProperty["type"][] = ["title", "rich_text", "unique_id", "formula", "rollup"];
 
 /**
  * Given a Notion Database returns a list of possible fields that can be used as
@@ -103,17 +103,13 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 		const property = database.properties[key];
 		assert(property);
 
-		switch (property.type) {
-			// TODO: Other field types that qualify as slug?
-			case "title":
-			case "rich_text":
-				options.push(property);
-				break;
-		}
+		if (slugFieldTypes.includes(property.type)) {
+			options.push(property);
+		};
 	}
 	function getOrderIndex(type: NotionProperty["type"]): number {
-		const index = preferedSlugFieldOrder.indexOf(type);
-		return index === -1 ? preferedSlugFieldOrder.length : index;
+		const index = slugFieldTypes.indexOf(type);
+		return index === -1 ? slugFieldTypes.length : index;
 	}
 
 	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
@@ -205,16 +201,37 @@ export function getPropertyValue(property: PageObjectResponse["properties"][stri
 		case "created_by":
 		case "last_edited_by":
 			return value?.id;
-		case "formula":
-			return fieldType === "number" ? Number(value[value.type] ?? 0) : String(value[value.type] ?? "");
 		case "multi_select":
 			return value.map((option) => option.name).join(", ");
 		case "people":
 			return value.map((person) => person.id).join(", ");
-		case "relation":
-			return ""; // TODO: Handle relations
+		case "formula":
+			switch (fieldType) {
+				case "string":
+				case "link":
+				case "image":
+					return String(value[value.type] ?? "");
+				case "number":
+					return Number(value[value.type] ?? 0);
+				case "date":
+					return value.type == "date" ? value.date : null;
+				case "boolean":
+					return value.type == "boolean" ? value.boolean : !!value;
+				default:
+					return null;
+			}
 		case "rollup":
-			return ""; // TODO: Handle rollups
+			switch (value.type) {
+				case "array":
+					const item = value.array[0];
+					return item ? getPropertyValue(item, fieldType) : null;
+				case "number":
+					return value.number;
+				case "date":
+					return value.date;
+				default:
+					return null;
+			}
 		case "date":
 			return value?.start;
 		case "files":
