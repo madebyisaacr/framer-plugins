@@ -1,7 +1,7 @@
 import React, { useContext, useState, useRef, useEffect, useMemo, Fragment } from "react";
 import classNames from "classnames";
 import { framer, CollectionField } from "framer-plugin";
-import { Button } from "@shared/components.jsx";
+import Button from "@shared/Button";
 import PluginContext from "@plugin/src/PluginContext";
 import {
 	authorize,
@@ -17,11 +17,11 @@ import {
 	synchronizeDatabase,
 } from "./notionHandler";
 import { assert, isDefined, generateRandomId } from "@plugin/src/utils";
-import { isFullDatabase, collectPaginatedAPI } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
 import { cmsFieldIcons } from "@plugin/src/FieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
+import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -105,12 +105,14 @@ async function syncCollection(pluginContext) {
 	const database = pluginContext.integrationData?.database;
 	assert(database);
 
-	synchronizeDatabase(database, {
+	await synchronizeDatabase(database, {
 		fields: pluginContext.fields,
 		disabledFieldIds: pluginContext.disabledFieldIds,
 		lastSyncedTime: pluginContext.lastSyncedTime,
 		slugFieldId: pluginContext.slugFieldId,
 	});
+
+	await framer.closePlugin();
 
 	// await syncCollectionFields(pluginContext, pluginContext.fields);
 
@@ -204,7 +206,7 @@ function ConfigureCollectionPage() {
 			{integrationData?.database ? (
 				<FieldConfigurationMenu />
 			) : (
-				<div className="flex flex-col items-center justify-center flex-1 gap-3">
+				<div className="flex flex-col items-center justify-center flex-1 gap-3 text-secondary">
 					<Spinner inline />
 					Loading...
 				</div>
@@ -230,7 +232,7 @@ function FieldConfigurationMenu() {
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
-	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList));
+	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext.collectionFields));
 
 	const titleField =
 		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
@@ -456,7 +458,7 @@ function FieldConfigurationMenu() {
 							</>
 						)}
 					</div>
-					<Button primary className="w-auto" isLoading={isLoading} disabled={!slugFieldId || !database}>
+					<Button primary className="w-auto" loading={isLoading} disabled={!slugFieldId || !database}>
 						Import
 					</Button>
 				</div>
@@ -652,6 +654,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext): Collec
 			originalFieldName: property.name,
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
 			conversionTypes,
+			isPageLevelField: false,
 		});
 	}
 
