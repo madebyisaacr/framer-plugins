@@ -21,6 +21,7 @@ import { isFullDatabase, collectPaginatedAPI } from "@notionhq/client";
 import { PageStackContext, BackButton } from "@shared/PageStack.jsx";
 import { cmsFieldTypeNames, pluginDataKeys, syncCollectionItems, syncCollectionFields } from "@plugin/src/shared";
 import { cmsFieldIcons } from "@plugin/src/FieldIcons.jsx";
+import { Spinner } from "@shared/spinner/Spinner";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -203,7 +204,10 @@ function ConfigureCollectionPage() {
 			{integrationData?.database ? (
 				<FieldConfigurationMenu />
 			) : (
-				<div className="flex flex-col items-center justify-center flex-1">Loading...</div>
+				<div className="flex flex-col items-center justify-center flex-1 gap-3">
+					<Spinner inline />
+					Loading...
+				</div>
 			)}
 		</div>
 	);
@@ -409,7 +413,7 @@ function FieldConfigurationMenu() {
 							<IconChevron />
 						</div>
 						<StaticInput disabled>Title</StaticInput>
-						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} disabled={true} />
+						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} />
 						<div />
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
@@ -423,7 +427,7 @@ function FieldConfigurationMenu() {
 							<IconChevron />
 						</div>
 						<StaticInput disabled>Slug</StaticInput>
-						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} disabled={true} />
+						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
 						<div className="h-[1px] bg-divider col-span-full"></div>
@@ -472,7 +476,7 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 	);
 }
 
-function StaticInput({ children = "", disabled = false, className = "", leftText = "" }) {
+function StaticInput({ children, disabled = false, className = "", leftText = "" }) {
 	return (
 		<div
 			className={classNames(
@@ -513,7 +517,7 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	);
 }
 
-function FieldTypeSelector({ fieldType, availableFieldTypes, disabled, onChange = (value) => {} }) {
+function FieldTypeSelector({ fieldType, availableFieldTypes, disabled = false, onChange = (value) => {} }) {
 	return (
 		<div className="relative">
 			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">{cmsFieldIcons[fieldType]}</div>
