@@ -42,6 +42,30 @@ const fieldConversionMessages = {
 	last_edited_by: peopleMessage,
 	created_by: peopleMessage,
 };
+const notionPropertyTypes = {
+	checkbox: "Checkbox",
+	created_by: "Created by",
+	created_time: "Created time",
+	date: "Date",
+	email: "Email",
+	files: "Files & media",
+	formula: "Formula",
+	last_edited_by: "Last edited by",
+	last_edited_time: "Last edited time",
+	multi_select: "Multi-select",
+	number: "Number",
+	people: "Person",
+	phone_number: "Phone number",
+	relation: "Relation",
+	rich_text: "Text",
+	rollup: "Rollup",
+	select: "Select",
+	status: "Status",
+	title: "Title",
+	url: "URL",
+	button: "Button",
+	unique_id: "ID",
+};
 
 function Page() {
 	const pluginContext = useContext(PluginContext);
@@ -324,7 +348,9 @@ function FieldConfigurationMenu() {
 						}}
 					/>
 				</label>
-				<StaticInput disabled={isDisabled}>{fieldConfig.originalFieldName}</StaticInput>
+				<StaticInput disabled={isDisabled} leftText={notionPropertyTypes[fieldConfig.property.type]}>
+					{fieldConfig.originalFieldName}
+				</StaticInput>
 				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
 					<IconChevron />
 				</div>
@@ -368,16 +394,6 @@ function FieldConfigurationMenu() {
 				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
 				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
-					<div className="flex flex-col gap-2 w-full px-[26px]">
-						<label htmlFor="collectionName">Slug Field</label>
-						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
-							{slugFields.map((field) => (
-								<option key={field.id} value={field.id}>
-									{field.name}
-								</option>
-							))}
-						</select>
-					</div>
 					<div
 						className="grid gap-2 w-full items-center justify-center"
 						style={{
@@ -394,6 +410,20 @@ function FieldConfigurationMenu() {
 						</div>
 						<StaticInput disabled>Title</StaticInput>
 						<FieldTypeSelector fieldType="string" availableFieldTypes={["string"]} disabled={true} />
+						<div />
+						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
+						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
+							{slugFields.map((field) => (
+								<option key={field.id} value={field.id}>
+									{field.name}
+								</option>
+							))}
+						</select>
+						<div className="flex items-center justify-center">
+							<IconChevron />
+						</div>
+						<StaticInput disabled>Slug</StaticInput>
+						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} disabled={true} />
 						<div />
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
 						<div className="h-[1px] bg-divider col-span-full"></div>
@@ -442,12 +472,18 @@ function NotionDatabaseButton({ databaseName, selected, onClick }) {
 	);
 }
 
-function StaticInput({ children = "", disabled = false, className = "" }) {
+function StaticInput({ children = "", disabled = false, className = "", leftText = "" }) {
 	return (
 		<div
-			className={classNames("w-full h-6 pl-2 pr-5 flex items-center bg-secondary rounded", disabled && "opacity-50", className)}
+			className={classNames(
+				"w-full h-6 flex items-center bg-secondary rounded gap-2",
+				disabled && "opacity-50",
+				leftText ? "px-2" : "pl-2 pr-5",
+				className
+			)}
 		>
 			{children}
+			{leftText && <span className="flex-1 text-right text-tertiary">{leftText}</span>}
 		</div>
 	);
 }
