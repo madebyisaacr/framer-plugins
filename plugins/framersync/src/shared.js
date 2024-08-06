@@ -20,6 +20,7 @@ export const cmsFieldTypeNames = {
 	date: "Date",
 	enum: "Option",
 	slug: "Slug",
+	title: "Title",
 };
 
 export async function syncCollectionItems(pluginContext, items) {

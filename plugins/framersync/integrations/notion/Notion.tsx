@@ -409,7 +409,7 @@ function FieldConfigurationMenu() {
 							<IconChevron />
 						</div>
 						<StaticInput disabled>Title</StaticInput>
-						<FieldTypeSelector fieldType="string" availableFieldTypes={["string"]} disabled={true} />
+						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} disabled={true} />
 						<div />
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>

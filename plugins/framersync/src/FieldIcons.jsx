@@ -12,6 +12,18 @@ export const cmsFieldIcons = {
 			></path>
 		</svg>
 	),
+	title: (
+		<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+			<path
+				d="M 0 4 C 0 1.791 1.791 0 4 0 L 18 0 C 20.209 0 22 1.791 22 4 L 22 18 C 22 20.209 20.209 22 18 22 L 4 22 C 1.791 22 0 20.209 0 18 Z"
+				fill="currentColor"
+			></path>
+			<path
+				d="M 6.5 7.5 C 6.5 6.948 6.948 6.5 7.5 6.5 L 14.5 6.5 C 15.052 6.5 15.5 6.948 15.5 7.5 C 15.5 8.052 15.052 8.5 14.5 8.5 L 12 8.5 L 12 14.5 C 12 15.052 11.552 15.5 11 15.5 C 10.448 15.5 10 15.052 10 14.5 L 10 8.5 L 7.5 8.5 C 6.948 8.5 6.5 8.052 6.5 7.5 Z"
+				fill="white"
+			></path>
+		</svg>
+	),
 	slug: (
 		<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">
 			<path
@@ -21,10 +33,10 @@ export const cmsFieldIcons = {
 			<path
 				d="M 8.5 16 L 13.5 6"
 				fill="transparent"
-				stroke-width="2"
+				strokeWidth="2"
 				stroke="white"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			></path>
 		</svg>
 	),
@@ -37,11 +49,11 @@ export const cmsFieldIcons = {
 			<path
 				d="M 7 10 L 7 10 C 6.337 10.663 5.964 11.562 5.964 12.5 C 5.964 13.438 6.337 14.337 7 15 L 7 15 C 8.381 16.38 10.619 16.38 12 15 L 12 15 M 15 12 L 15 12 C 16.38 10.619 16.38 8.381 15 7 L 15 7 C 14.337 6.337 13.438 5.964 12.5 5.964 C 11.562 5.964 10.663 6.337 10 7 L 10 7 M 10 12 L 12 10"
 				fill="transparent"
-				stroke-width="2"
+				strokeWidth="2"
 				stroke="white"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-dasharray=""
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				strokeDasharray=""
 			></path>
 		</svg>
 	),
