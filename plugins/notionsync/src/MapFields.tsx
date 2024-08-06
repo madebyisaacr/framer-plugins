@@ -27,7 +27,6 @@ const fieldConversionMessages = {
 	"created_time - date": timeMessage,
 	"last_edited_time - date": timeMessage,
 	"multi_select - string": "Values are imported as a comma-separated list of option names.",
-	"files - string": "Files are importated as a comma-separated list of URLs.",
 	"files - link": "Only the first file's URL will be included.",
 	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
 	"page-icon - string":
@@ -581,12 +580,9 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "checkbox":
 			return ["boolean"];
 		case "title":
-		// case "created_by":
-		// case "last_edited_by":
-		// case "people":
-		// case "rollup":
 		case "multi_select":
 		case "phone_number":
+		// case "rollup":
 		// case "relation":
 		case "email":
 			return ["string"];
@@ -594,8 +590,8 @@ function getFieldConversionTypes(property: NotionProperty) {
 		case "date":
 		case "last_edited_time":
 			return ["date"];
-		// case "files":
-		// 	return ["string", "link", "image"];
+		case "files":
+			return ["link", "image"];
 		case "number":
 			return ["number"];
 		case "rich_text":
@@ -609,6 +605,9 @@ function getFieldConversionTypes(property: NotionProperty) {
 			return property.unique_id.prefix ? ["string", "number"] : ["number"];
 		case "formula":
 			return ["string", "number"];
+		// case "created_by":
+		// case "last_edited_by":
+		// case "people":
 		default:
 			return [];
 	}

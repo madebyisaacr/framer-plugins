@@ -207,18 +207,18 @@ export function getPropertyValue(property: PageObjectResponse["properties"][stri
 			return value?.id;
 		case "formula":
 			return fieldType === "number" ? Number(value[value.type] ?? 0) : String(value[value.type] ?? "");
-		case "rollup":
-			return ""; // TODO: Handle rollups
 		case "multi_select":
 			return value.map((option) => option.name).join(", ");
 		case "people":
 			return value.map((person) => person.id).join(", ");
 		case "relation":
 			return ""; // TODO: Handle relations
+		case "rollup":
+			return ""; // TODO: Handle rollups
 		case "date":
 			return value?.start;
 		case "files":
-			return ""; // TODO: Handle files
+			return value[0]?.[value[0].type].url ?? null;
 		case "select":
 		case "status":
 			return fieldType == "enum" ? value?.id : value?.name;
@@ -338,7 +338,6 @@ async function processItem(
 
 	if (fieldsById.has("page-cover") && item.cover && item.cover.type === "external") {
 		fieldData["page-cover"] = item.cover.external.url;
-		console.log("cover", item.cover.external.url);
 	}
 
 	if (fieldsById.has("page-icon") && item.icon) {
@@ -359,7 +358,6 @@ async function processItem(
 
 		if (value) {
 			fieldData["page-icon"] = value;
-			console.log("icon", value);
 		}
 	}
 
