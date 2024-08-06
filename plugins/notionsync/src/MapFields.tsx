@@ -1,6 +1,6 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { framer, CollectionField } from "framer-plugin";
-import { assert, isDefined } from "./utils";
+import { assert } from "./utils";
 import {
 	NotionProperty,
 	PluginContext,
@@ -231,7 +231,7 @@ export function MapDatabaseFields({
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
-	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList));
+	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext.collectionFields));
 
 	const titleField =
 		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
@@ -437,7 +437,7 @@ export function MapDatabaseFields({
 							</>
 						)}
 					</div>
-					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database || isLoading}>
+					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
 						Import
 					</Button>
 				</div>
@@ -445,7 +445,7 @@ export function MapDatabaseFields({
 			{isLoading && (
 				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
 					<Spinner inline />
-					Importing...
+					Importing items...
 				</div>
 			)}
 		</div>
@@ -506,20 +506,22 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 	);
 }
 
-function createFieldTypesList(fieldConfigList: CollectionFieldConfig[]) {
+function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], collectionFields: CollectionField[]) {
 	const result = {};
 
 	for (const fieldConfig of fieldConfigList) {
-		if (!fieldConfig.property) {
+		const conversionTypes = fieldConfig.conversionTypes;
+		if (!fieldConfig.property || !conversionTypes?.length) {
 			continue;
 		}
 
-		const type = fieldConfig.conversionTypes?.[0];
-		if (!type) {
-			continue;
-		}
+		const field = collectionFields.find((field) => field.id === fieldConfig.property.id);
 
-		result[fieldConfig.property.id] = type;
+		if (field && conversionTypes.includes(field.type)) {
+			result[fieldConfig.property.id] = field.type;
+		} else {
+			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
+		}
 	}
 
 	return result;
