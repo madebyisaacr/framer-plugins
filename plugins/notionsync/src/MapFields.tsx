@@ -387,6 +387,8 @@ export function MapDatabaseFields({
 						<div />
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
+							<option value="" disabled>Slug Field Property</option>
+							<hr />
 							{slugFields.map((field) => (
 								<option key={field.id} value={field.id}>
 									{field.name}
