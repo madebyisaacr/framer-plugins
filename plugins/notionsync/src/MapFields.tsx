@@ -546,18 +546,18 @@ function getFieldConversionTypes(property: NotionProperty) {
 		// case "created_by":
 		// case "last_edited_by":
 		// case "people":
-		case "rollup":
+		// case "rollup":
 		case "multi_select":
 		case "phone_number":
-		case "relation":
+		// case "relation":
 		case "email":
 			return ["string"];
 		case "created_time":
 		case "date":
 		case "last_edited_time":
 			return ["date"];
-		case "files":
-			return ["string", "link", "image"];
+		// case "files":
+		// 	return ["string", "link", "image"];
 		case "number":
 			return ["number"];
 		case "rich_text":
