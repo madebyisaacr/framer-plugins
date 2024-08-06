@@ -45,7 +45,7 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 
 	return (
 		<form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
-			<img src={notionConnectSrc} className="rounded-md" />
+			<img src={notionConnectSrc} className="rounded" />
 			<p>
 				Connect your databases: open a database in Notion, click the ... button in the top-right corner of the page, then pick
 				Connections → Connect to → Framer.
