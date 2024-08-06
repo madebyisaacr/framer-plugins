@@ -463,6 +463,9 @@ export function MapDatabaseFields({
 
 function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+	const title = unsupported
+		? `${notionPropertyTypes[propertyType]} is not supported`
+		: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
 
 	const [hover, setHover] = useState(false);
 
@@ -482,13 +485,14 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 					</svg>
 					<div
 						className={classNames(
-							"rounded-lg p-3 w-[280px] z-10 text-secondary bg-primary pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
+							"flex flex-col gap-1.5 rounded-lg p-3 w-[280px] z-10 text-secondary bg-primary pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
 							hover ? "opacity-100" : "opacity-0"
 						)}
 						style={{
 							boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
 						}}
 					>
+						<p className="text-primary font-semibold">{title}</p>
 						{text}
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
