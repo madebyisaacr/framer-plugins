@@ -187,51 +187,46 @@ export function richTextToPlainText(richText: RichTextItemResponse[]) {
 	return richText.map((value) => value.plain_text).join("");
 }
 
-export function getPropertyValue(
-	property: PageObjectResponse["properties"][string],
-	{ supportsHtml }: { supportsHtml: boolean }
-): unknown | undefined {
+export function getPropertyValue(property: PageObjectResponse["properties"][string], fieldType: string): unknown | undefined {
+	const value = property[property.type];
+
 	switch (property.type) {
-		case "checkbox": {
-			return property.checkbox;
-		}
-		case "last_edited_time": {
-			return property.last_edited_time;
-		}
-		case "created_time": {
-			return property.created_time;
-		}
-		case "rich_text": {
-			if (supportsHtml) {
-				return richTextToHTML(property.rich_text);
-			}
-
-			return richTextToPlainText(property.rich_text);
-		}
-		case "select": {
-			if (!property.select) return null;
-
-			return property.select.id;
-		}
+		case "checkbox":
+		case "created_time":
+		case "last_edited_time":
+		case "url":
+		case "number":
+		case "phone_number":
+		case "email":
+			return value;
 		case "title":
-			if (supportsHtml) {
-				return richTextToHTML(property.title);
-			}
-
-			return richTextToPlainText(property.title);
-		case "number": {
-			return property.number;
-		}
-		case "url": {
-			return property.url;
-		}
-		case "unique_id": {
-			return property.unique_id.number;
-		}
-		case "date": {
-			return property.date?.start;
-		}
+		case "rich_text":
+			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
+		case "created_by":
+		case "last_edited_by":
+			return value?.id;
+		case "formula":
+			return fieldType === "number" ? Number(value[value.type] ?? 0) : String(value[value.type] ?? "");
+		case "rollup":
+			return ""; // TODO: Handle rollups
+		case "multi_select":
+			return value.map((option) => option.name).join(", ");
+		case "people":
+			return value.map((person) => person.id).join(", ");
+		case "relation":
+			return ""; // TODO: Handle relations
+		case "date":
+			return value?.start;
+		case "files":
+			return ""; // TODO: Handle files
+		case "select":
+		case "status":
+			return fieldType == "enum" ? value?.id : value?.name;
+		case "unique_id":
+			return fieldType == "string" ? (value.prefix ? `${value.prefix}-${value.number}` : String(value.number)) : value.number;
 	}
+
+	return null;
 }
 
 export interface SynchronizeMutationOptions {
@@ -300,7 +295,7 @@ async function processItem(
 		assert(property);
 
 		if (property.type === "title") {
-			const resolvedTitle = getPropertyValue(property, { supportsHtml: false });
+			const resolvedTitle = getPropertyValue(property, "string");
 			if (!resolvedTitle || typeof resolvedTitle !== "string") {
 				continue;
 			}
@@ -309,7 +304,7 @@ async function processItem(
 		}
 
 		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, { supportsHtml: false });
+			const resolvedSlug = getPropertyValue(property, "string");
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
@@ -323,7 +318,7 @@ async function processItem(
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(property, { supportsHtml: field.type === "formattedText" });
+		const fieldValue = getPropertyValue(property, field.type);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -339,6 +334,33 @@ async function processItem(
 	if (fieldsById.has(pageContentField.id) && item.id) {
 		const contentHTML = await getPageBlocksAsRichText(item.id);
 		fieldData[pageContentField.id] = contentHTML;
+	}
+
+	if (fieldsById.has("page-cover") && item.cover && item.cover.type === "external") {
+		fieldData["page-cover"] = item.cover.external.url;
+		console.log("cover", item.cover.external.url);
+	}
+
+	if (fieldsById.has("page-icon") && item.icon) {
+		const iconFieldType = fieldsById.get("page-icon")?.type;
+
+		let value: string | null = null;
+		if (iconFieldType === "string") {
+			if (item.icon.type === "emoji") {
+				value = item.icon.emoji;
+			}
+		} else if (iconFieldType === "image") {
+			if (item.icon.type === "external") {
+				value = item.icon.external.url;
+			} else if (item.icon.type === "file") {
+				value = item.icon.file.url;
+			}
+		}
+
+		if (value) {
+			fieldData["page-icon"] = value;
+			console.log("icon", value);
+		}
 	}
 
 	if (!slugValue || !titleValue) {

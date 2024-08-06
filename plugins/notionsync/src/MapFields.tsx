@@ -387,7 +387,9 @@ export function MapDatabaseFields({
 						<div />
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
-							<option value="" disabled>Slug Field Property</option>
+							<option value="" disabled>
+								Slug Field Property
+							</option>
 							<hr />
 							{slugFields.map((field) => (
 								<option key={field.id} value={field.id}>
@@ -410,10 +412,10 @@ export function MapDatabaseFields({
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported).map(createFieldConfigRow)}
 					</div>
 				</div>
-				<div className="left-0 bottom-0 w-full flex flex-row justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
-					<div className="inline-flex items-center gap-1 min-w-0">
+				<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
+					<div className="inline-flex items-center gap-1 min-w-0 flex-1">
 						{error ? (
-							<span className="text-red-500">{error.message}</span>
+							<span className="text-[#f87171]">{error.message}</span>
 						) : (
 							<>
 								<span className="text-tertiary flex-shrink-0">Importing from</span>
