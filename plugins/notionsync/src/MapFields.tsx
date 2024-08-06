@@ -17,6 +17,7 @@ import { IconChevron } from "./components/Icons";
 import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
+import { Spinner } from "@shared/spinner/Spinner";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -364,7 +365,13 @@ export function MapDatabaseFields({
 
 	return (
 		<div className="flex-1 flex flex-col gap-2 px-3">
-			<form onSubmit={handleSubmit} className="flex flex-col gap-3 flex-1">
+			<form
+				onSubmit={handleSubmit}
+				className={classNames(
+					"flex flex-col gap-3 flex-1 transition-opacity relative",
+					isLoading && "opacity-40 pointer-events-none"
+				)}
+			>
 				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
 				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
@@ -430,11 +437,17 @@ export function MapDatabaseFields({
 							</>
 						)}
 					</div>
-					<Button primary className="w-auto px-3" loading={isLoading} disabled={!slugFieldId || !database}>
+					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database || isLoading}>
 						Import
 					</Button>
 				</div>
 			</form>
+			{isLoading && (
+				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+					<Spinner inline />
+					Importing...
+				</div>
+			)}
 		</div>
 	);
 }
