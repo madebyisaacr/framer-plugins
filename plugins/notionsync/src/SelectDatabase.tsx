@@ -7,6 +7,7 @@ import { ReloadIcon } from "./components/Icons";
 import { framer } from "framer-plugin";
 import Button from "@shared/Button";
 import classNames from "classnames";
+import { Spinner } from "@shared/spinner/Spinner";
 
 interface SelectDatabaseProps {
 	onDatabaseSelected: (database: GetDatabaseResponse) => void;
@@ -33,7 +34,7 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 	};
 
 	return (
-		<div className="flex flex-row gap-3 size-full">
+		<div className="flex flex-row gap-3 size-full px-3 pb-3">
 			<div className="flex flex-col gap-4 w-[280px]">
 				<img src={notionConnectSrc} className="rounded" />
 				<p>
@@ -54,7 +55,10 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 					</button>
 				</div>
 				{isLoading ? (
-					<div className="flex items-center justify-center h-[200px]">Loading Databases...</div>
+					<div className="flex flex-col items-center justify-center flex-1 gap-4">
+						<Spinner inline />
+						Loading Databases...
+					</div>
 				) : (
 					<div className="flex-1 flex flex-col divide-y divide-divider">
 						{data?.map((database) => (

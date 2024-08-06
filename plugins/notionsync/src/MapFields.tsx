@@ -363,9 +363,9 @@ export function MapDatabaseFields({
 	}
 
 	return (
-		<div className="flex-1 flex flex-col gap-2">
-			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
-				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
+		<div className="flex-1 flex flex-col gap-2 px-3">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-3 flex-1">
+				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
 				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
 					<div
@@ -428,7 +428,7 @@ export function MapDatabaseFields({
 							</>
 						)}
 					</div>
-					<Button primary className="w-auto" loading={isLoading} disabled={!slugFieldId || !database}>
+					<Button primary className="w-auto px-3" loading={isLoading} disabled={!slugFieldId || !database}>
 						Import
 					</Button>
 				</div>
