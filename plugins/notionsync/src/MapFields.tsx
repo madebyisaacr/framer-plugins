@@ -14,7 +14,7 @@ import {
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
 import { IconChevron } from "./components/Icons";
-import { Button } from "@shared/Button";
+import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
 
 interface CollectionFieldConfig {

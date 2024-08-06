@@ -1,4 +1,4 @@
-import { Spinner } from "./Spinner";
+import { Spinner } from "@shared/spinner/Spinner";
 
 export function CenteredSpinner() {
 	return (
