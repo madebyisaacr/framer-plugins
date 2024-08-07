@@ -31,9 +31,9 @@ const fieldConversionMessages = {
 	"files - link": "Only the first file's URL will be included.",
 	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
 	"page-icon - string":
-		'Only emoji icons are imported. To import Notion icons and custom image icons, change the import type to "Image"',
+		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the import type to "Image"',
 	"page-icon - image":
-		'Only Notion icons and custom image icons are imported. To import emoji icons, change the import type to "Text"',
+		'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the import type to "Text"',
 	button: "Button fields cannot be imported.",
 	people: peopleMessage,
 	last_edited_by: peopleMessage,
@@ -435,9 +435,8 @@ export function MapDatabaseFields({
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
 						{pageLevelFields.map(createFieldConfigRow)}
-						{newFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{newFields.length + otherFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
 						{newFields.map(createFieldConfigRow)}
-						{otherFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
 						{otherFields.map(createFieldConfigRow)}
 						{unsupportedFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
 						{unsupportedFields.map(createFieldConfigRow)}
