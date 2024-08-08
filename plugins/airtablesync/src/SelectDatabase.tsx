@@ -1,5 +1,5 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
-import { richTextToPlainText, useDatabasesQuery } from "./notion";
+import { richTextToPlainText, useDatabasesQuery } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
 import notionConnectSrc from "./assets/notion-connect.png";
 import { assert } from "./utils";

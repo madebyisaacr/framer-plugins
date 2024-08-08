@@ -591,40 +591,25 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginCo
 }
 
 function getFieldConversionTypes(property: NotionProperty) {
-	switch (property.type) {
-		case "checkbox":
-			return ["boolean"];
-		case "title":
-		case "multi_select":
-		case "phone_number":
-		case "email":
-			return ["string"];
-		case "created_time":
-		case "date":
-		case "last_edited_time":
-			return ["date"];
-		case "files":
-			return ["link", "image"];
-		case "number":
-			return ["number"];
-		case "rich_text":
-			return ["formattedText", "string"];
-		case "select":
-		case "status":
-			return ["enum", "string"];
-		case "url":
-			return ["link", "string"];
-		case "unique_id":
-			return ["string", "number"];
-		case "formula":
-		case "rollup":
-			return ["string", "number", "boolean", "date", "link", "image"];
-		// case "created_by":
-		// case "last_edited_by":
-		// case "people":
-		// case "relation":
-		// case "button":
-		default:
-			return [];
-	}
+	const propertyTypeMap = {
+		checkbox: ["boolean"],
+		title: ["string"],
+		multi_select: ["string"],
+		phone_number: ["string"],
+		email: ["string"],
+		created_time: ["date"],
+		date: ["date"],
+		last_edited_time: ["date"],
+		files: ["link", "image"],
+		number: ["number"],
+		rich_text: ["formattedText", "string"],
+		select: ["enum", "string"],
+		status: ["enum", "string"],
+		url: ["link", "string"],
+		unique_id: ["string", "number"],
+		formula: ["string", "number", "boolean", "date", "link", "image"],
+		rollup: ["string", "number", "boolean", "date", "link", "image"],
+	};
+
+	return propertyTypeMap[property.type] || [];
 }

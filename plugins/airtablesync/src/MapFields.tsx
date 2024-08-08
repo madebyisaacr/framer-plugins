@@ -1,5 +1,5 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
-import { framer, CollectionField } from "framer-plugin";
+import { framer } from "framer-plugin";
 import { assert } from "./utils";
 import {
 	NotionProperty,
@@ -10,7 +10,7 @@ import {
 	hasFieldConfigurationChanged,
 	pageContentField,
 	richTextToPlainText,
-} from "./notion";
+} from "./airtable";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
 import { IconChevron } from "./components/Icons";
@@ -18,53 +18,42 @@ import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
-import { plugin } from "postcss";
 
-const timeMessage = "Time is not supported, so only the date will be imported.";
-const peopleMessage =
-	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
-const fieldConversionMessages = {
-	"date - date": timeMessage,
-	"created_time - date": timeMessage,
-	"last_edited_time - date": timeMessage,
-	"multi_select - string": "Values are imported as a comma-separated list of option names.",
-	"files - link": "Only the first file's URL will be included.",
-	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
-	"page-icon - string":
-		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the import type to "Image"',
-	"page-icon - image":
-		'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the import type to "Text"',
-	button: "Button fields cannot be imported.",
-	people: peopleMessage,
-	last_edited_by: peopleMessage,
-	created_by: peopleMessage,
-};
-const notionPropertyTypes = {
-	checkbox: "Checkbox",
-	created_by: "Created by",
-	created_time: "Created time",
-	date: "Date",
-	email: "Email",
-	files: "Files & media",
-	formula: "Formula",
-	last_edited_by: "Last edited by",
-	last_edited_time: "Last edited time",
-	multi_select: "Multi-select",
-	number: "Number",
-	people: "Person",
-	phone_number: "Phone number",
-	relation: "Relation",
-	rich_text: "Text",
-	rollup: "Rollup",
-	select: "Select",
-	status: "Status",
-	title: "Title",
-	url: "URL",
+const fieldConversionMessages = {};
+const airtablePropertyTypes = {
+	aiText: "AI Text",
+	multipleAttachments: "Attachment",
+	autoNumber: "Auto number",
+	barcode: "Barcode",
 	button: "Button",
-	unique_id: "ID",
-	"page-icon": "Image / Emoji",
-	"page-cover": "Image",
-	"page-content": "Page Content",
+	checkbox: "Checkbox",
+	singleCollaborator: "User",
+	count: "Count",
+	createdBy: "Created by",
+	createdTime: "Created time",
+	currency: "Currency",
+	date: "Date",
+	dateTime: "Date and time",
+	duration: "Duration",
+	email: "Email",
+	formula: "Formula",
+	lastModifiedBy: "Last modified by",
+	lastModifiedTime: "Last modified time",
+	multipleRecordLinks: "Link to another record",
+	multilineText: "Long text",
+	multipleLookupValues: "Lookup",
+	multipleCollaborators: "Multiple users",
+	multipleSelects: "Multiple select",
+	number: "Number",
+	percent: "Percent",
+	phoneNumber: "Phone",
+	rating: "Rating",
+	richText: "Rich text",
+	rollup: "Rollup",
+	singleLineText: "Single line text",
+	singleSelect: "Single select",
+	externalSyncSource: "Sync source",
+	url: "URL",
 };
 const cmsFieldTypeNames = {
 	boolean: "Toggle",
@@ -590,41 +579,42 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginCo
 	return result;
 }
 
-function getFieldConversionTypes(property: NotionProperty) {
-	switch (property.type) {
-		case "checkbox":
-			return ["boolean"];
-		case "title":
-		case "multi_select":
-		case "phone_number":
-		case "email":
-			return ["string"];
-		case "created_time":
-		case "date":
-		case "last_edited_time":
-			return ["date"];
-		case "files":
-			return ["link", "image"];
-		case "number":
-			return ["number"];
-		case "rich_text":
-			return ["formattedText", "string"];
-		case "select":
-		case "status":
-			return ["enum", "string"];
-		case "url":
-			return ["link", "string"];
-		case "unique_id":
-			return ["string", "number"];
-		case "formula":
-		case "rollup":
-			return ["string", "number", "boolean", "date", "link", "image"];
-		// case "created_by":
-		// case "last_edited_by":
-		// case "people":
-		// case "relation":
-		// case "button":
-		default:
-			return [];
-	}
+function getFieldConversionTypes(airtableField) {
+	const fieldTypeMap = {
+		aiText: ["string"],
+		multipleAttachments: [],
+		autoNumber: ["number"],
+		barcode: ["string"],
+		button: ["link"],
+		checkbox: ["boolean"],
+		singleCollaborator: ["string"],
+		count: ["number"],
+		createdBy: ["string"],
+		createdTime: ["date"],
+		currency: ["number", "string"],
+		date: ["date"],
+		dateTime: ["date"],
+		duration: ["string"],
+		email: ["string"],
+		formula: ["string", "number", "boolean", "date", "link", "image"],
+		lastModifiedBy: [],
+		lastModifiedTime: ["date"],
+		multipleRecordLinks: [],
+		multilineText: ["string"],
+		multipleLookupValues: [],
+		multipleCollaborators: [],
+		multipleSelects: [],
+		number: ["number"],
+		percent: ["number"],
+		phoneNumber: ["string"],
+		rating: ["number"],
+		richText: ["formattedText", "string"],
+		rollup: [],
+		singleLineText: ["string"],
+		singleSelect: ["enum", "string"],
+		externalSyncSource: ["string"],
+		url: ["link", "string"],
+	};
+
+	return fieldTypeMap[airtableField.type] || [];
 }

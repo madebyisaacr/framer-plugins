@@ -6,7 +6,7 @@ import { App } from "./App";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
-import { PluginContext, PluginContextUpdate, getPluginContext, synchronizeDatabase } from "./notion";
+import { PluginContext, PluginContextUpdate, getPluginContext, synchronizeDatabase } from "./airtable";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";

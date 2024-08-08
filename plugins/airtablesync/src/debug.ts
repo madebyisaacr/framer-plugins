@@ -1,4 +1,4 @@
-import { SynchronizeResult } from "./notion";
+import { SynchronizeResult } from "./airtable";
 
 export function logSyncResult(result: SynchronizeResult) {
 	if (result.errors.length > 0) {
