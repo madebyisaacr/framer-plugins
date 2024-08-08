@@ -48,8 +48,6 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 		assert(block);
 		const item = block[block.type];
 
-		console.log(block.type, block.has_children);
-
 		switch (block.type) {
 			case "paragraph":
 				htmlContent += `<p>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</p>`;
@@ -120,5 +118,9 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 }
 
 function childrenToHtml(block) {
+	if (!block.has_children) {
+		return "";
+	}
+
 	return "";
 }
