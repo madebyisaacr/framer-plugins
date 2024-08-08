@@ -1,14 +1,14 @@
-import {
-	APIErrorCode,
-	Client,
-	collectPaginatedAPI,
-	isFullBlock,
-	isFullDatabase,
-	isFullPage,
-	isNotionClientError,
-} from "@notionhq/client";
+// import {
+// 	APIErrorCode,
+// 	Client,
+// 	collectPaginatedAPI,
+// 	isFullBlock,
+// 	isFullDatabase,
+// 	isFullPage,
+// 	isNotionClientError,
+// } from "@notionhq/client";
 import pLimit from "p-limit";
-import { GetDatabaseResponse, PageObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
+// import { GetDatabaseResponse, PageObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
 import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -16,11 +16,20 @@ import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl = "https://notion-plugin-api.niekkruse70.workers.dev";
-const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/auth/authorize/callback`);
+export const getOauthURL = (writeKey: string) => {
+	const parameters = new URLSearchParams({
+		client_id: "da5fb6c7-a40e-4931-8f06-67507c3816eb",
+		redirect_uri: "https://framersync.com/airtable-oauth",
+		response_type: "code",
+		scope: "data.records:read schema.bases:read",
+		state: "",
+		code_verifier: "",
+		code_challenge: "",
+		code_challenge_method: "S256",
+	})
 
-export const getOauthURL = (writeKey: string) =>
-	`https://api.notion.com/v1/oauth/authorize?client_id=3504c5a7-9f75-4f87-aa1b-b735f8480432&response_type=code&owner=user&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
+	return "https://airtable.com/oauth2/v1/authorize?" + parameters.toString();
+}
 
 // Storage for the notion API key.
 const notionBearerStorageKey = "notionBearerToken";

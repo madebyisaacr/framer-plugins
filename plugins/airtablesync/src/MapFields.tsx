@@ -70,7 +70,7 @@ const cmsFieldTypeNames = {
 };
 const airtableFieldConversionTypes: Record<string, string[]> = {
 	aiText: ["string"],
-	multipleAttachments: [],
+	multipleAttachments: ["link", "image"],
 	autoNumber: ["number"],
 	barcode: ["string"],
 	button: ["link"],
