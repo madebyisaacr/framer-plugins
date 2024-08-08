@@ -20,7 +20,7 @@ import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 
 const fieldConversionMessages = {};
-const airtablePropertyTypes = {
+const airtableFieldTypeNames = {
 	aiText: "AI Text",
 	multipleAttachments: "Attachment",
 	autoNumber: "Auto number",
@@ -67,6 +67,41 @@ const cmsFieldTypeNames = {
 	enum: "Option",
 	slug: "Slug",
 	title: "Title",
+};
+const airtableFieldConversionTypes: Record<string, string[]> = {
+	aiText: ["string"],
+	multipleAttachments: [],
+	autoNumber: ["number"],
+	barcode: ["string"],
+	button: ["link"],
+	checkbox: ["boolean"],
+	singleCollaborator: ["string"],
+	count: ["number"],
+	createdBy: ["string"],
+	createdTime: ["date"],
+	currency: ["number", "string"],
+	date: ["date"],
+	dateTime: ["date"],
+	duration: ["string"],
+	email: ["string"],
+	formula: ["string", "number", "boolean", "date", "link", "image"],
+	lastModifiedBy: [],
+	lastModifiedTime: ["date"],
+	multipleRecordLinks: [],
+	multilineText: ["string"],
+	multipleLookupValues: [],
+	multipleCollaborators: [],
+	multipleSelects: [],
+	number: ["number"],
+	percent: ["number"],
+	phoneNumber: ["string"],
+	rating: ["number"],
+	richText: ["formattedText", "string"],
+	rollup: [],
+	singleLineText: ["string"],
+	singleSelect: ["enum", "string"],
+	externalSyncSource: ["string"],
+	url: ["link", "string"],
 };
 
 interface CollectionFieldConfig {
@@ -147,7 +182,7 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 		// Title is always required in CMS API.
 		if (property.type === "title") continue;
 
-		const conversionTypes = getFieldConversionTypes(property);
+		const conversionTypes = airtableFieldConversionTypes[property.type] ?? [];
 
 		result.push({
 			// field: getCollectionFieldForProperty(property),
@@ -315,7 +350,7 @@ export function MapDatabaseFields({
 						}}
 					/>
 				</label>
-				<StaticInput disabled={isDisabled} leftText={notionPropertyTypes[fieldConfig.property.type]}>
+				<StaticInput disabled={isDisabled} leftText={airtableFieldTypeNames[fieldConfig.property.type]}>
 					{fieldConfig.originalFieldName}
 					{fieldConfig.isNewField && !fieldConfig.unsupported && (
 						<div
@@ -467,8 +502,8 @@ export function MapDatabaseFields({
 function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
 	const title = unsupported
-		? `${notionPropertyTypes[propertyType]} is not supported`
-		: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
+		? `${airtableFieldTypeNames[propertyType]} is not supported`
+		: `${propertyType == "page-icon" ? "Page Icon" : airtableFieldTypeNames[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
 
 	const [hover, setHover] = useState(false);
 
@@ -577,44 +612,4 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginCo
 	}
 
 	return result;
-}
-
-function getFieldConversionTypes(airtableField) {
-	const fieldTypeMap = {
-		aiText: ["string"],
-		multipleAttachments: [],
-		autoNumber: ["number"],
-		barcode: ["string"],
-		button: ["link"],
-		checkbox: ["boolean"],
-		singleCollaborator: ["string"],
-		count: ["number"],
-		createdBy: ["string"],
-		createdTime: ["date"],
-		currency: ["number", "string"],
-		date: ["date"],
-		dateTime: ["date"],
-		duration: ["string"],
-		email: ["string"],
-		formula: ["string", "number", "boolean", "date", "link", "image"],
-		lastModifiedBy: [],
-		lastModifiedTime: ["date"],
-		multipleRecordLinks: [],
-		multilineText: ["string"],
-		multipleLookupValues: [],
-		multipleCollaborators: [],
-		multipleSelects: [],
-		number: ["number"],
-		percent: ["number"],
-		phoneNumber: ["string"],
-		rating: ["number"],
-		richText: ["formattedText", "string"],
-		rollup: [],
-		singleLineText: ["string"],
-		singleSelect: ["enum", "string"],
-		externalSyncSource: ["string"],
-		url: ["link", "string"],
-	};
-
-	return fieldTypeMap[airtableField.type] || [];
 }
