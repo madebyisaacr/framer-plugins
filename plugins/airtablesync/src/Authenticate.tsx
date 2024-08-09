@@ -60,7 +60,7 @@ export function Authentication({ onAuthenticated, context }: AuthenticationProps
 			});
 	};
 	return (
-		<div className="w-full h-full flex flex-col items-center justify-center gap-4 pb-4 overflo">
+		<div className="w-full h-full flex flex-col items-center justify-center gap-3 pb-3 px-3">
 			<img src={loginIllustration} className="max-w-100% rounded flex-shrink-0" />
 			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
@@ -69,14 +69,14 @@ export function Authentication({ onAuthenticated, context }: AuthenticationProps
 					</span>
 				) : (
 					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex flex-col flex-1">
-						<li>Log in to your Notion account</li>
-						<li>Pick the database you want to import</li>
-						<li>Map the database fields to the CMS</li>
+						<li>Log in to your Airtable account</li>
+						<li>Pick the base you want to import</li>
+						<li>Map the base fields to the Framer CMS</li>
 					</ol>
 				)}
 			</div>
 			<Button primary onClick={handleAuth} loading={isLoading} disabled={isLoading}>
-				Log in to Notion
+				Log in to Airtable
 			</Button>
 		</div>
 	);

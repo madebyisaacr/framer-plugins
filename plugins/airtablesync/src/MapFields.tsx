@@ -2,13 +2,11 @@ import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { framer } from "framer-plugin";
 import { assert } from "./utils";
 import {
-	NotionProperty,
 	PluginContext,
 	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
-	pageContentField,
 	richTextToPlainText,
 } from "./airtable";
 import { Fragment, useMemo, useState } from "react";
@@ -106,7 +104,7 @@ const airtableFieldConversionTypes: Record<string, string[]> = {
 
 interface CollectionFieldConfig {
 	// field: CollectionField | null;
-	property: NotionProperty;
+	property: object;
 	isNewField: boolean;
 	originalFieldName: string;
 	unsupported: boolean;
@@ -132,47 +130,6 @@ function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginC
 
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
-	);
-
-	result.push(
-		{
-			// field: pageContentField,
-			property: {
-				id: "page-content",
-				name: "Content",
-				type: "page-content",
-				unsupported: false,
-			},
-			originalFieldName: pageContentField.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
-			unsupported: false,
-			conversionTypes: ["formattedText"],
-			isPageLevelField: true,
-		},
-		{
-			property: {
-				id: "page-cover",
-				name: "Cover Image",
-				type: "page-cover",
-				unsupported: false,
-			},
-			originalFieldName: "Cover Image",
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-cover"),
-			conversionTypes: ["image"],
-			isPageLevelField: true,
-		},
-		{
-			property: {
-				id: "page-icon",
-				name: "Icon",
-				type: "page-icon",
-				unsupported: false,
-			},
-			originalFieldName: "Icon",
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
-			conversionTypes: ["image", "string"],
-			isPageLevelField: true,
-		}
 	);
 
 	for (const key in database.properties) {
@@ -209,7 +166,7 @@ function getFieldNameOverrides(pluginContext: PluginContext): Record<string, str
 	return result;
 }
 
-function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionProperty[]): string | null {
+function getInitialSlugFieldId(context: PluginContext, fieldOptions): string | null {
 	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
 
 	return fieldOptions[0]?.id ?? null;

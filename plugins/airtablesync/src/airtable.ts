@@ -16,23 +16,14 @@ import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
-export const getOauthURL = (writeKey: string) => {
-	const parameters = new URLSearchParams({
-		client_id: "da5fb6c7-a40e-4931-8f06-67507c3816eb",
-		redirect_uri: "https://framersync.com/airtable-oauth",
-		response_type: "code",
-		scope: "data.records:read schema.bases:read",
-		state: "",
-		code_verifier: "",
-		code_challenge: "",
-		code_challenge_method: "S256",
-	})
+const apiBaseUrl = "https://framersync-workers.isaac-b49.workers.dev";
+const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/authorize/`);
 
-	return "https://airtable.com/oauth2/v1/authorize?" + parameters.toString();
-}
+export const getOauthURL = (writeKey: string) =>
+	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
 
-// Storage for the notion API key.
-const notionBearerStorageKey = "notionBearerToken";
+// Storage for the Airtable API key.
+const airtableBearerStorageKey = "airtableBearerToken";
 
 const pluginDatabaseIdKey = "notionPluginDatabaseId";
 const pluginLastSyncedKey = "notionPluginLastSynced";
@@ -44,62 +35,23 @@ const databaseNameKey = "notionDatabaseName";
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
 
-export type NotionProperty = GetDatabaseResponse["properties"][string];
-
-// A page in database consists of blocks.
-// We allow configuration to include this as a field in the collection.
-// This is used as an identifier to recognize that property and treat it as page content
-export const pageContentField: CollectionField = {
-	type: "formattedText",
-	id: "page-content",
-	name: "Content",
-};
-
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
-	return localStorage.getItem(notionBearerStorageKey) !== null;
+	return localStorage.getItem(airtableBearerStorageKey) !== null;
 }
 
-let notion: Client | null = null;
 if (isAuthenticated()) {
-	initNotionClient();
+	initAirtableClient();
 }
 
-export function initNotionClient() {
-	const token = localStorage.getItem(notionBearerStorageKey);
-	if (!token) throw new Error("Notion API token is missing");
-
-	notion = new Client({
-		fetch: async (url, fetchInit) => {
-			const urlObj = new URL(url);
-
-			try {
-				const resp = await fetch(`${apiBaseUrl}/notion${urlObj.pathname}${urlObj.search}`, fetchInit);
-
-				// If status is unauthorized, clear the token
-				// And we close the plugin (for now)
-				// TODO: Improve this flow in the plugin.
-				if (resp.status === 401) {
-					localStorage.removeItem(notionBearerStorageKey);
-					await framer.closePlugin("Notion Authorization Failed. Re-open the plugin to re-authorize.", {
-						variant: "error",
-					});
-					return resp;
-				}
-
-				return resp;
-			} catch (error) {
-				console.log("Notion API error", error);
-				throw error;
-			}
-		},
-		auth: token,
-	});
+export function initAirtableClient() {
+	const token = localStorage.getItem(airtableBearerStorageKey);
+	if (!token) throw new Error("Airtable API token is missing");
 }
 
 // The order in which we display slug fields
-const slugFieldTypes: NotionProperty["type"][] = ["title", "rich_text", "unique_id", "formula", "rollup"];
+const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText"];
 
 /**
  * Given a Notion Database returns a list of possible fields that can be used as
@@ -114,7 +66,7 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 
 		if (slugFieldTypes.includes(property.type)) {
 			options.push(property);
-		};
+		}
 	}
 	function getOrderIndex(type: NotionProperty["type"]): number {
 		const index = slugFieldTypes.indexOf(type);
@@ -145,7 +97,7 @@ export async function authorize(options: { readKey: string; writeKey: string }) 
 
 			if (resp.status === 200 && token) {
 				clearInterval(interval);
-				localStorage.setItem(notionBearerStorageKey, token);
+				localStorage.setItem(airtableBearerStorageKey, token);
 				initNotionClient();
 				resolve();
 			}
@@ -192,64 +144,57 @@ export function richTextToPlainText(richText: RichTextItemResponse[]) {
 	return richText.map((value) => value.plain_text).join("");
 }
 
-export function getPropertyValue(property: PageObjectResponse["properties"][string], fieldType: string): unknown | undefined {
-	const value = property[property.type];
+export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {
+	if (airtableField === null || airtableField === undefined) {
+		return null;
+	}
 
-	switch (property.type) {
-		case "checkbox":
-		case "created_time":
-		case "last_edited_time":
-		case "url":
-		case "number":
-		case "phone_number":
-		case "email":
-			return value;
-		case "title":
-		case "rich_text":
-			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
-		case "created_by":
-		case "last_edited_by":
-			return value?.id;
-		case "multi_select":
-			return value.map((option) => option.name).join(", ");
-		case "people":
-			return value.map((person) => person.id).join(", ");
-		case "formula":
-			switch (fieldType) {
-				case "string":
-				case "link":
-				case "image":
-					return String(value[value.type] ?? "");
-				case "number":
-					return Number(value[value.type] ?? 0);
-				case "date":
-					return value.type == "date" ? value.date : null;
-				case "boolean":
-					return value.type == "boolean" ? value.boolean : !!value;
-				default:
-					return null;
-			}
-		case "rollup":
-			switch (value.type) {
-				case "array":
-					const item = value.array[0];
-					return item ? getPropertyValue(item, fieldType) : null;
-				case "number":
-					return value.number;
-				case "date":
-					return value.date;
-				default:
-					return null;
-			}
+	const value = airtableField;
+
+	switch (airtableField.type) {
+		case "createdTime":
+		case "currency":
 		case "date":
-			return value?.start;
-		case "files":
-			return value[0]?.[value[0].type].url ?? null;
-		case "select":
-		case "status":
-			return fieldType == "enum" ? value?.id : value?.name;
-		case "unique_id":
-			return fieldType == "string" ? (value.prefix ? `${value.prefix}-${value.number}` : String(value.number)) : value.number;
+		case "dateTime":
+		case "duration":
+		case "email":
+		case "autoNumber":
+		case "count":
+		case "checkbox":
+		case "lastModifiedTime":
+		case "number":
+		case "percent":
+		case "phoneNumber":
+		case "rating":
+		case "richText":
+		case "rollup":
+		case "singleLineText":
+		case "multilineText":
+		case "url":
+			return value;
+		case "aiText":
+			return value.value;
+		case "multipleAttachments":
+		case "multipleRecordLinks":
+			return null;
+		case "barcode":
+			return value.text;
+		case "button":
+			return value.url;
+		case "singleCollaborator":
+		case "createdBy":
+		case "lastModifiedBy":
+			return value.name || null;
+		case "formula":
+			return Array.isArray(value) ? value.join(", ") : value;
+		case "multipleLookupValues":
+			return value.map((item) => String(item)).join(", ");
+		case "multipleCollaborators":
+		case "multipleSelects":
+			return value.map((item) => item.name).join(", ");
+		case "singleSelect":
+		case "externalSyncSource":
+			return value.name;
 	}
 
 	return null;

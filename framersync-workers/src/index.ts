@@ -1,5 +1,6 @@
 import { generateRandomId } from "./generateRandomId";
 import { getHTMLTemplate } from "./getHTMLTemplate";
+import generateAirtableChallengeParams from "./generateAirtableChallenge";
 
 async function handleRequest(request: Request, env: Env) {
 	const requestUrl = new URL(request.url);
@@ -11,23 +12,23 @@ async function handleRequest(request: Request, env: Env) {
 		requestUrl.pathname.startsWith("/authorize")
 	) {
 		const readKey = generateRandomId();
-		const writeKey = generateRandomId();
+		// const writeKey = generateRandomId();
+		const challengeParams = generateAirtableChallengeParams();
+		const writeKey = challengeParams.state;
 
 		const authorizeParams = new URLSearchParams();
 		authorizeParams.append("client_id", env.CLIENT_ID);
 		authorizeParams.append("redirect_uri", env.REDIRECT_URI);
 		authorizeParams.append("response_type", "code");
-		authorizeParams.append("access_type", "online");
-		authorizeParams.append("include_granted_scopes", "true");
+		authorizeParams.append("scope", env.SCOPE);
 
-		// Scope is optional for some providers.
-		if (env.SCOPE) {
-			authorizeParams.append("scope", env.SCOPE);
+		for (const key of Object.keys(challengeParams)) {
+			authorizeParams.append(key, challengeParams[key]);
 		}
 
 		// The write key is stored in the `state` param since this will be
 		// persisted through the entire OAuth flow.
-		authorizeParams.append("state", writeKey);
+		// authorizeParams.append("state", writeKey);
 
 		// Generate the login URL for the provider.
 		const authorizeUrl = new URL(env.AUTHORIZE_ENDPOINT);
@@ -74,7 +75,7 @@ async function handleRequest(request: Request, env: Env) {
 		tokenParams.append("client_id", env.CLIENT_ID);
 		tokenParams.append("client_secret", env.CLIENT_SECRET);
 		tokenParams.append("redirect_uri", env.REDIRECT_URI);
-		tokenParams.append("grant_type", "authorization_code");
+		// tokenParams.append("grant_type", "authorization_code");
 		tokenParams.append("code", authorizationCode);
 
 		const tokenUrl = new URL(env.TOKEN_ENDPOINT);
