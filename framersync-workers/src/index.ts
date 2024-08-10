@@ -1,6 +1,5 @@
 import { getHTMLTemplate } from './getHTMLTemplate';
 import { generateRandomId, generateAirtableChallengeParams } from './generateAirtableChallenge';
-import { read } from 'fs';
 
 async function handleRequest(request: Request, env: Env) {
 	const requestUrl = new URL(request.url);
@@ -10,7 +9,7 @@ async function handleRequest(request: Request, env: Env) {
 	if (request.method === 'POST' && requestUrl.pathname.startsWith('/authorize/')) {
 		const readKey = generateRandomId(16);
 		// const writeKey = generateRandomId();
-		const challengeParams = generateAirtableChallengeParams();
+		const challengeParams = await generateAirtableChallengeParams();
 		const writeKey = challengeParams.state;
 
 		const authorizeParams = new URLSearchParams();

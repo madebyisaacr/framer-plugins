@@ -1,9 +1,9 @@
-export function generateAirtableChallengeParams() {
+export async function generateAirtableChallengeParams() {
 	// Generate code_verifier
 	const codeVerifier = generateRandomId(128);
 
 	// Generate code_challenge
-	const codeChallenge = generateCodeChallenge(codeVerifier);
+	const codeChallenge = await generateCodeChallenge(codeVerifier);
 
 	// Generate state
 	const state = generateRandomId(32);
@@ -30,9 +30,10 @@ async function generateCodeChallenge(codeVerifier) {
 	const encoder = new TextEncoder();
 	const data = encoder.encode(codeVerifier);
 	const hash = await crypto.subtle.digest('SHA-256', data);
-	return base64UrlEncode(new Uint8Array(hash));
+	return base64UrlEncode(hash);
 }
 
 function base64UrlEncode(buffer) {
-	return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+	const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+	return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
