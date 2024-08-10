@@ -12,26 +12,26 @@ async function handleRequest(request: Request, env: Env) {
 		requestUrl.pathname.startsWith("/authorize")
 	) {
 		const readKey = generateRandomId();
-		// const writeKey = generateRandomId();
+		const writeKey = generateRandomId();
 		const challengeParams = generateAirtableChallengeParams();
-		const writeKey = challengeParams.state;
 
 		const authorizeParams = new URLSearchParams();
 		authorizeParams.append("client_id", env.CLIENT_ID);
 		authorizeParams.append("redirect_uri", env.REDIRECT_URI);
 		authorizeParams.append("response_type", "code");
-		authorizeParams.append("scope", env.SCOPE);
+		authorizeParams.append("scope", "data.records:read schema.bases:read");
 
-		for (const key of Object.keys(challengeParams)) {
-			authorizeParams.append(key, challengeParams[key]);
-		}
+		// authorizeParams.append("code_verifier", challengeParams.code_verifier)
+		authorizeParams.append("code_challenge", challengeParams.code_challenge)
+		authorizeParams.append("state", challengeParams.state)
+		authorizeParams.append("code_challenge_method", "S256")
 
 		// The write key is stored in the `state` param since this will be
 		// persisted through the entire OAuth flow.
 		// authorizeParams.append("state", writeKey);
 
 		// Generate the login URL for the provider.
-		const authorizeUrl = new URL(env.AUTHORIZE_ENDPOINT);
+		const authorizeUrl = new URL("https://airtable.com/oauth2/v1/authorize");
 		authorizeUrl.search = authorizeParams.toString();
 
 		await env.keyValueStore.put(`readKey:${writeKey}`, readKey, {
@@ -78,7 +78,7 @@ async function handleRequest(request: Request, env: Env) {
 		// tokenParams.append("grant_type", "authorization_code");
 		tokenParams.append("code", authorizationCode);
 
-		const tokenUrl = new URL(env.TOKEN_ENDPOINT);
+		const tokenUrl = new URL("https://airtable.com/oauth2/v1/token");
 		tokenUrl.search = tokenParams.toString();
 
 		// This additional POST request retrieves the access token and expiry

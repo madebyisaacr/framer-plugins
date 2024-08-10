@@ -60,7 +60,7 @@ export function Authentication({ onAuthenticated, context }: AuthenticationProps
 			});
 	};
 	return (
-		<div className="w-full h-full flex flex-col items-center justify-center gap-4 pb-4 overflo">
+		<div className="w-full h-full flex flex-col items-center justify-center gap-3 pb-3 px-3">
 			<img src={loginIllustration} className="max-w-100% rounded flex-shrink-0" />
 			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
