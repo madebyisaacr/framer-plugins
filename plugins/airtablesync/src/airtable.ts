@@ -16,8 +16,10 @@ import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl = "https://framersync-workers.isaac-b49.workers.dev";
-const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/authorize/`);
+const apiBaseUrl = window.location.hostname === "localhost"
+	? "http://localhost:8787"
+	: "https://framersync-workers.isaac-b49.workers.dev";
+const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
 
 export const getOauthURL = (writeKey: string) =>
 	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
@@ -79,27 +81,32 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 }
 
 // Authorize the plugin with Notion.
-export async function authorize(options: { readKey: string; writeKey: string }) {
-	await fetch(`${apiBaseUrl}/auth/authorize`, {
+export async function authorize() {
+	const response = await fetch(`${apiBaseUrl}/authorize/`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(options),
 	});
+
+	const { readKey, url } = await response.json();
+
+	// Open the Airtable authorization URL in a new tab
+	window.open(url, "_blank");
 
 	return new Promise<void>((resolve) => {
 		// Poll for the authorization status
 		const interval = setInterval(async () => {
-			const resp = await fetch(`${apiBaseUrl}/auth/authorize/${options.readKey}`);
+			const resp = await fetch(`${apiBaseUrl}/poll/?readKey=${readKey}`);
 
 			const { token } = await resp.json();
 
 			if (resp.status === 200 && token) {
 				clearInterval(interval);
 				localStorage.setItem(airtableBearerStorageKey, token);
-				initNotionClient();
+				// initNotionClient();
 				resolve();
+				console.log("found airtable token!");
 			}
 		}, 2500);
 	});

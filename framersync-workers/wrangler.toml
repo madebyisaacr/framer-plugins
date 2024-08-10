@@ -4,6 +4,10 @@ main = "src/index.ts"
 compatibility_date = "2024-08-06"
 node_compat = true
 
+kv_namespaces = [
+  { binding = "keyValueStore", id = "a869bdc0e9a24b50b8874e01203fa449" }
+]
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.
