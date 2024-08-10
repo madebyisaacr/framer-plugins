@@ -8,7 +8,6 @@ async function handleRequest(request: Request, env: Env) {
 	// read and write keys for retrieving the access token later on.
 	if (request.method === 'POST' && requestUrl.pathname.startsWith('/authorize/')) {
 		const readKey = generateRandomId(16);
-		// const writeKey = generateRandomId();
 		const challengeParams = await generateAirtableChallengeParams();
 		const writeKey = challengeParams.state;
 
@@ -18,14 +17,9 @@ async function handleRequest(request: Request, env: Env) {
 		authorizeParams.append('response_type', 'code');
 		authorizeParams.append('scope', 'data.records:read schema.bases:read');
 
-		// authorizeParams.append("code_verifier", challengeParams.code_verifier)
 		authorizeParams.append('state', challengeParams.state);
 		authorizeParams.append('code_challenge', challengeParams.code_challenge);
 		authorizeParams.append('code_challenge_method', 'S256');
-
-		// The write key is stored in the `state` param since this will be
-		// persisted through the entire OAuth flow.
-		// authorizeParams.append("state", writeKey);
 
 		// Generate the login URL for the provider.
 		const authorizeUrl = new URL('https://airtable.com/oauth2/v1/authorize/');
@@ -54,9 +48,23 @@ async function handleRequest(request: Request, env: Env) {
 	if (request.method === 'GET' && requestUrl.pathname.startsWith('/redirect/')) {
 		const authorizationCode = requestUrl.searchParams.get('code');
 		const writeKey = requestUrl.searchParams.get('state');
+		const codeChallenge = requestUrl.searchParams.get('code_challenge');
+		const codeChallengeMethod = requestUrl.searchParams.get('code_challenge_method');
+
+		if (codeChallengeMethod !== 'S256') {
+			return new Response('Invalid code challenge method', {
+				status: 400,
+			});
+		}
 
 		if (!authorizationCode) {
 			return new Response('Missing authorization code URL param', {
+				status: 400,
+			});
+		}
+
+		if (!codeChallenge) {
+			return new Response('Missing code challenge URL param', {
 				status: 400,
 			});
 		}
@@ -72,19 +80,24 @@ async function handleRequest(request: Request, env: Env) {
 		tokenParams.append('client_id', env.CLIENT_ID);
 		tokenParams.append('client_secret', env.CLIENT_SECRET);
 		tokenParams.append('redirect_uri', env.REDIRECT_URI);
-		// tokenParams.append("grant_type", "authorization_code");
 		tokenParams.append('code', authorizationCode);
-
-		const tokenUrl = new URL('https://airtable.com/oauth2/v1/token');
-		tokenUrl.search = tokenParams.toString();
+		tokenParams.append('grant_type', 'authorization_code');
+		tokenParams.append('code_verifier', codeVerifier);
 
 		// This additional POST request retrieves the access token and expiry
 		// information used for further API requests to the provider.
-		const tokenResponse = await fetch(tokenUrl.toString(), {
+		const tokenResponse = await fetch('https://airtable.com/oauth2/v1/token', {
 			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				Authorization: `Basic ${Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64')}`,
+			},
+			body: tokenParams.toString(),
 		});
 
 		if (tokenResponse.status !== 200) {
+			console.log(tokenResponse.status, tokenResponse.statusText);
+
 			return new Response(tokenResponse.statusText, {
 				status: tokenResponse.status,
 			});
