@@ -1,10 +1,23 @@
-/* Your Plugin CSS */
+::-webkit-scrollbar {
+	display: none;
+}
 
-main {
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    padding: 0 15px 15px 15px;
-    height: 100%;
-    gap: 15px;
+[data-framer-theme="light"] main {
+	--framestack-color-bg-secondary: var(--framer-color-bg-secondary);
+	--framestack-color-bg-tertiary: var(--framer-color-bg-tertiary);
+
+	--framestack-color-text-middle: #888;
+	--framestack-color-segmented-control: #fff;
+	--framestack-color-divider-secondary: #e6e6e6;
+	--framestack-color-bg-modal: #fff;
+}
+
+[data-framer-theme="dark"] main {
+	--framestack-color-bg-secondary: var(--framer-color-bg-tertiary);
+	--framestack-color-bg-tertiary: var(--framer-color-bg-secondary);
+
+	--framestack-color-text-middle: #999;
+	--framestack-color-segmented-control: #555;
+	--framestack-color-divider-secondary: #444;
+	--framestack-color-bg-modal: #181818;
 }
