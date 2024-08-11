@@ -5,7 +5,7 @@ import { PluginContext, useSynchronizeDatabaseMutation } from "./airtable";
 
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { SelectDatabase } from "./SelectDatabase";
-import { MapDatabaseFields } from "./MapFields";
+// import { MapDatabaseFields } from "./MapFields";
 import { logSyncResult } from "./debug";
 import { Authentication } from "./Authenticate";
 
@@ -33,14 +33,14 @@ export function AuthenticatedApp({ context }: AppProps) {
 		return <SelectDatabase onDatabaseSelected={setDatabaseConfig} />;
 	}
 
-	return (
-		<MapDatabaseFields
-			database={databaseConfig}
-			pluginContext={context}
-			onSubmit={synchronizeMutation.mutate}
-			error={synchronizeMutation.error}
-			isLoading={synchronizeMutation.isPending}
-		/>
+	return (null
+		// <MapDatabaseFields
+		// 	database={databaseConfig}
+		// 	pluginContext={context}
+		// 	onSubmit={synchronizeMutation.mutate}
+		// 	error={synchronizeMutation.error}
+		// 	isLoading={synchronizeMutation.isPending}
+		// />
 	);
 }
 
