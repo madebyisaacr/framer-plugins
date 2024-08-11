@@ -1,23 +1,9 @@
-::-webkit-scrollbar {
-	display: none;
-}
+@import url("@shared/shared.css");
 
-[data-framer-theme="light"] main {
-	--framestack-color-bg-secondary: var(--framer-color-bg-secondary);
-	--framestack-color-bg-tertiary: var(--framer-color-bg-tertiary);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-	--framestack-color-text-middle: #888;
-	--framestack-color-segmented-control: #fff;
-	--framestack-color-divider-secondary: #e6e6e6;
-	--framestack-color-bg-modal: #fff;
-}
-
-[data-framer-theme="dark"] main {
-	--framestack-color-bg-secondary: var(--framer-color-bg-tertiary);
-	--framestack-color-bg-tertiary: var(--framer-color-bg-secondary);
-
+main {
 	--framestack-color-text-middle: #999;
-	--framestack-color-segmented-control: #555;
-	--framestack-color-divider-secondary: #444;
-	--framestack-color-bg-modal: #181818;
 }

@@ -6,6 +6,7 @@ import { ComponentIcons } from "./componentIcons";
 import { SearchBar, XIcon } from "@shared/components";
 import Button from "@shared/Button";
 import "./App.css";
+import classNames from "classnames";
 
 const TRANSITION = {
 	type: "spring",
@@ -28,6 +29,7 @@ const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
 const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB300", "#FF8822", "#FF4488"];
 
 export function App() {
+	console.log(motion.div)
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedComponent, setSelectedComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
@@ -87,55 +89,11 @@ export function App() {
 	};
 
 	return (
-		<main
-			style={{
-				position: "relative",
-				userSelect: "none",
-				width: "100%",
-				height: "100%",
-			}}
-		>
-			<div
-				style={{
-					position: "absolute",
-					top: 0,
-					left: 15,
-					right: 15,
-					height: 1,
-					backgroundColor: "var(--framer-color-divider)",
-				}}
-			></div>
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "row",
-					opacity: selectedComponent ? 0.5 : 1,
-					pointerEvents: selectedComponent ? "none" : "auto",
-					flex: 1,
-					overflow: "hidden",
-				}}
-			>
-				<div
-					style={{
-						position: "absolute",
-						top: 15,
-						left: 260,
-						bottom: 15,
-						width: 1,
-						backgroundColor: "var(--framer-color-divider)",
-					}}
-				></div>
-				<div
-					className="hide-scrollbar"
-					style={{
-						position: "relative",
-						display: "flex",
-						flexDirection: "column",
-						overflowY: "auto",
-						width: 260,
-						padding: 15,
-					}}
-				>
+		<main className="relative size-full select-none">
+			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
+			<div className={classNames("flex flex-row flex-1 overflow-hidden", selectedComponent && "opacity-50 pointer-events-none")}>
+				<div className="absolute inset-y-3 left-[260px] w-[1px] bg-divider"></div>
+				<div className="relative flex flex-col overflow-y-auto w-[260px] p-3">
 					<TagButton
 						text="Home"
 						color={FRAMESTACK_GRADIENT}
@@ -152,75 +110,31 @@ export function App() {
 							onClick={() => scrollToTagSection(index)}
 						/>
 					))}
-					{/* <SectionDivider>Plugins</SectionDivider>
-								<TagButton text="Image Studio" color="#575757" />
-								<TagButton text="IconStack" color="#282828" />
-								<TagButton text="FramerForms" color="#473DFE" />
-								<TagButton text="Superfields" color="#FFAC83" /> */}
 				</div>
 				{searchText.length ? (
-					<div
-						className="hide-scrollbar"
-						key="search-container"
-						style={{
-							position: "relative",
-							display: "flex",
-							flexDirection: "column",
-							overflowY: "auto",
-							gap: 30,
-							padding: 15,
-							flex: 1,
-						}}
-					>
+					<div key="search-container" className="relative flex flex-col overflow-y-auto gap-6 p-3 flex-1">
 						<TileGrid>
 							{components
 								.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
 								.map((component, _) => (
-									<ComponentTile component={component} onClick={() => setSelectedComponent(component)} />
+									<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
 								))}
 						</TileGrid>
 					</div>
 				) : (
-					<div
-						ref={containerRef}
-						key="main-container"
-						className="hide-scrollbar"
-						style={{
-							position: "relative",
-							display: "flex",
-							flexDirection: "column",
-							overflowY: "auto",
-							gap: 15,
-							padding: 15,
-							paddingTop: 0,
-							flex: 1,
-						}}
-					>
+					<div ref={containerRef} key="main-container" className="relative flex flex-col overflow-y-auto gap-3 px-3 pb-3 flex-1">
 						{tags.map((tag, index) => (
 							<div
 								key={tag}
 								id={`framestack-tag-${index}`}
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									gap: 15,
-									paddingTop: 15,
-									minHeight: index === tags.length - 1 && "100%",
-								}}
+								className={classNames("flex flex-col gap-3 pt-3", index === tags.length - 1 && "min-h-full")}
 							>
-								<span
-									style={{
-										width: "100%",
-										color: "var(--framer-color-text-tertiary)",
-									}}
-								>
-									{tag}
-								</span>
+								<span className="w-full text-tertiary">{tag}</span>
 								<TileGrid>
 									{components
 										.filter((component) => component.tag === tag)
 										.map((component, _) => (
-											<ComponentTile component={component} onClick={() => setSelectedComponent(component)} />
+											<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
 										))}
 								</TileGrid>
 							</div>
@@ -228,31 +142,14 @@ export function App() {
 					</div>
 				)}
 			</div>
-			<div
-				style={{
-					position: "absolute",
-					top: 0,
-					left: 0,
-					width: "100%",
-					height: "100%",
-					pointerEvents: selectedComponent ? "auto" : "none",
-					zIndex: 1,
-				}}
-			>
+			<div className={classNames("absolute inset-0 z-10", !selectedComponent && "pointer-events-none")}>
 				<motion.div
 					onClick={() => setSelectedComponent(null)}
 					animate={{
 						opacity: selectedComponent ? 0.5 : 0,
 					}}
 					initial={false}
-					style={{
-						position: "absolute",
-						top: 0,
-						left: 0,
-						width: "100%",
-						height: "100%",
-						backgroundColor: "var(--framer-color-bg)",
-					}}
+					className="absolute inset-0 bg-primary"
 				/>
 				{selectedComponent && <ComponentWindow component={selectedComponent} onClose={() => setSelectedComponent(null)} />}
 			</div>
@@ -267,65 +164,34 @@ function TagButton(props) {
 			animate={{
 				color: props.selected ? "var(--framer-color-text)" : "var(--framestack-color-text-middle)",
 			}}
-			style={{
-				position: "relative",
-				minHeight: 50,
-				maxHeight: 50,
-				cursor: "pointer",
-			}}
+			className="relative min-h-10 max-h-10 cursor-pointer"
 			initial={false}
 			transition={TRANSITION}
 		>
 			{props.selected && (
 				<motion.div
 					layoutId="tag-button-background"
-					style={{
-						position: "absolute",
-						inset: 0,
-						borderRadius: 15,
-						backgroundColor: "var(--framestack-color-bg-tertiary)",
-					}}
+					className="absolute inset-0 rounded-xl bg-tertiary"
 					initial={false}
 					transition={TRANSITION}
 				/>
 			)}
-			<div
-				style={{
-					position: "relative",
-					display: "flex",
-					flexDirection: "row",
-					alignItems: "center",
-					padding: "0px 10px",
-					gap: 10,
-					height: "100%",
-					zIndex: 1,
-				}}
-			>
+			<div className="relative flex flex-row items-center gap-2 px-2 h-full z-10">
 				<div
 					style={{
-						position: "relative",
-						borderRadius: 8,
-						width: 30,
-						height: 30,
 						background: props.color,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						color: "white",
 					}}
+					className="relative rounded size-6 flex items-center justify-center text-inverted"
 				>
 					<div
 						style={{
-							position: "absolute",
-							inset: 0,
-							borderRadius: 8,
 							boxShadow: `0 4px 8px 0 ${props.color.startsWith("#") ? props.color : `#${props.color.match(/#(.{6})/)?.[1]}`}`,
-							opacity: 0.2,
 						}}
+						className="absolute inset-0 rounded opacity-20"
 					/>
 					{icons[props.text]}
 				</div>
-				<span style={{ flex: 1, paddingTop: 1 }}>{props.text}</span>
+				<span className="flex-1 pt-[1px]">{props.text}</span>
 				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
 					<path
 						d="M 7 0 L 3.5 3.5 L 0 0"
@@ -345,25 +211,12 @@ function TagButton(props) {
 function SectionDivider({ children }) {
 	return (
 		<>
-			<div
-				style={{
-					position: "relative",
-					zIndex: 1,
-					minHeight: 1,
-					width: "100%",
-					backgroundColor: "var(--framer-color-divider)",
-					margin: "15px 0",
-				}}
-			/>
+			<div className="relative z-10 min-h-[1px] w-full bg-divider my-3" />
 			<span
 				style={{
-					position: "relative",
-					zIndex: 1,
 					color: "var(--framestack-color-text-middle)",
-					paddingLeft: 10,
-					paddingBottom: 10,
-					paddingTop: 5,
 				}}
+				className="relative z-10 pl-2 pb-2 pt-1"
 			>
 				{children}
 			</span>
@@ -372,19 +225,7 @@ function SectionDivider({ children }) {
 }
 
 function TileGrid({ children }) {
-	return (
-		<div
-			style={{
-				display: "grid",
-				gridTemplateColumns: "repeat(3, 1fr)",
-				gridTemplateRows: "min-content",
-				gridAutoFlow: "dense",
-				gap: 10,
-			}}
-		>
-			{children}
-		</div>
-	);
+	return <div className="grid grid-cols-3 grid-rows-[min-content] gap-2 grid-flow-dense">{children}</div>;
 }
 
 function ComponentTile({ component, onClick }) {
@@ -395,68 +236,27 @@ function ComponentTile({ component, onClick }) {
 	}
 
 	const element = (
-		<motion.div
+		<div
 			key={component.name}
 			onClick={onClick}
-			whileHover={{
-				backgroundColor: "var(--framestack-color-bg-secondary)",
-			}}
-			style={{
-				position: "relative",
-				display: "flex",
-				flexDirection: "column",
-				alignItems: "center",
-				justifyContent: "flex-end",
-				gridColumn: component.wide && "span 2",
-				width: "100%",
-				backgroundColor: "var(--framestack-color-bg-tertiary)",
-				height: 150,
-				borderRadius: 15,
-				cursor: "pointer",
-			}}
-		>
-			{icon && (
-				<img
-					src={icon}
-					alt={component.name}
-					style={{
-						width: "100%",
-						pointerEvents: "none",
-					}}
-				/>
+			className={classNames(
+				"relative flex flex-col items-center justify-center w-full h-[150px] rounded-xl cursor-pointer bg-tertiary hover:bg-secondary transition-colors",
+				component.wide && "col-span-2"
 			)}
-			<span
-				style={{
-					width: "100%",
-					textAlign: "center",
-					paddingLeft: 8,
-					paddingRight: 8,
-					paddingBottom: 15,
-					fontSize: 11,
-					color: "var(--framer-color-text-secondary)",
-				}}
-			>
-				{component.name}
-			</span>
+		>
+			{icon && <img src={icon} alt={component.name} className="w-full pointer-events-none" />}
+			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-secondary">{component.name}</span>
 			{component.free && (
 				<div
 					style={{
-						position: "absolute",
-						top: 10,
-						right: 10,
 						backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
-						borderRadius: 5,
-						padding: "3px 4px",
-						fontWeight: 700,
-						fontSize: 10,
-						lineHeight: 1.1,
-						color: "var(--framer-color-text-reversed)",
 					}}
+					className="absolute top-2 right-2 rounded-sm p-[3px_4px] font-bold text-[10px] text-inverted"
 				>
 					FREE
 				</div>
 			)}
-		</motion.div>
+		</div>
 	);
 
 	return component.type == "component" ? (
@@ -506,66 +306,15 @@ function ComponentWindow({ component, onClose }) {
 	return (
 		<div
 			style={{
-				position: "absolute",
-				top: "50%",
-				left: "50%",
-				transform: "translate(-50%, -50%)",
-				width: 350,
-				minHeight: 420,
-				maxHeight: 480,
-				backgroundColor: "var(--framestack-color-bg-modal)",
-				borderRadius: 16,
 				boxShadow: "0 10px 30px 0 rgba(0,0,0,0.15)",
-				display: "flex",
-				flexDirection: "column",
 			}}
+			className="absolute top-[50%] left-[50%] translate-[-50%,-50%] w-[350px] min-h-[420px] max-h-[480px] bg-modal rounded-xl shadow-2xl flex flex-col"
 		>
 			<WindowTopBar title={component.name} hideDivider onClose={onClose} />
-			<div
-				style={{
-					position: "relative",
-					display: "flex",
-					flexDirection: "column",
-					width: "100%",
-					flex: 1,
-					overflow: "hidden",
-				}}
-			>
-				<div
-					className="hide-scrollbar"
-					style={{
-						position: "relative",
-						display: "flex",
-						flexDirection: "column",
-						padding: 15,
-						paddingTop: 0,
-						gap: 15,
-						width: "100%",
-						height: "100%",
-						overflowY: "auto",
-					}}
-				>
-					<div
-						style={{
-							display: "flex",
-							flexDirection: "column",
-							flex: 1,
-							width: "100%",
-							gap: 15,
-						}}
-					>
-						<div
-							style={{
-								position: "relative",
-								width: "100%",
-								aspectRatio: "120 / 63",
-								backgroundColor: "var(--framestack-color-bg-tertiary)",
-								borderRadius: 10,
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-							}}
-						>
+			<div className="relative flex flex-col w-full flex-1 overflow-hidden">
+				<div className="relative flex flex-col px-3 pb-3 gap-3 size-full overflow-y-auto">
+					<div className="flex flex-col glex-1 w-full gap-3">
+						<div className="relative w-full bg-tertiary rounded-lg flex items-center justify-center aspect-[120/63]">
 							<img
 								src={getComponentIcon(component)}
 								alt={component.name}
@@ -574,80 +323,38 @@ function ComponentWindow({ component, onClose }) {
 								}}
 							/>
 						</div>
-						<div
-							style={{
-								width: "100%",
-								display: "flex",
-								flexDirection: "row",
-								gap: 10,
-								flex: 1,
-							}}
-						>
-							<p
-								style={{
-									fontWeight: 500,
-									lineHeight: 1.5,
-									color: "var(--framer-color-text-secondary)",
-									flex: 1,
-								}}
-							>
-								{component.description}
-							</p>
+						<div className="w-full flex flex-row gap-2 flex-1">
+							<p className="font-semibold text-secondary flex-1">{component.description}</p>
 							<div
 								style={{
-									background: component.free ? "var(--framestack-color-bg-secondary)" : FRAMESTACK_GRADIENT,
-									borderRadius: 6,
-									padding: "4px 6px",
-									fontWeight: 700,
-									fontSize: 10,
-									lineHeight: 1.1,
-									height: "fit-content",
-									color: component.free ? "var(--framer-color-text-secondary)" : "var(--framer-color-text-reversed)",
+									background: component.free ? undefined : FRAMESTACK_GRADIENT,
 								}}
+								className={classNames(
+									"rounded-[6px] padding-[4px_6px] font-bold text-[10px] h-fit text-tertiary",
+									component.free ? "text-secondary bg-secondary" : "text-inverted"
+								)}
 							>
 								{component.free ? "FREE" : "PRO"}
 							</div>
 						</div>
 					</div>
 				</div>
-				<div
-					style={{
-						position: "absolute",
-						top: -10,
-						bottom: -10,
-						left: 5,
-						right: 5,
-						borderRadius: 20,
-						border: "10px solid var(--framestack-color-bg-modal)",
-						pointerEvents: "none",
-					}}
-				/>
+				<div className="absolute -inset-y-2 inset-x-1 rounded-[20px] border-[10px] border-modal pointer-events-none" />
 			</div>
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "row",
-					gap: 10,
-					padding: 15,
-				}}
-			>
+			<div className="flex flex-row gap-2 p-3">
 				{(component.type == "component" || component.type == "componentAndOverride") && (
-					<Button primary color={color} style={{ flex: 1 }} onClick={onInsertComponentClick}>
+					<Button primary color={color} onClick={onInsertComponentClick}>
 						Insert Component
 					</Button>
 				)}
 				{component.type == "override" && (
-					<Button primary color={color} style={{ flex: 1 }} onClick={onCopyOverrideClick}>
+					<Button primary color={color} onClick={onCopyOverrideClick}>
 						Copy Code Override
 					</Button>
 				)}
-				{component.type == "componentAndOverride" && (
-					<Button style={{ flex: 1 }} onClick={onCopyOverrideClick}>
-						Copy Code Override
-					</Button>
-				)}
+				{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
 				{component.type == "codeSnippet" && (
-					<Button primary color={color} style={{ flex: 1 }} onClick={onCodeSnippetClick}>
+					<Button primary color={color} onClick={onCodeSnippetClick}>
 						Add Code Snippet to Site Settings
 					</Button>
 				)}
@@ -698,37 +405,14 @@ function hexToColorMatrixWithOpacity(hex) {
 export function WindowTopBar({ title, children = null, hideDivider = false, onClose = null }) {
 	return (
 		<div
-			style={{
-				minHeight: 50,
-				maxHeight: 50,
-				display: "flex",
-				flexDirection: "row",
-				alignItems: "center",
-				justifyContent: "space-between",
-				padding: "0 15px",
-				borderBottom: !hideDivider && "1px solid var(--framer-color-divider)",
-			}}
+			className={classNames(
+				"min-h-10 max-h-10 flex flex-row items-center justify-between px-3",
+				!hideDivider && "border-b border-divider"
+			)}
 		>
-			<span
-				style={{
-					color: "var(--framer-color-text)",
-					zIndex: 2,
-					flex: 1,
-				}}
-			>
-				{title}
-			</span>
+			<span className="text-primary z-20 flex-1">{title}</span>
 			{children}
-			<div
-				style={{
-					display: "flex",
-					flexDirection: "row",
-					alignItems: "center",
-					justifyContent: "flex-end",
-					flex: children ? 1 : undefined,
-					zIndex: 2,
-				}}
-			>
+			<div className={classNames("flex flex-row items-center justify-end z-20", !children && "flex-1")}>
 				<XIcon onClick={onClose} />
 			</div>
 		</div>
