@@ -1,5 +1,5 @@
 import { framer } from "framer-plugin";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { PluginContext, useSynchronizeDatabaseMutation } from "./airtable";
 

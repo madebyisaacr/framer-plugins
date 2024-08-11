@@ -21,29 +21,35 @@ export function SelectDatabase({ onDatabaseSelected }) {
 
 	framer.showUI({ width: 750, height: 550 });
 
-	useEffect(() => {
-		airtableFetch("meta/bases").then((data) => {
-			setBases(data.bases);
+	async function fetchBases() {
+		if (!isLoading) {
+			setIsRefetching(true);
+		}
+
+		const data = await airtableFetch("meta/bases");
+
+		setBases(data.bases);
+
+		if (isLoading) {
 			setIsLoading(false);
-
-			if (!data.bases) return;
-
-			for (const base of data.bases) {
-				airtableFetch(`meta/bases/${base.id}/tables`).then((baseSchema) => {
-					setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
-				});
-			}
-		});
-	}, []);
-
-	function refetch() {
-		setIsRefetching(true);
-
-		airtableFetch("meta/bases").then((data) => {
-			setBases(data.bases);
+		} else {
 			setIsRefetching(false);
-		});
+		}
+
+		if (!data.bases) return;
+
+		for (const base of data.bases) {
+			const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
+			if (baseSchema?.tables) {
+				setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
+			}
+		}
 	}
+
+	// TODO: Implement global cache for bases and tables to prevent refetching twice on first load
+	useEffect(() => {
+		fetchBases();
+	}, []);
 
 	const onTableClick = (base, table) => {
 		if (selectedTable == table.id) {
@@ -79,13 +85,13 @@ export function SelectDatabase({ onDatabaseSelected }) {
 				</p>
 			</div>
 			<div className="w-[1px] bg-divider" />
-			<div className="flex flex-col gap-2 flex-1 justify-between">
+			<div className="flex flex-col gap-1 flex-1 justify-between">
 				<div className="flex items-center justify-between">
-					<span>Select an Airtable base to sync</span>
+					<span>Select a table from an Airtable base to sync</span>
 					<button
 						className="w-[32px] bg-transparent flex items-center justify-center text-secondary"
 						type="button"
-						onClick={() => refetch()}
+						onClick={fetchBases}
 					>
 						<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
 					</button>
@@ -96,29 +102,30 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						Loading bases...
 					</div>
 				) : (
-					<div className="flex-1 flex flex-col gap-1 divide divide-divider">
+					<div className="flex-1 flex flex-col gap-2 divide-y divide-divider">
 						{bases?.map((base) => (
-							<div key={base.id} className="flex flex-col pb-1">
+							<div key={base.id} className="flex flex-col pt-1">
 								<div
 									className={classNames(
-										"p-2 flex flex-row items-center h-7 transition-colors",
+										"flex flex-row items-center h-7 font-semibold transition-colors",
 										selectedBase == base.id ? "text-primary" : "text-secondary"
 									)}
 								>
 									{base.name}
 								</div>
 								{baseTables[base.id]?.map((table) => (
-									<span
+									<label
+										htmlFor={table.id}
 										key={table.id}
 										onClick={() => onTableClick(base, table)}
 										className={classNames(
-											"flex flex-row gap-1.5 items-center pointer-cursor px-2 py-1.5 rounded transition-colors",
+											"flex flex-row gap-1.5 items-center cursor-pointer px-2 py-1.5 rounded transition-colors",
 											selectedTable == table.id && "bg-secondary"
 										)}
 									>
-										<input type="checkbox" name={table.id} checked={selectedTable === table.id} />
+										<input type="checkbox" name={table.id} checked={selectedTable === table.id} readOnly />
 										{table.name}
-									</span>
+									</label>
 								))}
 							</div>
 						))}
