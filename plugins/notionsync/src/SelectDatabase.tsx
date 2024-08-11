@@ -34,7 +34,8 @@ export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
 	};
 
 	return (
-		<div className="flex flex-row gap-3 size-full px-3 pb-3">
+		<div className="flex flex-row gap-3 size-full p-3">
+			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
 			<div className="flex flex-col gap-3 w-[280px]">
 				<img src={notionConnectSrc} className="rounded" />
 				<p>
