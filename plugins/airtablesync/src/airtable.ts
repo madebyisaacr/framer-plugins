@@ -1,14 +1,4 @@
-// import {
-// 	APIErrorCode,
-// 	Client,
-// 	collectPaginatedAPI,
-// 	isFullBlock,
-// 	isFullDatabase,
-// 	isFullPage,
-// 	isNotionClientError,
-// } from "@notionhq/client";
 import pLimit from "p-limit";
-// import { GetDatabaseResponse, PageObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
 import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -28,6 +18,7 @@ export const getOauthURL = (writeKey: string) =>
 // Storage for the Airtable API key.
 const airtableAccessTokenKey = "airtableAccessToken";
 const airtableRefreshTokenKey = "airtableRefreshToken";
+const airtableTokenExpiresAtKey = "airtableTokenExpiresAt";
 
 const pluginBaseIdKey = "airtablePluginBaseId";
 const pluginLastSyncedKey = "airtablePluginLastSynced";
@@ -59,6 +50,7 @@ export function initAirtableClient() {
 	if (!token) throw new Error("Airtable API token is missing");
 }
 
+// DONE
 export async function airtableFetch(url: string) {
 	const response = await fetch(`https://api.airtable.com/v0/${url}`, {
 		method: "GET",
@@ -73,32 +65,34 @@ export async function airtableFetch(url: string) {
 
 // The order in which we display slug fields
 // DONE
-const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText"];
+const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
 
 /**
  * Given an Airtable base returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
-// export function getPossibleSlugFields(database: GetDatabaseResponse) {
-// 	const options: NotionProperty[] = [];
+// DONE
+export function getPossibleSlugFields(table: object) {
+	if (!table?.fields) {
+		return [];
+	}
 
-// 	for (const key in database.properties) {
-// 		const property = database.properties[key];
-// 		assert(property);
+	const options: object[] = [];
 
-// 		if (slugFieldTypes.includes(property.type)) {
-// 			options.push(property);
-// 		}
-// 	}
-// 	function getOrderIndex(type: NotionProperty["type"]): number {
-// 		const index = slugFieldTypes.indexOf(type);
-// 		return index === -1 ? slugFieldTypes.length : index;
-// 	}
+	for (const airtableField of table.fields) {
+		if (slugFieldTypes.includes(airtableField.type)) {
+			options.push(airtableField);
+		}
+	}
+	function getOrderIndex(type: string): number {
+		const index = slugFieldTypes.indexOf(type);
+		return index === -1 ? slugFieldTypes.length : index;
+	}
 
-// 	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
+	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
 
-// 	return options;
-// }
+	return options;
+}
 
 // Authorize the plugin with Airtable.
 // DONE
@@ -127,9 +121,12 @@ export async function authorize() {
 			if (resp.status === 200 && tokenInfo) {
 				const { access_token, refresh_token } = tokenInfo;
 
+				console.log("tokenInfo", tokenInfo);
+
 				clearInterval(interval);
 				localStorage.setItem(airtableAccessTokenKey, access_token);
 				localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+				localStorage.setItem(airtableTokenExpiresAtKey, new Date().toISOString() + tokenInfo.expires_in);
 				initAirtableClient();
 				resolve();
 			}
@@ -138,122 +135,100 @@ export async function authorize() {
 }
 
 /**
- * Given a Notion Database Properties object returns a CollectionField object
- * That maps the Notion Property to the Framer CMS collection property type
+ * Given an Airtable Base field object returns a CollectionField object
+ * That maps the Airtable field to the Framer CMS collection property type
  */
-// export function getCollectionFieldForProperty(property: NotionProperty, name: string, type: string): CollectionField | null {
-// 	if (type == "enum") {
-// 		let cases: any[] = [];
+// DONE
+export function getCollectionFieldForAirtableField(airtableField: object, name: string, type: string): CollectionField | null {
+	return {
+		type: type,
+		id: airtableField.id,
+		name,
+	};
+}
 
-// 		if (property.type == "select") {
-// 			cases = property.select.options.map((option) => ({
-// 				id: option.id,
-// 				name: option.name,
-// 			}));
-// 		} else if (property.type == "status") {
-// 			cases = property.status.options.map((option) => ({
-// 				id: option.id,
-// 				name: option.name,
-// 			}));
-// 		}
+export function richTextToPlainText(richText: RichTextItemResponse[]) {
+	return richText.map((value) => value.plain_text).join("");
+}
 
-// 		return {
-// 			type: "enum",
-// 			id: property.id,
-// 			name,
-// 			cases,
-// 		};
-// 	}
+export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {
+	if (airtableField === null || airtableField === undefined) {
+		return null;
+	}
 
-// 	return {
-// 		type: type,
-// 		id: property.id,
-// 		name,
-// 	};
-// }
+	const value = airtableField;
 
-// export function richTextToPlainText(richText: RichTextItemResponse[]) {
-// 	return richText.map((value) => value.plain_text).join("");
-// }
+	switch (airtableField.type) {
+		case "createdTime":
+		case "currency":
+		case "date":
+		case "dateTime":
+		case "duration":
+		case "email":
+		case "autoNumber":
+		case "count":
+		case "checkbox":
+		case "lastModifiedTime":
+		case "number":
+		case "percent":
+		case "phoneNumber":
+		case "rating":
+		case "richText":
+		case "rollup":
+		case "singleLineText":
+		case "multilineText":
+		case "url":
+			return value;
+		case "aiText":
+			return value.value;
+		case "multipleAttachments":
+		case "multipleRecordLinks":
+			return null;
+		case "barcode":
+			return value.text;
+		case "button":
+			return value.url;
+		case "singleCollaborator":
+		case "createdBy":
+		case "lastModifiedBy":
+			return value.name || null;
+		case "formula":
+			return Array.isArray(value) ? value.join(", ") : value;
+		case "multipleLookupValues":
+			return value.map((item) => String(item)).join(", ");
+		case "multipleCollaborators":
+		case "multipleSelects":
+			return value.map((item) => item.name).join(", ");
+		case "singleSelect":
+		case "externalSyncSource":
+			return value.name;
+	}
 
-// export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {
-// 	if (airtableField === null || airtableField === undefined) {
-// 		return null;
-// 	}
+	return null;
+}
 
-// 	const value = airtableField;
+export interface SynchronizeMutationOptions {
+	fields: CollectionField[];
+	ignoredFieldIds: string[];
+	lastSyncedTime: string | null;
+	slugFieldId: string;
+}
 
-// 	switch (airtableField.type) {
-// 		case "createdTime":
-// 		case "currency":
-// 		case "date":
-// 		case "dateTime":
-// 		case "duration":
-// 		case "email":
-// 		case "autoNumber":
-// 		case "count":
-// 		case "checkbox":
-// 		case "lastModifiedTime":
-// 		case "number":
-// 		case "percent":
-// 		case "phoneNumber":
-// 		case "rating":
-// 		case "richText":
-// 		case "rollup":
-// 		case "singleLineText":
-// 		case "multilineText":
-// 		case "url":
-// 			return value;
-// 		case "aiText":
-// 			return value.value;
-// 		case "multipleAttachments":
-// 		case "multipleRecordLinks":
-// 			return null;
-// 		case "barcode":
-// 			return value.text;
-// 		case "button":
-// 			return value.url;
-// 		case "singleCollaborator":
-// 		case "createdBy":
-// 		case "lastModifiedBy":
-// 			return value.name || null;
-// 		case "formula":
-// 			return Array.isArray(value) ? value.join(", ") : value;
-// 		case "multipleLookupValues":
-// 			return value.map((item) => String(item)).join(", ");
-// 		case "multipleCollaborators":
-// 		case "multipleSelects":
-// 			return value.map((item) => item.name).join(", ");
-// 		case "singleSelect":
-// 		case "externalSyncSource":
-// 			return value.name;
-// 	}
+export interface ItemResult {
+	url: string;
+	fieldId?: string;
+	message: string;
+}
 
-// 	return null;
-// }
+interface SyncStatus {
+	errors: ItemResult[];
+	warnings: ItemResult[];
+	info: ItemResult[];
+}
 
-// export interface SynchronizeMutationOptions {
-// 	fields: CollectionField[];
-// 	ignoredFieldIds: string[];
-// 	lastSyncedTime: string | null;
-// 	slugFieldId: string;
-// }
-
-// export interface ItemResult {
-// 	url: string;
-// 	fieldId?: string;
-// 	message: string;
-// }
-
-// interface SyncStatus {
-// 	errors: ItemResult[];
-// 	warnings: ItemResult[];
-// 	info: ItemResult[];
-// }
-
-// export interface SynchronizeResult extends SyncStatus {
-// 	status: "success" | "completed_with_errors";
-// }
+export interface SynchronizeResult extends SyncStatus {
+	status: "success" | "completed_with_errors";
+}
 
 // async function getPageBlocksAsRichText(pageId: string) {
 // 	assert(notion, "Notion client is not initialized");
@@ -509,31 +484,31 @@ export function useDatabasesQuery() {
 	});
 }
 
-// export interface PluginContextNew {
-// 	type: "new";
-// 	collection: Collection;
-// 	isAuthenticated: boolean;
-// }
+export interface PluginContextNew {
+	type: "new";
+	collection: Collection;
+	isAuthenticated: boolean;
+}
 
-// export interface PluginContextUpdate {
-// 	type: "update";
-// 	database: GetDatabaseResponse;
-// 	collection: Collection;
-// 	collectionFields: CollectionField[];
-// 	lastSyncedTime: string;
-// 	hasChangedFields: boolean;
-// 	ignoredFieldIds: FieldId[];
-// 	slugFieldId: string | null;
-// 	isAuthenticated: boolean;
-// }
+export interface PluginContextUpdate {
+	type: "update";
+	database: object;
+	collection: Collection;
+	collectionFields: CollectionField[];
+	lastSyncedTime: string;
+	hasChangedFields: boolean;
+	ignoredFieldIds: FieldId[];
+	slugFieldId: string | null;
+	isAuthenticated: boolean;
+}
 
-// export interface PluginContextError {
-// 	type: "error";
-// 	message: string;
-// 	isAuthenticated: false;
-// }
+export interface PluginContextError {
+	type: "error";
+	message: string;
+	isAuthenticated: false;
+}
 
-// export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
+export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
 
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	if (!rawIgnoredFields) {
@@ -547,30 +522,21 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	return parsed;
 }
 
-// function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFieldIds: FieldId[]) {
-// 	const fields: CollectionField[] = [];
+function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
+	const airtableFields: object[] = [];
 
-// 	if (!ignoredFieldIds.includes(pageContentField.id)) {
-// 		fields.push(pageContentField);
-// 	}
+	for (const airtableField of table.airtableFields) {
+		// These fields were ignored by the user
+		if (ignoredFieldIds.includes(airtableField.id)) continue;
 
-// 	for (const key in database.properties) {
-// 		const property = database.properties[key];
-// 		assert(property);
+		const field = getCollectionFieldForAirtableField(airtableField);
+		if (field) {
+			airtableFields.push(field);
+		}
+	}
 
-// 		// These fields were ignored by the user
-// 		if (ignoredFieldIds.includes(property.id)) continue;
-
-// 		if (property.type === "title") continue;
-
-// 		const field = getCollectionFieldForProperty(property);
-// 		if (field) {
-// 			fields.push(field);
-// 		}
-// 	}
-
-// 	return fields;
-// }
+	return airtableFields;
+}
 
 export async function getPluginContext(): Promise<PluginContext> {
 	const collection = await framer.getCollection();
@@ -626,30 +592,30 @@ export async function getPluginContext(): Promise<PluginContext> {
 	}
 }
 
-// export function hasFieldConfigurationChanged(
-// 	currentConfig: CollectionField[],
-// 	database: GetDatabaseResponse,
-// 	ignoredFieldIds: string[]
-// ): boolean {
-// 	const currentFieldsById = new Map<string, CollectionField>();
-// 	for (const field of currentConfig) {
-// 		currentFieldsById.set(field.id, field);
-// 	}
+export function hasFieldConfigurationChanged(
+	currentConfig: CollectionField[],
+	table: object,
+	ignoredFieldIds: string[]
+): boolean {
+	const currentFieldsById = new Map<string, CollectionField>();
+	for (const field of currentConfig) {
+		currentFieldsById.set(field.id, field);
+	}
 
-// 	const suggestedFields = getSuggestedFieldsForDatabase(database, ignoredFieldIds);
-// 	if (suggestedFields.length !== currentConfig.length) return true;
+	const suggestedFields = getSuggestedFieldsForTable(table, ignoredFieldIds);
+	if (suggestedFields.length !== currentConfig.length) return true;
 
-// 	const includedFields = suggestedFields.filter((field) => currentFieldsById.has(field.id));
+	const includedFields = suggestedFields.filter((field) => currentFieldsById.has(field.id));
 
-// 	for (const field of includedFields) {
-// 		const currentField = currentFieldsById.get(field.id);
+	for (const field of includedFields) {
+		const currentField = currentFieldsById.get(field.id);
 
-// 		if (!currentField) return true;
-// 		if (currentField.type !== field.type) return true;
-// 	}
+		if (!currentField) return true;
+		if (currentField.type !== field.type) return true;
+	}
 
-// 	return false;
-// }
+	return false;
+}
 
 // // DONE
 // export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {

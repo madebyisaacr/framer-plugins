@@ -1,4 +1,3 @@
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 // import { richTextToPlainText, useDatabasesQuery } from "./airtable";
 import { airtableFetch } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
@@ -13,6 +12,8 @@ import { Spinner } from "@shared/spinner/Spinner";
 export function SelectDatabase({ onDatabaseSelected }) {
 	// const { data, refetch, isRefetching, isLoading } = {} //useDatabasesQuery();
 	const [selectedBase, setSelectedBase] = useState<string | null>(null);
+	const [selectedTable, setSelectedTable] = useState<string | null>(null);
+	const [baseTables, setBaseTables] = useState({});
 
 	const [isLoading, setIsLoading] = useState(true);
 	const [bases, setBases] = useState([]);
@@ -24,6 +25,14 @@ export function SelectDatabase({ onDatabaseSelected }) {
 		airtableFetch("meta/bases").then((data) => {
 			setBases(data.bases);
 			setIsLoading(false);
+
+			if (!data.bases) return;
+
+			for (const base of data.bases) {
+				airtableFetch(`meta/bases/${base.id}/tables`).then((baseSchema) => {
+					setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
+				});
+			}
 		});
 	}, []);
 
@@ -35,6 +44,16 @@ export function SelectDatabase({ onDatabaseSelected }) {
 			setIsRefetching(false);
 		});
 	}
+
+	const onTableClick = (base, table) => {
+		if (selectedTable == table.id) {
+			setSelectedBase(null);
+			setSelectedTable(null);
+		} else {
+			setSelectedBase(base.id);
+			setSelectedTable(table.id);
+		}
+	};
 
 	const handleSubmit = (event: FormEvent) => {
 		event.preventDefault();
@@ -77,14 +96,31 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						Loading bases...
 					</div>
 				) : (
-					<div className="flex-1 flex flex-col">
-						{bases?.map((database) => (
-							<DatabaseButton
-								key={database.id}
-								databaseName={database.name}
-								selected={selectedBase === database.id}
-								onClick={() => setSelectedBase(selectedBase === database.id ? null : database.id)}
-							/>
+					<div className="flex-1 flex flex-col gap-1 divide divide-divider">
+						{bases?.map((base) => (
+							<div key={base.id} className="flex flex-col pb-1">
+								<div
+									className={classNames(
+										"p-2 flex flex-row items-center h-7 transition-colors",
+										selectedBase == base.id ? "text-primary" : "text-secondary"
+									)}
+								>
+									{base.name}
+								</div>
+								{baseTables[base.id]?.map((table) => (
+									<span
+										key={table.id}
+										onClick={() => onTableClick(base, table)}
+										className={classNames(
+											"flex flex-row gap-1.5 items-center pointer-cursor px-2 py-1.5 rounded transition-colors",
+											selectedTable == table.id && "bg-secondary"
+										)}
+									>
+										<input type="checkbox" name={table.id} checked={selectedTable === table.id} />
+										{table.name}
+									</span>
+								))}
+							</div>
 						))}
 					</div>
 				)}
@@ -93,17 +129,5 @@ export function SelectDatabase({ onDatabaseSelected }) {
 				</Button>
 			</div>
 		</div>
-	);
-}
-
-function DatabaseButton({ databaseName, selected, onClick }) {
-	return (
-		<label
-			htmlFor={databaseName}
-			className={classNames("p-2 cursor-pointer flex flex-row gap-2 items-center", selected && "bg-secondary rounded")}
-		>
-			<input type="checkbox" name="database" id={databaseName} checked={selected} onChange={onClick} />
-			{databaseName}
-		</label>
 	);
 }

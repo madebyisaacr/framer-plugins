@@ -3,9 +3,8 @@ import { useState } from "react";
 import "./App.css";
 import { PluginContext, useSynchronizeDatabaseMutation } from "./airtable";
 
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { SelectDatabase } from "./SelectDatabase";
-// import { MapDatabaseFields } from "./MapFields";
+import { MapDatabaseFields } from "./MapFields";
 import { logSyncResult } from "./debug";
 import { Authentication } from "./Authenticate";
 
@@ -14,9 +13,7 @@ interface AppProps {
 }
 
 export function AuthenticatedApp({ context }: AppProps) {
-	const [databaseConfig, setDatabaseConfig] = useState<GetDatabaseResponse | null>(
-		context.type === "update" ? context.database : null
-	);
+	const [databaseConfig, setDatabaseConfig] = useState(context.type === "update" ? context.database : null);
 
 	const synchronizeMutation = useSynchronizeDatabaseMutation(databaseConfig, {
 		onSuccess(result) {
@@ -33,14 +30,14 @@ export function AuthenticatedApp({ context }: AppProps) {
 		return <SelectDatabase onDatabaseSelected={setDatabaseConfig} />;
 	}
 
-	return (null
-		// <MapDatabaseFields
-		// 	database={databaseConfig}
-		// 	pluginContext={context}
-		// 	onSubmit={synchronizeMutation.mutate}
-		// 	error={synchronizeMutation.error}
-		// 	isLoading={synchronizeMutation.isPending}
-		// />
+	return (
+		<MapDatabaseFields
+			database={databaseConfig}
+			pluginContext={context}
+			onSubmit={synchronizeMutation.mutate}
+			error={synchronizeMutation.error}
+			isLoading={synchronizeMutation.isPending}
+		/>
 	);
 }
 

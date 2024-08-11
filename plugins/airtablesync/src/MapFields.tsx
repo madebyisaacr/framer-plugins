@@ -1,10 +1,9 @@
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { framer } from "framer-plugin";
 import { assert } from "./utils";
 import {
 	PluginContext,
 	SynchronizeMutationOptions,
-	getCollectionFieldForProperty,
+	getCollectionFieldForAirtableField,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	richTextToPlainText,
@@ -13,7 +12,6 @@ import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
 import { IconChevron } from "./components/Icons";
 import Button from "@shared/Button";
-import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 
