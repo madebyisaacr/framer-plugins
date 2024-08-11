@@ -13,6 +13,8 @@ import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
+import Airtable from "airtable";
+import type { Base, FieldSet } from "airtable";
 
 export type FieldId = string;
 
@@ -27,14 +29,15 @@ export const getOauthURL = (writeKey: string) =>
 const airtableAccessTokenKey = "airtableAccessToken";
 const airtableRefreshTokenKey = "airtableRefreshToken";
 
-const pluginDatabaseIdKey = "notionPluginDatabaseId";
-const pluginLastSyncedKey = "notionPluginLastSynced";
-const ignoredFieldIdsKey = "notionPluginIgnoredFieldIds";
-const pluginSlugIdKey = "notionPluginSlugId";
-const databaseNameKey = "notionDatabaseName";
+const pluginBaseIdKey = "airtablePluginBaseId";
+const pluginLastSyncedKey = "airtablePluginLastSynced";
+const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
+const pluginSlugIdKey = "airtablePluginSlugId";
+const baseNameKey = "airtableBaseName";
 
-// Maximum number of concurrent requests to Notion API
+// Maximum number of concurrent requests to Airtable API
 // This is to prevent rate limiting.
+// TODO: Is this necessary with Airtable instead of Notion?
 const concurrencyLimit = 5;
 
 // Naive implementation to be authenticated, a token could be expired.
@@ -44,20 +47,26 @@ export function isAuthenticated() {
 	return localStorage.getItem(airtableAccessTokenKey) !== null;
 }
 
+let airtable: Airtable | null = null;
+
 if (isAuthenticated()) {
 	initAirtableClient();
 }
 
+// DONE
 export function initAirtableClient() {
 	const token = localStorage.getItem(airtableAccessTokenKey);
 	if (!token) throw new Error("Airtable API token is missing");
+
+	airtable = new Airtable({ apiKey: token });
 }
 
 // The order in which we display slug fields
+// DONE
 const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText"];
 
 /**
- * Given a Notion Database returns a list of possible fields that can be used as
+ * Given an Airtable base returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
 export function getPossibleSlugFields(database: GetDatabaseResponse) {
@@ -81,7 +90,8 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 	return options;
 }
 
-// Authorize the plugin with Notion.
+// Authorize the plugin with Airtable.
+// DONE
 export async function authorize() {
 	const response = await fetch(`${apiBaseUrl}/authorize/`, {
 		method: "POST",
@@ -110,7 +120,7 @@ export async function authorize() {
 				clearInterval(interval);
 				localStorage.setItem(airtableAccessTokenKey, access_token);
 				localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-				// initNotionClient();
+				initAirtableClient();
 				resolve();
 			}
 		}, 2500);
@@ -425,10 +435,10 @@ export async function synchronizeDatabase(
 
 		await Promise.all([
 			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginDatabaseIdKey, database.id),
+			collection.setPluginData(pluginBaseIdKey, database.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(databaseNameKey, richTextToPlainText(database.title)),
+			collection.setPluginData(baseNameKey, richTextToPlainText(database.title)),
 		]);
 
 		return {
@@ -551,7 +561,7 @@ function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFie
 export async function getPluginContext(): Promise<PluginContext> {
 	const collection = await framer.getCollection();
 	const collectionFields = await collection.getFields();
-	const databaseId = await collection.getPluginData(pluginDatabaseIdKey);
+	const databaseId = await collection.getPluginData(pluginBaseIdKey);
 	const hasAuthToken = isAuthenticated();
 
 	if (!databaseId || !hasAuthToken) {
@@ -589,7 +599,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		};
 	} catch (error) {
 		if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
-			const databaseName = (await collection.getPluginData(databaseNameKey)) ?? "Unkown";
+			const databaseName = (await collection.getPluginData(baseNameKey)) ?? "Unkown";
 
 			return {
 				type: "error",
@@ -627,6 +637,7 @@ export function hasFieldConfigurationChanged(
 	return false;
 }
 
+// DONE
 export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {
 	if (!lastSyncedTime) return false;
 
