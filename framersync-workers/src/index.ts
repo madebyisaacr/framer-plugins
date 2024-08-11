@@ -25,7 +25,7 @@ async function handleRequest(request: Request, env: Env) {
 		const authorizeUrl = new URL('https://airtable.com/oauth2/v1/authorize/');
 		authorizeUrl.search = authorizeParams.toString();
 
-		await env.keyValueStore.put(`readKey:${writeKey}`, readKey, {
+		await env.keyValueStore.put(`readKey:${writeKey}`, JSON.stringify({ readKey, challengeVerifier: challengeParams.code_verifier }), {
 			expirationTtl: 60,
 		});
 
@@ -75,6 +75,16 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
+		const storedValue = await env.keyValueStore.get(`readKey:${writeKey}`);
+
+		if (!storedValue) {
+			return new Response('No read key found in storage', {
+				status: 400,
+			});
+		}
+
+		const { readKey, challengeVerifier } = JSON.parse(storedValue);
+
 		// Generate a new URL with the access code and client secret.
 		const tokenParams = new URLSearchParams();
 		tokenParams.append('client_id', env.CLIENT_ID);
@@ -82,7 +92,7 @@ async function handleRequest(request: Request, env: Env) {
 		tokenParams.append('redirect_uri', env.REDIRECT_URI);
 		tokenParams.append('code', authorizationCode);
 		tokenParams.append('grant_type', 'authorization_code');
-		tokenParams.append('code_verifier', codeVerifier);
+		tokenParams.append('code_verifier', challengeVerifier);
 
 		// This additional POST request retrieves the access token and expiry
 		// information used for further API requests to the provider.
@@ -100,14 +110,6 @@ async function handleRequest(request: Request, env: Env) {
 
 			return new Response(tokenResponse.statusText, {
 				status: tokenResponse.status,
-			});
-		}
-
-		const readKey = await env.keyValueStore.get(`readKey:${writeKey}`);
-
-		if (!readKey) {
-			return new Response('No read key found in storage', {
-				status: 400,
 			});
 		}
 
@@ -158,7 +160,7 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
-	if (request.method === 'POST' && requestUrl.pathname.startsWith('/refresh')) {
+	if (request.method === 'POST' && requestUrl.pathname.startsWith('/refresh/')) {
 		const refreshToken = requestUrl.searchParams.get('code');
 
 		if (!refreshToken) {

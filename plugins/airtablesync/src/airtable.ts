@@ -16,16 +16,16 @@ import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl = window.location.hostname === "localhost"
-	? "http://localhost:8787"
-	: "https://framersync-workers.isaac-b49.workers.dev";
+const apiBaseUrl =
+	window.location.hostname === "localhost" ? "http://localhost:8787" : "https://framersync-workers.isaac-b49.workers.dev";
 const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
 
 export const getOauthURL = (writeKey: string) =>
 	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
 
 // Storage for the Airtable API key.
-const airtableBearerStorageKey = "airtableBearerToken";
+const airtableAccessTokenKey = "airtableAccessToken";
+const airtableRefreshTokenKey = "airtableRefreshToken";
 
 const pluginDatabaseIdKey = "notionPluginDatabaseId";
 const pluginLastSyncedKey = "notionPluginLastSynced";
@@ -39,8 +39,9 @@ const concurrencyLimit = 5;
 
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
+// TODO: Refresh the token when it expires
 export function isAuthenticated() {
-	return localStorage.getItem(airtableBearerStorageKey) !== null;
+	return localStorage.getItem(airtableAccessTokenKey) !== null;
 }
 
 if (isAuthenticated()) {
@@ -48,7 +49,7 @@ if (isAuthenticated()) {
 }
 
 export function initAirtableClient() {
-	const token = localStorage.getItem(airtableBearerStorageKey);
+	const token = localStorage.getItem(airtableAccessTokenKey);
 	if (!token) throw new Error("Airtable API token is missing");
 }
 
@@ -97,16 +98,20 @@ export async function authorize() {
 	return new Promise<void>((resolve) => {
 		// Poll for the authorization status
 		const interval = setInterval(async () => {
-			const resp = await fetch(`${apiBaseUrl}/poll/?readKey=${readKey}`);
+			const resp = await fetch(`${apiBaseUrl}/poll/?readKey=${readKey}`, {
+				method: "POST",
+			});
 
-			const { token } = await resp.json();
+			const tokenInfo = await resp.json();
 
-			if (resp.status === 200 && token) {
+			if (resp.status === 200 && tokenInfo) {
+				const { access_token, refresh_token } = tokenInfo;
+
 				clearInterval(interval);
-				localStorage.setItem(airtableBearerStorageKey, token);
+				localStorage.setItem(airtableAccessTokenKey, access_token);
+				localStorage.setItem(airtableRefreshTokenKey, refresh_token);
 				// initNotionClient();
 				resolve();
-				console.log("found airtable token!");
 			}
 		}, 2500);
 	});
