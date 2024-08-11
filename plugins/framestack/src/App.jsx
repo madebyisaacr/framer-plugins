@@ -1,5 +1,5 @@
 import { framer, Draggable } from "framer-plugin";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { motion } from "framer-motion";
 import { tags, icons, components } from "./framestackData";
 import { ComponentIcons } from "./componentIcons";
@@ -96,49 +96,25 @@ export function App() {
 					selectedComponent && "opacity-50 pointer-events-none"
 				)}
 			>
-				{/* <div className="absolute inset-y-3 left-[260px] w-[1px] bg-divider"></div> */}
-				{/* <div className="relative flex flex-col overflow-y-auto w-[260px] p-3">
-					<TagButton
-						text="Home"
-						color={FRAMESTACK_GRADIENT}
-						selected={activeIndex === -1}
-						onClick={() => scrollToTagSection(-1)}
-					/>
-					<SectionDivider>Components</SectionDivider>
-					{tags.map((tag, index) => (
-						<TagButton
-							key={tag}
-							text={tag}
-							color={TAG_COLORS[index]}
-							selected={activeIndex === index}
-							onClick={() => scrollToTagSection(index)}
-						/>
-					))}
-				</div> */}
 				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
 				{searchText.length ? (
-					<div key="search-container" className="relative flex flex-col overflow-y-auto gap-6 p-3 flex-1">
-						<TileGrid>
-							{components
-								.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
-								.map((component, _) => (
-									<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
-								))}
-						</TileGrid>
+					<div key="search-container" className="relative flex-1 overflow-hidden pt-2">
+						<div className="relative flex flex-col overflow-y-auto gap-6 px-3 pb-3 h-full">
+							<TileGrid>
+								{components
+									.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
+									.map((component, _) => (
+										<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
+									))}
+							</TileGrid>
+						</div>
+						<div className="absolute top-0 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+						<div className="absolute top-0 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					</div>
 				) : (
-					<div
-						ref={containerRef}
-						key="main-container"
-						className="relative flex flex-col gap-5 px-3 pb-3 flex-1 overflow-y-scroll"
-					>
+					<div ref={containerRef} key="main-container" className="relative flex flex-col px-3 pb-3 flex-1 overflow-y-scroll">
 						{tags.map((tag, index) => (
-							<div
-								key={tag}
-								id={`framestack-tag-${index}`}
-								className={classNames("flex flex-col gap-0", index === tags.length - 1 && "min-h-full")}
-							>
-								{/* <span className="w-full text-tertiary">{tag}</span> */}
+							<Fragment key={tag}>
 								<TagHeader
 									key={tag}
 									text={tag}
@@ -153,7 +129,7 @@ export function App() {
 											<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
 										))}
 								</TileGrid>
-							</div>
+							</Fragment>
 						))}
 					</div>
 				)}
@@ -177,11 +153,11 @@ function TagHeader(props) {
 	return (
 		<motion.div
 			{...props}
-			className="h-10 cursor-pointer text-primary font-semibold sticky top-0 z-10"
+			className="cursor-pointer text-primary font-semibold sticky top-0 z-10"
 			initial={false}
 			transition={TRANSITION}
 		>
-			<div className="relative flex flex-row items-center px-2 gap-2 h-full z-10 bg-primary">
+			<div className="relative flex flex-row items-center px-2 py-3 gap-2 h-full z-10 bg-primary">
 				<div
 					style={{
 						background: props.color,
@@ -211,6 +187,7 @@ function TagHeader(props) {
 			</div>
 			<div className="absolute top-[calc(100%-10px)] -left-2 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 			<div className="absolute top-[calc(100%-10px)] -right-2 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+			<div className="absolute bottom-[calc(100%-10px)] left-0 w-10 border-[10px] border-t-[0px] border-primary rounded-b-[18px] h-5" />
 		</motion.div>
 	);
 }
@@ -283,7 +260,7 @@ function SectionDivider({ children }) {
 }
 
 function TileGrid({ children }) {
-	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense">{children}</div>;
+	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-4">{children}</div>;
 }
 
 function ComponentTile({ component, onClick }) {
