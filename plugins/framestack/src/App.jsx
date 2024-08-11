@@ -19,9 +19,9 @@ const TRANSITION = {
 framer.showUI({
 	title: "Framestack",
 	position: "center",
-	width: 760,
-	height: 600,
-	minHeight: 300,
+	width: 300,
+	height: 500,
+	minHeight: 400,
 	resizable: "height",
 });
 
@@ -29,7 +29,7 @@ const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
 const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB300", "#FF8822", "#FF4488"];
 
 export function App() {
-	console.log(motion.div)
+	console.log(motion.div);
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedComponent, setSelectedComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
@@ -90,10 +90,14 @@ export function App() {
 
 	return (
 		<main className="relative size-full select-none">
-			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
-			<div className={classNames("flex flex-row flex-1 overflow-hidden", selectedComponent && "opacity-50 pointer-events-none")}>
-				<div className="absolute inset-y-3 left-[260px] w-[1px] bg-divider"></div>
-				<div className="relative flex flex-col overflow-y-auto w-[260px] p-3">
+			<div
+				className={classNames(
+					"flex flex-col flex-1 size-full overflow-hidden",
+					selectedComponent && "opacity-50 pointer-events-none"
+				)}
+			>
+				{/* <div className="absolute inset-y-3 left-[260px] w-[1px] bg-divider"></div> */}
+				{/* <div className="relative flex flex-col overflow-y-auto w-[260px] p-3">
 					<TagButton
 						text="Home"
 						color={FRAMESTACK_GRADIENT}
@@ -110,7 +114,8 @@ export function App() {
 							onClick={() => scrollToTagSection(index)}
 						/>
 					))}
-				</div>
+				</div> */}
+				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
 				{searchText.length ? (
 					<div key="search-container" className="relative flex flex-col overflow-y-auto gap-6 p-3 flex-1">
 						<TileGrid>
@@ -122,14 +127,25 @@ export function App() {
 						</TileGrid>
 					</div>
 				) : (
-					<div ref={containerRef} key="main-container" className="relative flex flex-col overflow-y-auto gap-3 px-3 pb-3 flex-1">
+					<div
+						ref={containerRef}
+						key="main-container"
+						className="relative flex flex-col gap-5 px-3 pb-3 flex-1 overflow-y-scroll"
+					>
 						{tags.map((tag, index) => (
 							<div
 								key={tag}
 								id={`framestack-tag-${index}`}
-								className={classNames("flex flex-col gap-3 pt-3", index === tags.length - 1 && "min-h-full")}
+								className={classNames("flex flex-col gap-0", index === tags.length - 1 && "min-h-full")}
 							>
-								<span className="w-full text-tertiary">{tag}</span>
+								{/* <span className="w-full text-tertiary">{tag}</span> */}
+								<TagHeader
+									key={tag}
+									text={tag}
+									color={TAG_COLORS[index]}
+									selected={activeIndex === index}
+									onClick={() => scrollToTagSection(index)}
+								/>
 								<TileGrid>
 									{components
 										.filter((component) => component.tag === tag)
@@ -157,6 +173,48 @@ export function App() {
 	);
 }
 
+function TagHeader(props) {
+	return (
+		<motion.div
+			{...props}
+			className="h-10 cursor-pointer text-primary font-semibold sticky top-0 z-10"
+			initial={false}
+			transition={TRANSITION}
+		>
+			<div className="relative flex flex-row items-center px-2 gap-2 h-full z-10 bg-primary">
+				<div
+					style={{
+						background: props.color,
+					}}
+					className="relative rounded size-6 flex items-center justify-center text-[#FFF]"
+				>
+					<div
+						style={{
+							boxShadow: `0 4px 8px 0 ${props.color.startsWith("#") ? props.color : `#${props.color.match(/#(.{6})/)?.[1]}`}`,
+						}}
+						className="absolute inset-0 rounded opacity-20"
+					/>
+					{icons[props.text]}
+				</div>
+				<span className="flex-1 pt-[1px]">{props.text}</span>
+				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+					<path
+						d="M 7 0 L 3.5 3.5 L 0 0"
+						transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
+						fill="transparent"
+						strokeWidth="1.5"
+						stroke="var(--framestack-color-text-middle)"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					></path>
+				</svg>
+			</div>
+			<div className="absolute top-[calc(100%-10px)] -left-2 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+			<div className="absolute top-[calc(100%-10px)] -right-2 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+		</motion.div>
+	);
+}
+
 function TagButton(props) {
 	return (
 		<motion.div
@@ -181,7 +239,7 @@ function TagButton(props) {
 					style={{
 						background: props.color,
 					}}
-					className="relative rounded size-6 flex items-center justify-center text-inverted"
+					className="relative rounded size-6 flex items-center justify-center text-[#FFF]"
 				>
 					<div
 						style={{
@@ -225,7 +283,7 @@ function SectionDivider({ children }) {
 }
 
 function TileGrid({ children }) {
-	return <div className="grid grid-cols-3 grid-rows-[min-content] gap-2 grid-flow-dense">{children}</div>;
+	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense">{children}</div>;
 }
 
 function ComponentTile({ component, onClick }) {
@@ -239,19 +297,16 @@ function ComponentTile({ component, onClick }) {
 		<div
 			key={component.name}
 			onClick={onClick}
-			className={classNames(
-				"relative flex flex-col items-center justify-center w-full h-[150px] rounded-xl cursor-pointer bg-tertiary hover:bg-secondary transition-colors",
-				component.wide && "col-span-2"
-			)}
+			className="relative flex flex-col items-center justify-center w-full rounded-xl cursor-pointer bg-secondary hover:bg-tertiary transition-colors aspect-square"
 		>
-			{icon && <img src={icon} alt={component.name} className="w-full pointer-events-none" />}
-			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-secondary">{component.name}</span>
+			{icon && <img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />}
+			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-secondary font-semibold">{component.name}</span>
 			{component.free && (
 				<div
 					style={{
 						backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
 					}}
-					className="absolute top-2 right-2 rounded-sm p-[3px_4px] font-bold text-[10px] text-inverted"
+					className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
 				>
 					FREE
 				</div>
@@ -331,7 +386,7 @@ function ComponentWindow({ component, onClose }) {
 								}}
 								className={classNames(
 									"rounded-[6px] padding-[4px_6px] font-bold text-[10px] h-fit text-tertiary",
-									component.free ? "text-secondary bg-secondary" : "text-inverted"
+									component.free ? "text-secondary bg-secondary" : "text-reversed"
 								)}
 							>
 								{component.free ? "FREE" : "PRO"}

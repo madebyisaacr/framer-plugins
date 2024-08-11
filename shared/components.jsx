@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import classNames from "classnames";
 
 const inheritFont = {
 	fontFamily: "inherit",
@@ -6,13 +7,14 @@ const inheritFont = {
 	fontWeight: "500",
 };
 
-export function SearchBar({ placeholder = "Search...", background = true, value, onChange, onSubmit = null }) {
+export function SearchBar({ placeholder = "Search...", background = true, className = "", value, onChange, onSubmit = null }) {
 	return (
 		<div
-			className={[
-				"relative flex flex-row gap-[6px] items-center h-6 min-h-6 text-tertiary font-medium rounded",
-				background ? "bg-secondary" : "",
-			].join(" ")}
+			className={classNames(
+				"relative flex flex-row gap-[6px] items-center h-6 min-h-6 text-tertiary font-medium",
+				background && "bg-secondary rounded",
+				className
+			)}
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" className="absolute left-2">
 				<path

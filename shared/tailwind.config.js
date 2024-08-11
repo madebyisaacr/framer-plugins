@@ -20,10 +20,11 @@ export default {
 			primary: "var(--framer-color-text)",
 			secondary: "var(--framer-color-text-secondary)",
 			tertiary: "var(--framer-color-text-tertiary)",
-			inverted: "var(--framer-color-text-inverted)",
+			reversed: "var(--framer-color-text-reversed)",
 			tint: "var(--framer-color-tint)",
 		},
 		borderColor: {
+			primary: "var(--framer-color-bg)",
 			divider: "var(--framer-color-divider)",
 			"divider-secondary": "var(--color-divider-secondary)",
 			tint: "var(--framer-color-tint)",
