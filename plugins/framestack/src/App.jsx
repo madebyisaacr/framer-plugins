@@ -34,9 +34,12 @@ export function App() {
 	const [searchText, setSearchText] = useState("");
 	const activeIndexRef = useRef(activeIndex);
 	const containerRef = useRef(null);
+	const tagRefs = useRef([]);
 
 	const [tagMenuOpen, setTagMenuOpen] = useState(false);
-	const scrollTop = useMotionValue(0);
+	const selectedTagIndexRef = useRef(-1);
+
+	const tagMotionValues = tags.map(() => useMotionValue(0));
 
 	useEffect(() => {
 		if (searchText.length) {
@@ -75,40 +78,44 @@ export function App() {
 		}
 	}, [searchText.length == 0]);
 
-	const onTagHeaderClick = (tag) => {
-		setTagMenuOpen(!tagMenuOpen);
+	useEffect(() => {
+		if (tagMenuOpen) {
+			let scrollTop = containerRef.current.scrollTop;
 
-		if (!tagMenuOpen) {
-			console.log("animate");
+			for (let i = 0; i < tags.length; i++) {
+				const element = tagRefs.current[i];
+				const offset = -element.offsetTop + scrollTop + i * 50;
 
-			scrollTop.jump(containerRef.current.scrollTop);
-			animate(scrollTop, 0, {
-				...TRANSITION,
-				onUpdate: (value) => {
-					containerRef.current.scrollTop = value;
-				},
-			});
+				animate(tagMotionValues[i], offset, TRANSITION);
+			}
+		} else {
+			let scrollTop = 0;
+			let prevScrollTop = 0;
+
+			const tagElement = tagRefs.current[selectedTagIndexRef.current];
+			if (tagElement) {
+				prevScrollTop = containerRef.current.scrollTop;
+				scrollTop = tagElement.offsetTop;
+				containerRef.current.scrollTop = scrollTop;
+			}
+
+			for (let i = 0; i < tags.length; i++) {
+				tagMotionValues[i].set(tagMotionValues[i].get() + (scrollTop - prevScrollTop));
+				setTimeout(() => animate(tagMotionValues[i], 0, TRANSITION), 40);
+			}
 		}
+	}, [tagMenuOpen]);
 
-		// if (containerRef.current) {
-		// 	if (tagIndex === -1) {
-		// 		containerRef.current.scrollTop = 0;
-		// 	} else if (tagIndex === 0) {
-		// 		containerRef.current.scrollTop = 1;
-		// 	} else {
-		// 		const element = document.getElementById(`framestack-tag-${tagIndex}`);
-		// 		if (element) {
-		// 			containerRef.current.scrollTop = element.offsetTop;
-		// 		}
-		// 	}
-		// }
+	const onTagClick = (index) => {
+		setTagMenuOpen(!tagMenuOpen);
+		selectedTagIndexRef.current = index;
 	};
 
 	return (
 		<main className="relative size-full select-none">
 			<div
 				className={classNames(
-					"flex flex-col gap-1 flex-1 size-full overflow-hidden",
+					"flex flex-col gap-2 flex-1 size-full overflow-hidden",
 					selectedComponent && "opacity-50 pointer-events-none"
 				)}
 			>
@@ -124,38 +131,70 @@ export function App() {
 									))}
 							</TileGrid>
 						</div>
-						<div className="absolute top-0 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-						<div className="absolute top-0 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					</div>
 				) : (
 					<div className="relative w-full flex flex-col flex-1 overflow-hidden">
-						<div className="absolute top-0 w-full h-3 bg-primary z-10" />
 						<motion.div
 							ref={containerRef}
 							key="main-container"
-							className="relative flex flex-col px-3 pt-2 flex-1 overflow-y-scroll"
+							className={classNames(
+								"relative flex flex-col px-3 pt-0 flex-1",
+								tagMenuOpen ? "overflow-y-hidden" : "overflow-y-scroll"
+							)}
 						>
 							{tags.map((tag, index) => (
 								<Fragment key={tag}>
-									<TagHeader
-										key={tag}
-										text={tag}
-										color={TAG_COLORS[index]}
-										selected={activeIndex === index}
-										tagMenuOpen={tagMenuOpen}
-										onClick={() => onTagHeaderClick(tag)}
-									/>
 									<motion.div
-										className="w-full"
-										style={{
-											overflowY: "hidden",
-											height: "auto",
-											flexShrink: 0,
-										}}
+										key={tag}
+										ref={(ref) => (tagRefs.current[index] = ref)}
+										onClick={() => onTagClick(index)}
+										className="cursor-pointer text-primary font-semibold z-10"
+										style={{ y: tagMotionValues[index] }}
+									>
+										<div className="relative flex flex-row items-center px-2 pb-3 pt-2 gap-2 h-full z-30 bg-primary">
+											<div className="absolute inset-x-0 bottom-1 top-0 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
+											<div
+												style={{
+													background: TAG_COLORS[index],
+												}}
+												className="relative rounded size-6 flex items-center justify-center text-[#FFF] pointer-events-none"
+											>
+												<div
+													style={{
+														boxShadow: `0 4px 8px 0 ${TAG_COLORS[index]}`,
+													}}
+													className="absolute inset-0 rounded opacity-20"
+												/>
+												{icons[tag]}
+											</div>
+											<span className="relative flex-1 pt-[1px] pointer-events-none">{tag}</span>
+											<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="rotate-90 pointer-events-none">
+												<path
+													d="M 7 0 L 3.5 3.5 L 0 0"
+													transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
+													fill="transparent"
+													strokeWidth="1.5"
+													stroke="var(--framer-color-text-tertiary)"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+												></path>
+											</svg>
+										</div>
+										<motion.div
+											className="absolute -top-3 h-3 inset-x-0 bg-gradient-to-t from-[var(--framer-color-bg)] to-transparent pointer-events-none"
+											animate={{
+												opacity: tagMenuOpen ? 0 : 1,
+											}}
+											initial={false}
+											transition={TRANSITION}
+										/>
+									</motion.div>
+									<motion.div
+										className={classNames("w-full", tagMenuOpen && "pointer-events-none")}
 										animate={{
-											height: tagMenuOpen ? 0 : "auto",
 											opacity: tagMenuOpen ? 0 : 1,
 										}}
+										style={{ y: tagMotionValues[index] }}
 										initial={false}
 										transition={TRANSITION}
 									>
@@ -174,6 +213,8 @@ export function App() {
 								</Fragment>
 							))}
 						</motion.div>
+						<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+						<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					</div>
 				)}
 			</div>
@@ -192,59 +233,8 @@ export function App() {
 	);
 }
 
-function TagHeader(props) {
-	return (
-		<motion.div
-			{...props}
-			className="cursor-pointer text-primary font-semibold sticky top-0 z-10"
-			initial={false}
-			transition={TRANSITION}
-		>
-			<div className="relative flex flex-row items-center px-2 pb-3 pt-1 gap-2 h-full z-30 bg-primary">
-				<div className="absolute inset-x-0 bottom-1 -top-1 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
-				<div
-					style={{
-						background: props.color,
-					}}
-					className="relative rounded size-6 flex items-center justify-center text-[#FFF] pointer-events-none"
-				>
-					<div
-						style={{
-							boxShadow: `0 4px 8px 0 ${props.color.startsWith("#") ? props.color : `#${props.color.match(/#(.{6})/)?.[1]}`}`,
-						}}
-						className="absolute inset-0 rounded opacity-20"
-					/>
-					{icons[props.text]}
-				</div>
-				<span className="relative flex-1 pt-[1px] pointer-events-none">{props.text}</span>
-				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="rotate-90 pointer-events-none">
-					<path
-						d="M 7 0 L 3.5 3.5 L 0 0"
-						transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
-						fill="transparent"
-						strokeWidth="1.5"
-						stroke="var(--framer-color-text-tertiary)"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					></path>
-				</svg>
-			</div>
-			<div className="absolute top-[calc(100%-5px)] -left-2 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-			<div className="absolute top-[calc(100%-5px)] -right-2 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-			<motion.div
-				className="absolute -top-3 h-3 inset-x-0 bg-gradient-to-t from-[var(--framer-color-bg)] to-transparent pointer-events-none"
-				animate={{
-					opacity: props.tagMenuOpen ? 0 : 1,
-				}}
-				initial={false}
-				transition={TRANSITION}
-			/>
-		</motion.div>
-	);
-}
-
 function TileGrid({ children }) {
-	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 pt-1">{children}</div>;
+	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 pt-1 bg-primary">{children}</div>;
 }
 
 function ComponentTile({ component, onClick }) {
