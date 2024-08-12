@@ -1,6 +1,6 @@
 import { framer, Draggable } from "framer-plugin";
-import { useState, useRef, useEffect, Fragment } from "react";
-import { motion, useMotionValue, animate } from "framer-motion";
+import { useState, useRef, useEffect, Fragment, useMemo } from "react";
+import { motion, useMotionValue, animate, AnimatePresence } from "framer-motion";
 import { tags, icons, components } from "./framestackData";
 import { ComponentIcons } from "./componentIcons";
 import { SearchBar, XIcon } from "@shared/components";
@@ -31,13 +31,14 @@ const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB
 export function App() {
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedComponent, setSelectedComponent] = useState(null);
+	const [activeComponent, setActiveComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
+	const [tagMenuOpen, setTagMenuOpen] = useState(false);
 	const activeIndexRef = useRef(activeIndex);
 	const containerRef = useRef(null);
 	const tagRefs = useRef([]);
-
-	const [tagMenuOpen, setTagMenuOpen] = useState(false);
 	const selectedTagIndexRef = useRef(-1);
+	const selectedComponentButtonRef = useRef(null);
 
 	const tagMotionValues = tags.map(() => useMotionValue(0));
 
@@ -111,13 +112,29 @@ export function App() {
 		selectedTagIndexRef.current = index;
 	};
 
+	const onComponentClick = (component, event) => {
+		setSelectedComponent(component);
+		setActiveComponent(component);
+		selectedComponentButtonRef.current = event.currentTarget;
+	};
+
+	const onComponentTransitionEnd = () => {
+		if (activeComponent && !selectedComponent) {
+			setActiveComponent(null);
+			console.log("activeComponent", activeComponent);
+		}
+	};
+
 	return (
 		<main className="relative size-full select-none">
-			<div
-				className={classNames(
-					"flex flex-col gap-2 flex-1 size-full overflow-hidden",
-					selectedComponent && "opacity-50 pointer-events-none"
-				)}
+			<motion.div
+				className={classNames("flex flex-col gap-2 flex-1 size-full overflow-hidden", selectedComponent && "pointer-events-none")}
+				animate={{
+					scale: selectedComponent ? 0.95 : 1,
+				}}
+				initial={false}
+				transition={TRANSITION}
+				onTransitionEnd={onComponentTransitionEnd}
 			>
 				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
 				{searchText.length ? (
@@ -127,7 +144,12 @@ export function App() {
 								{components
 									.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
 									.map((component, _) => (
-										<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
+										<ComponentTile
+											key={component.name}
+											component={component}
+											active={activeComponent === component}
+											onClick={(event) => onComponentClick(component, event)}
+										/>
 									))}
 							</TileGrid>
 						</div>
@@ -205,7 +227,8 @@ export function App() {
 													<ComponentTile
 														key={component.name}
 														component={component}
-														onClick={() => setSelectedComponent(component)}
+														active={activeComponent === component}
+														onClick={(event) => onComponentClick(component, event)}
 													/>
 												))}
 										</TileGrid>
@@ -217,18 +240,17 @@ export function App() {
 						<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					</div>
 				)}
-			</div>
-			<div className={classNames("absolute inset-0 z-10", !selectedComponent && "pointer-events-none")}>
-				<motion.div
-					onClick={() => setSelectedComponent(null)}
-					animate={{
-						opacity: selectedComponent ? 0.5 : 0,
-					}}
-					initial={false}
-					className="absolute inset-0 bg-primary"
-				/>
-				{selectedComponent && <ComponentWindow component={selectedComponent} onClose={() => setSelectedComponent(null)} />}
-			</div>
+			</motion.div>
+			<AnimatePresence onExitComplete={onComponentTransitionEnd}>
+				{selectedComponent && (
+					<ComponentWindow
+						component={selectedComponent}
+						element={selectedComponentButtonRef.current}
+						containerOffsetTop={containerRef.current.getBoundingClientRect().top}
+						onClose={() => setSelectedComponent(null)}
+					/>
+				)}
+			</AnimatePresence>
 		</main>
 	);
 }
@@ -237,18 +259,18 @@ function TileGrid({ children }) {
 	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 pt-1 bg-primary">{children}</div>;
 }
 
-function ComponentTile({ component, onClick }) {
+function ComponentTile({ component, active, className = "", onClick }) {
 	const icon = getComponentIcon(component);
-
-	if (component.overrideCode) {
-		console.log(component.overrideCode);
-	}
 
 	const element = (
 		<div
 			key={component.name}
 			onClick={onClick}
-			className="relative flex flex-col items-center justify-center w-full rounded-xl cursor-pointer bg-secondary hover:bg-tertiary transition-colors aspect-square"
+			className={classNames(
+				"relative flex flex-col items-center justify-center w-full rounded-xl cursor-pointer bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
+				active ? "opacity-0" : "opacity-100",
+				className
+			)}
 		>
 			{icon && <img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />}
 			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-secondary font-semibold">{component.name}</span>
@@ -279,7 +301,54 @@ function ComponentTile({ component, onClick }) {
 	);
 }
 
-function ComponentWindow({ component, onClose }) {
+function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
+	const imgRef = useRef(null);
+	const session = null;
+
+	const [offsetTop, setOffsetTop] = useState(0);
+	const offsetTopValue = useMotionValue(0);
+
+	const [loading, setLoading] = useState(false);
+
+	const [clipTop, imgHeight] = useMemo(() => {
+		if (!element) {
+			return [0, 0];
+		}
+
+		return [Math.max(0, containerOffsetTop - element.getBoundingClientRect().top), element.offsetHeight];
+	}, []);
+
+	useEffect(() => {
+		if (!element || !imgRef.current) {
+			return;
+		}
+
+		const elementRect = element.getBoundingClientRect();
+		const imgRect = imgRef.current.getBoundingClientRect();
+
+		const offset = Math.max(containerOffsetTop, elementRect.top) - imgRect.top;
+
+		offsetTopValue.jump(offset);
+		animate(offsetTopValue, 0, TRANSITION);
+		setOffsetTop(offset);
+	}, []);
+
+	const onButtonClick = async () => {
+		if (component.url) {
+			setLoading(true);
+
+			if (component.detach) {
+				await framer.addDetachedComponentLayers({ url: component.url, layout: true });
+			} else {
+				await framer.addComponentInstance({ url: component.url });
+			}
+
+			onClose?.();
+		}
+	};
+
+	const isLocked = !session || (component.pro && tier !== "pro");
+
 	const color = TAG_COLORS[tags.indexOf(component.tag)];
 
 	function onInsertComponentClick() {
@@ -309,63 +378,81 @@ function ComponentWindow({ component, onClose }) {
 		framer.setCustomCode({ html: code, location: "headStart" });
 	}
 
+	const left = getChildIndex(element) % 2 == 0;
+
 	return (
-		<div
-			style={{
-				boxShadow: "0 10px 30px 0 rgba(0,0,0,0.15)",
-			}}
-			className="absolute top-[50%] left-[50%] translate-[-50%,-50%] w-[350px] min-h-[420px] max-h-[480px] bg-modal rounded-xl shadow-2xl flex flex-col"
+		<motion.div
+			className="absolute inset-0 flex flex-col justify-center"
+			initial={{ backdropFilter: "blur(0px)" }}
+			exit={{ backdropFilter: "blur(0px)" }}
+			animate={{ backdropFilter: "blur(8px)" }}
+			transition={TRANSITION}
 		>
-			<WindowTopBar title={component.name} hideDivider onClose={onClose} />
-			<div className="relative flex flex-col w-full flex-1 overflow-hidden">
-				<div className="relative flex flex-col px-3 pb-3 gap-3 size-full overflow-y-auto">
-					<div className="flex flex-col glex-1 w-full gap-3">
-						<div className="relative w-full bg-tertiary rounded-lg flex items-center justify-center aspect-[120/63]">
-							<img
-								src={getComponentIcon(component)}
-								alt={component.name}
-								style={{
-									width: component.wide ? "100%" : 240,
-								}}
-							/>
-						</div>
-						<div className="w-full flex flex-row gap-2 flex-1">
+			<motion.div
+				onClick={onClose}
+				className="absolute inset-0"
+				initial={{ opacity: 0 }}
+				exit={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={TRANSITION}
+			>
+				<div className="absolute inset-0 bg-primary opacity-50 dark:opacity-80" />
+			</motion.div>
+			<motion.div
+				className="relative flex flex-col gap-3 justify-center px-3 pointer-events-none"
+				style={{ translateY: offsetTopValue }}
+				exit={{ translateY: offsetTop }}
+				transition={TRANSITION}
+			>
+				<div className={classNames("flex flex-col gap-4", left ? "items-start" : "items-end")}>
+					<motion.div
+						ref={imgRef}
+						initial={{ height: imgHeight - clipTop }}
+						exit={{ height: imgHeight - clipTop }}
+						animate={{ height: imgHeight }}
+						className="rounded-xl overflow-hidden w-[calc(50%-5px)] relative flex flex-col justify-end"
+						transition={TRANSITION}
+					>
+						<ComponentTile component={component} onClick={() => {}} className="pointer-events-auto shrink-0" />
+					</motion.div>
+					<motion.div
+						className={classNames("w-full flex flex-col gap-3", left ? "pr-3 origin-top-left" : "pl-3 origin-top-right")}
+						initial={{ opacity: 0, scale: 0.85, translateY: -10 }}
+						exit={{ opacity: 0, scale: 0.85, translateY: -10 }}
+						animate={{ opacity: 1, scale: 1, translateY: 0 }}
+						transition={TRANSITION}
+					>
+						<div className="w-full flex flex-row gap-2">
 							<p className="font-semibold text-secondary flex-1">{component.description}</p>
-							<div
-								style={{
-									background: component.free ? undefined : FRAMESTACK_GRADIENT,
-								}}
-								className={classNames(
-									"rounded-[6px] padding-[4px_6px] font-bold text-[10px] h-fit text-tertiary",
-									component.free ? "text-secondary bg-secondary" : "text-reversed"
-								)}
-							>
-								{component.free ? "FREE" : "PRO"}
-							</div>
 						</div>
-					</div>
+						<motion.div
+							className="w-full"
+							initial={{ opacity: 0, translateY: -10 }}
+							exit={{ opacity: 0, translateY: -10 }}
+							animate={{ opacity: 1, translateY: 0 }}
+							transition={TRANSITION}
+						>
+							{(component.type == "component" || component.type == "componentAndOverride") && (
+								<Button primary style={{ backgroundColor: color }} onClick={onInsertComponentClick}>
+									Insert Component
+								</Button>
+							)}
+							{component.type == "override" && (
+								<Button primary style={{ backgroundColor: color }} onClick={onCopyOverrideClick}>
+									Copy Code Override
+								</Button>
+							)}
+							{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
+							{component.type == "codeSnippet" && (
+								<Button primary style={{ backgroundColor: color }} onClick={onCodeSnippetClick}>
+									Add Code Snippet to Site Settings
+								</Button>
+							)}
+						</motion.div>
+					</motion.div>
 				</div>
-				<div className="absolute -inset-y-2 inset-x-1 rounded-[20px] border-[10px] border-modal pointer-events-none" />
-			</div>
-			<div className="flex flex-row gap-2 p-3">
-				{(component.type == "component" || component.type == "componentAndOverride") && (
-					<Button primary color={color} onClick={onInsertComponentClick}>
-						Insert Component
-					</Button>
-				)}
-				{component.type == "override" && (
-					<Button primary color={color} onClick={onCopyOverrideClick}>
-						Copy Code Override
-					</Button>
-				)}
-				{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
-				{component.type == "codeSnippet" && (
-					<Button primary color={color} onClick={onCodeSnippetClick}>
-						Add Code Snippet to Site Settings
-					</Button>
-				)}
-			</div>
-		</div>
+			</motion.div>
+		</motion.div>
 	);
 }
 
@@ -423,4 +510,24 @@ export function WindowTopBar({ title, children = null, hideDivider = false, onCl
 			</div>
 		</div>
 	);
+}
+
+function getChildIndex(child) {
+	if (!child) {
+		return -1;
+	}
+
+	let parent = child.parentNode;
+	if (!parent) {
+		return -1; // Child has no parent
+	}
+
+	let children = parent.children;
+	for (let i = 0; i < children.length; i++) {
+		if (children[i] === child) {
+			return i;
+		}
+	}
+
+	return -1; // Child not found in parent
 }
