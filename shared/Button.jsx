@@ -14,18 +14,21 @@ const Button = forwardRef(function Button(
 		onClick = null,
 		loading = false,
 		disabled = false,
+		shadowColor = ""
 	},
 	ref
 ) {
 	const Element = href.length ? "a" : "button";
 	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
 
+	shadowColor = shadowColor || (primary ? "var(--framer-color-tint)" : null);
+
 	return (
 		<Element
 			ref={ref}
 			style={style}
 			className={classNames(
-				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors",
+				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
 				primary ? "framer-button-primary" : "bg-secondary text-primary hover:bg-tertiary",
 				disabled ? "opacity-60" : "cursor-pointer",
@@ -34,11 +37,11 @@ const Button = forwardRef(function Button(
 			disabled={disabled}
 			{...elementProps}
 		>
-			{primary && (
+			{shadowColor && (
 				<div
-					className="absolute inset-0 rounded-[inherit] opacity-20 pointer-events-none"
+					className="absolute inset-0 rounded-[inherit] opacity-30 pointer-events-none"
 					style={{
-						boxShadow: "0px 4px 8px 0px var(--framer-color-tint)",
+						boxShadow: `0px 4px 8px 0px ${shadowColor}`,
 					}}
 				/>
 			)}

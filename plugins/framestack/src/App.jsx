@@ -29,13 +29,12 @@ const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
 const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB300", "#FF8822", "#FF4488"];
 
 export function App() {
-	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedComponent, setSelectedComponent] = useState(null);
 	const [activeComponent, setActiveComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
 	const [tagMenuOpen, setTagMenuOpen] = useState(false);
-	const activeIndexRef = useRef(activeIndex);
 	const containerRef = useRef(null);
+	const searchContainerRef = useRef(null);
 	const tagRefs = useRef([]);
 	const selectedTagIndexRef = useRef(-1);
 	const selectedComponentButtonRef = useRef(null);
@@ -43,45 +42,10 @@ export function App() {
 	const tagMotionValues = tags.map(() => useMotionValue(0));
 
 	useEffect(() => {
-		if (searchText.length) {
-			setActiveIndex(-1);
-		} else {
-			const container = containerRef.current;
-			if (container) {
-				const onScroll = () => {
-					const sections = tags.map((_tag, index) => document.getElementById(`framestack-tag-${index}`));
+		const scrollContainer = (searchText ? searchContainerRef : containerRef).current;
 
-					let index = 0;
-					if (sections.some((element) => element !== null)) {
-						index = sections.findIndex((section) => section.offsetTop + section.offsetHeight - container.scrollTop >= 40);
-					}
-
-					if (index === -1) {
-						index = tags.length - 1;
-					} else if (container.scrollTop <= 0) {
-						// Top of page
-						index = -1;
-					}
-
-					if (index !== activeIndexRef.current) {
-						const newIndex = index;
-						setActiveIndex(newIndex);
-						activeIndexRef.current = newIndex;
-					}
-				};
-
-				container.addEventListener("scroll", onScroll);
-
-				return () => {
-					container?.removeEventListener("scroll", onScroll);
-				};
-			}
-		}
-	}, [searchText.length == 0]);
-
-	useEffect(() => {
 		if (tagMenuOpen) {
-			let scrollTop = containerRef.current.scrollTop;
+			let scrollTop = scrollContainer.scrollTop;
 
 			for (let i = 0; i < tags.length; i++) {
 				const element = tagRefs.current[i];
@@ -95,9 +59,9 @@ export function App() {
 
 			const tagElement = tagRefs.current[selectedTagIndexRef.current];
 			if (tagElement) {
-				prevScrollTop = containerRef.current.scrollTop;
+				prevScrollTop = scrollContainer.scrollTop;
 				scrollTop = tagElement.offsetTop;
-				containerRef.current.scrollTop = scrollTop;
+				scrollContainer.scrollTop = scrollTop;
 			}
 
 			for (let i = 0; i < tags.length; i++) {
@@ -106,6 +70,12 @@ export function App() {
 			}
 		}
 	}, [tagMenuOpen]);
+
+	useEffect(() => {
+		if (searchContainerRef.current) {
+			searchContainerRef.current.scrollTop = 0;
+		}
+	}, [searchText])
 
 	const onTagClick = (index) => {
 		setTagMenuOpen(!tagMenuOpen);
@@ -137,116 +107,118 @@ export function App() {
 				onTransitionEnd={onComponentTransitionEnd}
 			>
 				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
-				{searchText.length ? (
-					<div key="search-container" className="relative flex-1 overflow-hidden pt-2">
-						<div className="relative flex flex-col overflow-y-auto gap-6 px-3 h-full">
-							<TileGrid>
-								{components
-									.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
-									.map((component, _) => (
-										<ComponentTile
-											key={component.name}
-											component={component}
-											active={activeComponent === component}
-											onClick={(event) => onComponentClick(component, event)}
-										/>
-									))}
-							</TileGrid>
-						</div>
+				<div key="search-container" className={classNames("relative flex-1 overflow-hidden", !searchText && "hidden")}>
+					<div ref={searchContainerRef} className="relative flex flex-col overflow-y-auto gap-6 px-3 h-full">
+						<TileGrid>
+							{components
+								.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
+								.map((component, _) => (
+									<ComponentTile
+										key={component.name}
+										component={component}
+										active={activeComponent === component}
+										onClick={(event) => onComponentClick(component, event)}
+									/>
+								))}
+						</TileGrid>
 					</div>
-				) : (
-					<div className="relative w-full flex flex-col flex-1 overflow-hidden">
-						<motion.div
-							ref={containerRef}
-							key="main-container"
-							className={classNames(
-								"relative flex flex-col px-3 pt-0 flex-1",
-								tagMenuOpen ? "overflow-y-hidden" : "overflow-y-scroll"
-							)}
-						>
-							{tags.map((tag, index) => (
-								<Fragment key={tag}>
-									<motion.div
-										key={tag}
-										ref={(ref) => (tagRefs.current[index] = ref)}
-										onClick={() => onTagClick(index)}
-										className="cursor-pointer text-primary font-semibold z-10"
-										style={{ y: tagMotionValues[index] }}
-									>
-										<div className="relative flex flex-row items-center px-2 pb-3 pt-2 gap-2 h-full z-30 bg-primary">
-											<div className="absolute inset-x-0 bottom-1 top-0 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
+					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+				</div>
+				<div className={classNames("relative w-full flex flex-col flex-1 overflow-hidden", searchText && "hidden")}>
+					<motion.div
+						ref={containerRef}
+						key="main-container"
+						className={classNames(
+							"relative flex flex-col px-3 pt-0 flex-1",
+							tagMenuOpen ? "overflow-y-hidden" : "overflow-y-scroll"
+						)}
+					>
+						{tags.map((tag, index) => (
+							<Fragment key={tag}>
+								<motion.div
+									key={tag}
+									ref={(ref) => (tagRefs.current[index] = ref)}
+									onClick={() => onTagClick(index)}
+									className="cursor-pointer text-primary font-semibold z-10"
+									style={{ y: tagMotionValues[index] }}
+								>
+									<div className="relative flex flex-row items-center px-2 pb-3 pt-2 gap-2 h-full z-30">
+										<div className="absolute inset-x-0 bottom-1 top-0 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
+										<div
+											style={{
+												background: TAG_COLORS[index],
+											}}
+											className="relative rounded size-6 flex items-center justify-center text-reversed pointer-events-none"
+										>
 											<div
 												style={{
-													background: TAG_COLORS[index],
+													boxShadow: `0 4px 8px 0 ${TAG_COLORS[index]}`,
 												}}
-												className="relative rounded size-6 flex items-center justify-center text-[#FFF] pointer-events-none"
-											>
-												<div
-													style={{
-														boxShadow: `0 4px 8px 0 ${TAG_COLORS[index]}`,
-													}}
-													className="absolute inset-0 rounded opacity-20"
-												/>
-												{icons[tag]}
-											</div>
-											<span className="relative flex-1 pt-[1px] pointer-events-none">{tag}</span>
-											<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="rotate-90 pointer-events-none">
-												<path
-													d="M 7 0 L 3.5 3.5 L 0 0"
-													transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
-													fill="transparent"
-													strokeWidth="1.5"
-													stroke="var(--framer-color-text-tertiary)"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-												></path>
-											</svg>
+												className="absolute inset-0 rounded opacity-20"
+											/>
+											{icons[tag]}
 										</div>
-										<motion.div
-											className="absolute -top-3 h-3 inset-x-0 bg-gradient-to-t from-[var(--framer-color-bg)] to-transparent pointer-events-none"
+										<span className="relative flex-1 pt-[1px] pointer-events-none">{tag}</span>
+										<motion.svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="10"
+											height="10"
+											className="pointer-events-none relative"
 											animate={{
-												opacity: tagMenuOpen ? 0 : 1,
+												rotate: tagMenuOpen ? 0 : 90,
 											}}
 											initial={false}
 											transition={TRANSITION}
-										/>
-									</motion.div>
-									<motion.div
-										className={classNames("w-full", tagMenuOpen && "pointer-events-none")}
-										animate={{
-											opacity: tagMenuOpen ? 0 : 1,
-										}}
-										style={{ y: tagMotionValues[index] }}
-										initial={false}
-										transition={TRANSITION}
-									>
-										<TileGrid>
-											{components
-												.filter((component) => component.tag === tag)
-												.map((component, _) => (
-													<ComponentTile
-														key={component.name}
-														component={component}
-														active={activeComponent === component}
-														onClick={(event) => onComponentClick(component, event)}
-													/>
-												))}
-										</TileGrid>
-									</motion.div>
-								</Fragment>
-							))}
-						</motion.div>
-						<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-						<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-					</div>
-				)}
+										>
+											<path
+												d="M 7 0 L 3.5 3.5 L 0 0"
+												transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
+												fill="transparent"
+												strokeWidth="1.5"
+												stroke="var(--framer-color-text-tertiary)"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											></path>
+										</motion.svg>
+									</div>
+								</motion.div>
+								<motion.div
+									className={classNames("w-full origin-top", tagMenuOpen && "pointer-events-none")}
+									animate={{
+										opacity: tagMenuOpen ? 0 : 1,
+										scale: tagMenuOpen ? 0.95 : 1,
+									}}
+									style={{ y: tagMotionValues[selectedTagIndexRef.current] }}
+									initial={false}
+									transition={TRANSITION}
+								>
+									<TileGrid className="pt-1">
+										{components
+											.filter((component) => component.tag === tag)
+											.map((component, _) => (
+												<ComponentTile
+													key={component.name}
+													component={component}
+													active={activeComponent === component}
+													onClick={(event) => onComponentClick(component, event)}
+												/>
+											))}
+									</TileGrid>
+								</motion.div>
+							</Fragment>
+						))}
+					</motion.div>
+					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+				</div>
 			</motion.div>
 			<AnimatePresence onExitComplete={onComponentTransitionEnd}>
 				{selectedComponent && (
 					<ComponentWindow
 						component={selectedComponent}
 						element={selectedComponentButtonRef.current}
-						containerOffsetTop={containerRef.current.getBoundingClientRect().top}
+						containerOffsetTop={(searchText ? searchContainerRef : containerRef).current.getBoundingClientRect().top}
 						onClose={() => setSelectedComponent(null)}
 					/>
 				)}
@@ -255,11 +227,15 @@ export function App() {
 	);
 }
 
-function TileGrid({ children }) {
-	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 pt-1 bg-primary">{children}</div>;
+function TileGrid({ children, className = "" }) {
+	return (
+		<div className={classNames("grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 bg-primary", className)}>
+			{children}
+		</div>
+	);
 }
 
-function ComponentTile({ component, active, className = "", onClick }) {
+function ComponentTile({ component, active, className = "", onClick = null }) {
 	const icon = getComponentIcon(component);
 
 	const element = (
@@ -267,13 +243,14 @@ function ComponentTile({ component, active, className = "", onClick }) {
 			key={component.name}
 			onClick={onClick}
 			className={classNames(
-				"relative flex flex-col items-center justify-center w-full rounded-xl cursor-pointer bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
+				"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
 				active ? "opacity-0" : "opacity-100",
+				onClick && "cursor-pointer",
 				className
 			)}
 		>
 			{icon && <img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />}
-			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-secondary font-semibold">{component.name}</span>
+			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-primary font-semibold">{component.name}</span>
 			{component.free && (
 				<div
 					style={{
@@ -396,7 +373,7 @@ function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
 				animate={{ opacity: 1 }}
 				transition={TRANSITION}
 			>
-				<div className="absolute inset-0 bg-primary opacity-50 dark:opacity-80" />
+				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-70" />
 			</motion.div>
 			<motion.div
 				className="relative flex flex-col gap-3 justify-center px-3 pointer-events-none"
@@ -404,7 +381,7 @@ function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
 				exit={{ translateY: offsetTop }}
 				transition={TRANSITION}
 			>
-				<div className={classNames("flex flex-col gap-4", left ? "items-start" : "items-end")}>
+				<div className={classNames("flex flex-col gap-2", left ? "items-start" : "items-end")}>
 					<motion.div
 						ref={imgRef}
 						initial={{ height: imgHeight - clipTop }}
@@ -413,42 +390,37 @@ function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
 						className="rounded-xl overflow-hidden w-[calc(50%-5px)] relative flex flex-col justify-end"
 						transition={TRANSITION}
 					>
-						<ComponentTile component={component} onClick={() => {}} className="pointer-events-auto shrink-0" />
+						<ComponentTile component={component} className="pointer-events-auto shrink-0" />
 					</motion.div>
 					<motion.div
-						className={classNames("w-full flex flex-col gap-3", left ? "pr-3 origin-top-left" : "pl-3 origin-top-right")}
-						initial={{ opacity: 0, scale: 0.85, translateY: -10 }}
-						exit={{ opacity: 0, scale: 0.85, translateY: -10 }}
-						animate={{ opacity: 1, scale: 1, translateY: 0 }}
+						className={classNames(
+							"w-fit max-w-full flex flex-col gap-2 bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] p-2 rounded-xl",
+							left ? "mr-3 origin-top-left" : "ml-3 origin-top-right"
+						)}
+						initial={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
+						exit={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
+						animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
 						transition={TRANSITION}
 					>
-						<div className="w-full flex flex-row gap-2">
-							<p className="font-semibold text-secondary flex-1">{component.description}</p>
+						<div className="w-full flex flex-row gap-2 p-1">
+							<p className="font-semibold text-primary flex-1">{component.description}</p>
 						</div>
-						<motion.div
-							className="w-full"
-							initial={{ opacity: 0, translateY: -10 }}
-							exit={{ opacity: 0, translateY: -10 }}
-							animate={{ opacity: 1, translateY: 0 }}
-							transition={TRANSITION}
-						>
-							{(component.type == "component" || component.type == "componentAndOverride") && (
-								<Button primary style={{ backgroundColor: color }} onClick={onInsertComponentClick}>
-									Insert Component
-								</Button>
-							)}
-							{component.type == "override" && (
-								<Button primary style={{ backgroundColor: color }} onClick={onCopyOverrideClick}>
-									Copy Code Override
-								</Button>
-							)}
-							{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
-							{component.type == "codeSnippet" && (
-								<Button primary style={{ backgroundColor: color }} onClick={onCodeSnippetClick}>
-									Add Code Snippet to Site Settings
-								</Button>
-							)}
-						</motion.div>
+						{(component.type == "component" || component.type == "componentAndOverride") && (
+							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onInsertComponentClick}>
+								Insert Component
+							</Button>
+						)}
+						{component.type == "override" && (
+							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onCopyOverrideClick}>
+								Copy Code Override
+							</Button>
+						)}
+						{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
+						{component.type == "codeSnippet" && (
+							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onCodeSnippetClick}>
+								Add Code Snippet to Site Settings
+							</Button>
+						)}
 					</motion.div>
 				</div>
 			</motion.div>
