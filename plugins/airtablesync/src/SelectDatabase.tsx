@@ -40,6 +40,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 
 		for (const base of data.bases) {
 			const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
+			console.log(baseSchema);
 			if (baseSchema?.tables) {
 				setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
 			}

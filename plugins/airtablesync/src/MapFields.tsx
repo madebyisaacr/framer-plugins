@@ -101,8 +101,7 @@ const airtableFieldConversionTypes: Record<string, string[]> = {
 };
 
 interface CollectionFieldConfig {
-	// field: CollectionField | null;
-	property: object;
+	airtableField: object;
 	isNewField: boolean;
 	originalFieldName: string;
 	unsupported: boolean;
@@ -123,19 +122,16 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginContext): CollectionFieldConfig[] {
+function createFieldConfig(table, pluginContext: PluginContext): CollectionFieldConfig[] {
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
 	);
 
-	for (const key in database.properties) {
-		const property = database.properties[key];
+	for (const key in table.fields) {
+		const property = table.fields[key];
 		assert(property);
-
-		// Title is always required in CMS API.
-		if (property.type === "title") continue;
 
 		const conversionTypes = airtableFieldConversionTypes[property.type] ?? [];
 

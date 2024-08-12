@@ -623,7 +623,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		};
 	} catch (error) {
 		if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
-			const databaseName = (await collection.getPluginData(databaseNameKey)) ?? "Unkown";
+			const databaseName = (await collection.getPluginData(databaseNameKey)) ?? "Unknown";
 
 			return {
 				type: "error",

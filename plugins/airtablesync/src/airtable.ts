@@ -18,6 +18,7 @@ const airtableAccessTokenKey = "airtableAccessToken";
 const airtableRefreshTokenKey = "airtableRefreshToken";
 
 const pluginBaseIdKey = "airtablePluginBaseId";
+const pluginTableIdKey = "airtablePluginTableId";
 const pluginLastSyncedKey = "airtablePluginLastSynced";
 const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
 const pluginSlugIdKey = "airtablePluginSlugId";
@@ -59,13 +60,14 @@ export async function refreshAirtableToken() {
 }
 
 // DONE
-export async function airtableFetch(url: string) {
+export async function airtableFetch(url: string, body?: object) {
 	const response = await fetch(`https://api.airtable.com/v0/${url}`, {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${sessionStorage.getItem(airtableAccessTokenKey)}`,
 		},
+		body: body ? JSON.stringify(body) : undefined,
 	});
 	const data = await response.json();
 	return data;
@@ -156,6 +158,7 @@ export function richTextToPlainText(richText: string) {
 	return richText;
 }
 
+// DONE
 export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {
 	if (airtableField === null || airtableField === undefined) {
 		return null;
@@ -235,219 +238,210 @@ export interface SynchronizeResult extends SyncStatus {
 	status: "success" | "completed_with_errors";
 }
 
-// async function getPageBlocksAsRichText(pageId: string) {
-// 	assert(notion, "Notion client is not initialized");
+async function processItem(
+	item: object,
+	fieldsById: FieldsById,
+	slugFieldId: string,
+	status: SyncStatus,
+	unsyncedItemIds: Set<string>,
+	lastSyncedTime: string | null
+): Promise<CollectionItem | null> {
+	let slugValue: null | string = null;
+	let titleValue: null | string = null;
 
-// 	const blocks = await collectPaginatedAPI(notion.blocks.children.list, {
-// 		block_id: pageId,
-// 	});
+	const fieldData: Record<string, unknown> = {};
 
-// 	assert(blocks.every(isFullBlock), "Response is not a full block");
+	
+	// Mark the item as seen
+	unsyncedItemIds.delete(item.id);
+	
+	// TODO: Airtable records do not have last edited time, so find a workaround.
+	// if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
+	// 	status.info.push({
+	// 		message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
+	// 		url: item.url,
+	// 	});
+	// 	return null;
+	// }
 
-// 	return blocksToHtml(blocks);
-// }
+	for (const key in item.properties) {
+		const property = item.properties[key];
+		assert(property);
 
-// async function processItem(
-// 	item: PageObjectResponse,
-// 	fieldsById: FieldsById,
-// 	slugFieldId: string,
-// 	status: SyncStatus,
-// 	unsyncedItemIds: Set<string>,
-// 	lastSyncedTime: string | null
-// ): Promise<CollectionItem | null> {
-// 	let slugValue: null | string = null;
-// 	let titleValue: null | string = null;
+		if (property.type === "title") {
+			const resolvedTitle = getPropertyValue(property, "string");
+			if (!resolvedTitle || typeof resolvedTitle !== "string") {
+				continue;
+			}
 
-// 	const fieldData: Record<string, unknown> = {};
+			titleValue = resolvedTitle;
+		}
 
-// 	// Mark the item as seen
-// 	unsyncedItemIds.delete(item.id);
+		if (property.id === slugFieldId) {
+			const resolvedSlug = getPropertyValue(property, "string");
+			if (!resolvedSlug || typeof resolvedSlug !== "string") {
+				continue;
+			}
+			slugValue = slugify(resolvedSlug);
+		}
 
-// 	assert(isFullPage(item));
+		const field = fieldsById.get(property.id);
 
-// 	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
-// 		status.info.push({
-// 			message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
-// 			url: item.url,
-// 		});
-// 		return null;
-// 	}
+		// We can continue if the property was not included in the field mapping
+		if (!field) {
+			continue;
+		}
 
-// 	for (const key in item.properties) {
-// 		const property = item.properties[key];
-// 		assert(property);
+		const fieldValue = getPropertyValue(property, field.type);
+		if (!fieldValue) {
+			status.warnings.push({
+				url: item.url,
+				fieldId: field.id,
+				message: `Value is missing for field ${field.name}`,
+			});
+			continue;
+		}
 
-// 		if (property.type === "title") {
-// 			const resolvedTitle = getPropertyValue(property, "string");
-// 			if (!resolvedTitle || typeof resolvedTitle !== "string") {
-// 				continue;
-// 			}
+		fieldData[field.id] = fieldValue;
+	}
 
-// 			titleValue = resolvedTitle;
-// 		}
+	if (fieldsById.has(pageContentField.id) && item.id) {
+		const contentHTML = await getPageBlocksAsRichText(item.id);
+		fieldData[pageContentField.id] = contentHTML;
+	}
 
-// 		if (property.id === slugFieldId) {
-// 			const resolvedSlug = getPropertyValue(property, "string");
-// 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
-// 				continue;
-// 			}
-// 			slugValue = slugify(resolvedSlug);
-// 		}
+	if (fieldsById.has("page-cover") && item.cover && item.cover.type === "external") {
+		fieldData["page-cover"] = item.cover.external.url;
+	}
 
-// 		const field = fieldsById.get(property.id);
+	if (fieldsById.has("page-icon") && item.icon) {
+		const iconFieldType = fieldsById.get("page-icon")?.type;
 
-// 		// We can continue if the property was not included in the field mapping
-// 		if (!field) {
-// 			continue;
-// 		}
+		let value: string | null = null;
+		if (iconFieldType === "string") {
+			if (item.icon.type === "emoji") {
+				value = item.icon.emoji;
+			}
+		} else if (iconFieldType === "image") {
+			if (item.icon.type === "external") {
+				value = item.icon.external.url;
+			} else if (item.icon.type === "file") {
+				value = item.icon.file.url;
+			}
+		}
 
-// 		const fieldValue = getPropertyValue(property, field.type);
-// 		if (!fieldValue) {
-// 			status.warnings.push({
-// 				url: item.url,
-// 				fieldId: field.id,
-// 				message: `Value is missing for field ${field.name}`,
-// 			});
-// 			continue;
-// 		}
+		if (value) {
+			fieldData["page-icon"] = value;
+		}
+	}
 
-// 		fieldData[field.id] = fieldValue;
-// 	}
+	if (!slugValue || !titleValue) {
+		status.warnings.push({
+			url: item.url,
+			message: "Slug or Title is missing. Skipping item.",
+		});
+		return null;
+	}
 
-// 	if (fieldsById.has(pageContentField.id) && item.id) {
-// 		const contentHTML = await getPageBlocksAsRichText(item.id);
-// 		fieldData[pageContentField.id] = contentHTML;
-// 	}
+	return {
+		id: item.id,
+		fieldData,
+		slug: slugValue,
+		title: titleValue,
+	};
+}
 
-// 	if (fieldsById.has("page-cover") && item.cover && item.cover.type === "external") {
-// 		fieldData["page-cover"] = item.cover.external.url;
-// 	}
+type FieldsById = Map<string, CollectionField>;
 
-// 	if (fieldsById.has("page-icon") && item.icon) {
-// 		const iconFieldType = fieldsById.get("page-icon")?.type;
+// Function to process all items concurrently with a limit
+async function processAllItems(
+	data: object[],
+	fieldsByKey: FieldsById,
+	slugFieldId: string,
+	unsyncedItemIds: Set<FieldId>,
+	lastSyncedDate: string | null
+) {
+	const limit = pLimit(concurrencyLimit);
+	const status: SyncStatus = {
+		errors: [],
+		info: [],
+		warnings: [],
+	};
+	const promises = data.map((item) =>
+		limit(() => processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
+	);
+	const results = await Promise.all(promises);
 
-// 		let value: string | null = null;
-// 		if (iconFieldType === "string") {
-// 			if (item.icon.type === "emoji") {
-// 				value = item.icon.emoji;
-// 			}
-// 		} else if (iconFieldType === "image") {
-// 			if (item.icon.type === "external") {
-// 				value = item.icon.external.url;
-// 			} else if (item.icon.type === "file") {
-// 				value = item.icon.file.url;
-// 			}
-// 		}
+	const collectionItems = results.filter(isDefined);
 
-// 		if (value) {
-// 			fieldData["page-icon"] = value;
-// 		}
-// 	}
-
-// 	if (!slugValue || !titleValue) {
-// 		status.warnings.push({
-// 			url: item.url,
-// 			message: "Slug or Title is missing. Skipping item.",
-// 		});
-// 		return null;
-// 	}
-
-// 	return {
-// 		id: item.id,
-// 		fieldData,
-// 		slug: slugValue,
-// 		title: titleValue,
-// 	};
-// }
-
-// type FieldsById = Map<FieldId, CollectionField>;
-
-// // Function to process all items concurrently with a limit
-// async function processAllItems(
-// 	data: PageObjectResponse[],
-// 	fieldsByKey: FieldsById,
-// 	slugFieldId: string,
-// 	unsyncedItemIds: Set<FieldId>,
-// 	lastSyncedDate: string | null
-// ) {
-// 	const limit = pLimit(concurrencyLimit);
-// 	const status: SyncStatus = {
-// 		errors: [],
-// 		info: [],
-// 		warnings: [],
-// 	};
-// 	const promises = data.map((item) =>
-// 		limit(() => processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
-// 	);
-// 	const results = await Promise.all(promises);
-
-// 	const collectionItems = results.filter(isDefined);
-
-// 	return {
-// 		collectionItems,
-// 		status,
-// 	};
-// }
+	return {
+		collectionItems,
+		status,
+	};
+}
 
 export async function synchronizeDatabase(
-	database: GetDatabaseResponse,
+	table: object,
+	baseId: string,
+	baseName: string,
 	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
-	return null;
+	const collection = await framer.getCollection();
+	await collection.setFields(fields);
 
-	// assert(isFullDatabase(database));
-	// assert(notion);
+	const fieldsById = new Map<string, CollectionField>();
+	for (const field of fields) {
+		fieldsById.set(field.id, field);
+	}
 
-	// const collection = await framer.getCollection();
-	// await collection.setFields(fields);
+	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	// const fieldsById = new Map<string, CollectionField>();
-	// for (const field of fields) {
-	// 	fieldsById.set(field.id, field);
-	// }
+	const data = await airtableFetch(`${baseId}/${table.id}`, {
+		cellFormat: "json",
+		returnFieldsByFieldId: true,
+	});
 
-	// const unsyncedItemIds = new Set(await collection.getItemIds());
+	const { collectionItems, status } = await processAllItems(
+		data.records,
+		fieldsById,
+		slugFieldId,
+		unsyncedItemIds,
+		lastSyncedTime
+	);
 
-	// const data = await collectPaginatedAPI(notion.databases.query, {
-	// 	database_id: database.id,
-	// });
+	console.log("Submitting database");
+	console.table(collectionItems);
 
-	// assert(data.every(isFullPage), "Response is not a full page");
+	try {
+		await collection.addItems(collectionItems);
 
-	// const { collectionItems, status } = await processAllItems(data, fieldsById, slugFieldId, unsyncedItemIds, lastSyncedTime);
+		const itemsToDelete = Array.from(unsyncedItemIds);
+		await collection.removeItems(itemsToDelete);
 
-	// console.log("Submitting database");
-	// console.table(collectionItems);
+		await Promise.all([
+			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
+			collection.setPluginData(pluginBaseIdKey, baseId),
+			collection.setPluginData(pluginTableIdKey, table.id),
+			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
+			collection.setPluginData(pluginSlugIdKey, slugFieldId),
+			collection.setPluginData(baseNameKey, richTextToPlainText(baseName)),
+		]);
 
-	// try {
-	// 	await collection.addItems(collectionItems);
+		return {
+			status: status.errors.length === 0 ? "success" : "completed_with_errors",
+			errors: status.errors,
+			info: status.info,
+			warnings: status.warnings,
+		};
+	} catch (error) {
+		// There is a bug where framer-plugin throws errors as Strings instead of wrapping them in an Error object.
+		// This is a workaround until we land that PR.
+		if (isString(error)) {
+			throw new Error(error);
+		}
 
-	// 	const itemsToDelete = Array.from(unsyncedItemIds);
-	// 	await collection.removeItems(itemsToDelete);
-
-	// 	await Promise.all([
-	// 		collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-	// 		collection.setPluginData(pluginBaseIdKey, database.id),
-	// 		collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
-	// 		collection.setPluginData(pluginSlugIdKey, slugFieldId),
-	// 		collection.setPluginData(baseNameKey, richTextToPlainText(database.title)),
-	// 	]);
-
-	// 	return {
-	// 		status: status.errors.length === 0 ? "success" : "completed_with_errors",
-	// 		errors: status.errors,
-	// 		info: status.info,
-	// 		warnings: status.warnings,
-	// 	};
-	// } catch (error) {
-	// 	// There is a bug where framer-plugin throws errors as Strings instead of wrapping them in an Error object.
-	// 	// This is a workaround until we land that PR.
-	// 	if (isString(error)) {
-	// 		throw new Error(error);
-	// 	}
-
-	// 	throw error;
-	// }
+		throw error;
+	}
 }
 
 export function useSynchronizeDatabaseMutation(
@@ -497,7 +491,7 @@ export interface PluginContextNew {
 
 export interface PluginContextUpdate {
 	type: "update";
-	database: object;
+	table: object;
 	collection: Collection;
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;
@@ -515,6 +509,7 @@ export interface PluginContextError {
 
 export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
 
+// DONE
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	if (!rawIgnoredFields) {
 		return [];
@@ -546,10 +541,11 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 export async function getPluginContext(): Promise<PluginContext> {
 	const collection = await framer.getCollection();
 	const collectionFields = await collection.getFields();
-	const databaseId = await collection.getPluginData(pluginBaseIdKey);
+	const baseId = await collection.getPluginData(pluginBaseIdKey);
+	const tableId = await collection.getPluginData(pluginTableIdKey);
 	const hasAuthToken = isAuthenticated();
 
-	if (!databaseId || !hasAuthToken) {
+	if (!baseId || !tableId || !hasAuthToken) {
 		return {
 			type: "new",
 			collection,
@@ -560,6 +556,12 @@ export async function getPluginContext(): Promise<PluginContext> {
 	try {
 		// assert(notion, "Notion client is not initialized");
 		// const database = await notion.databases.retrieve({ database_id: databaseId });
+
+		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
+		console.log(baseSchema);
+
+		const table = baseSchema.tables.find((t) => t.id === tableId);
+		console.log(table);
 
 		const [rawIgnoredFieldIds, lastSyncedTime, slugFieldId] = await Promise.all([
 			collection.getPluginData(ignoredFieldIdsKey),
@@ -574,6 +576,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		return {
 			type: "update",
 			// database,
+			table,
 			collection,
 			collectionFields,
 			ignoredFieldIds,
@@ -583,15 +586,13 @@ export async function getPluginContext(): Promise<PluginContext> {
 			isAuthenticated: hasAuthToken,
 		};
 	} catch (error) {
-		// if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
-		const databaseName = (await collection.getPluginData(baseNameKey)) ?? "Unkown";
+		const databaseName = (await collection.getPluginData(baseNameKey)) ?? "Unknown";
 
 		return {
 			type: "error",
-			message: `The database "${databaseName}" was not found. Log in with Notion and select the Database to sync.`,
+			message: `The base "${databaseName}" was not found. Log in with Airtable and select the Base to sync.`,
 			isAuthenticated: false,
 		};
-		// }
 
 		throw error;
 	}
