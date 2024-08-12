@@ -21,6 +21,7 @@ const pluginBaseIdKey = "airtablePluginBaseId";
 const pluginTableIdKey = "airtablePluginTableId";
 const pluginLastSyncedKey = "airtablePluginLastSynced";
 const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
+const pluginTitleFieldIdKey = "airtablePluginTitleFieldId";
 const pluginSlugIdKey = "airtablePluginSlugId";
 const baseNameKey = "airtableBaseName";
 
@@ -159,12 +160,10 @@ export function richTextToPlainText(richText: string) {
 }
 
 // DONE
-export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {
-	if (airtableField === null || airtableField === undefined) {
+export function getPropertyValue(airtableField: object, value: any, fieldType: string): unknown | undefined {
+	if (airtableField === null || airtableField === undefined || value === null || value === undefined) {
 		return null;
 	}
-
-	const value = airtableField;
 
 	switch (airtableField.type) {
 		case "createdTime":
@@ -219,6 +218,7 @@ export interface SynchronizeMutationOptions {
 	fields: CollectionField[];
 	ignoredFieldIds: string[];
 	lastSyncedTime: string | null;
+	titleFieldId: string;
 	slugFieldId: string;
 }
 
@@ -240,7 +240,9 @@ export interface SynchronizeResult extends SyncStatus {
 
 async function processItem(
 	item: object,
+	tableSchema: object,
 	fieldsById: FieldsById,
+	titleFieldId: string,
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
@@ -249,9 +251,13 @@ async function processItem(
 	let slugValue: null | string = null;
 	let titleValue: null | string = null;
 
+	const airtableFields = {}
+	for (const field of tableSchema.fields) {
+		airtableFields[field.id] = field
+	}
+
 	const fieldData: Record<string, unknown> = {};
 
-	
 	// Mark the item as seen
 	unsyncedItemIds.delete(item.id);
 	
@@ -264,12 +270,12 @@ async function processItem(
 	// 	return null;
 	// }
 
-	for (const key in item.properties) {
-		const property = item.properties[key];
-		assert(property);
+	for (const fieldId in item.fields) {
+		const value = item.fields[fieldId];
+		const airtableField = airtableFields[fieldId];
 
-		if (property.type === "title") {
-			const resolvedTitle = getPropertyValue(property, "string");
+		if (fieldId === titleFieldId) {
+			const resolvedTitle = getPropertyValue(airtableField, value, "string");
 			if (!resolvedTitle || typeof resolvedTitle !== "string") {
 				continue;
 			}
@@ -277,22 +283,22 @@ async function processItem(
 			titleValue = resolvedTitle;
 		}
 
-		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, "string");
+		if (fieldId === slugFieldId) {
+			const resolvedSlug = getPropertyValue(airtableField, value, "string");
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
 			slugValue = slugify(resolvedSlug);
 		}
 
-		const field = fieldsById.get(property.id);
+		const field = fieldsById.get(fieldId);
 
 		// We can continue if the property was not included in the field mapping
 		if (!field) {
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(property, field.type);
+		const fieldValue = getPropertyValue(airtableField, value, field.type);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -356,7 +362,9 @@ type FieldsById = Map<string, CollectionField>;
 // Function to process all items concurrently with a limit
 async function processAllItems(
 	data: object[],
-	fieldsByKey: FieldsById,
+	tableSchema: object,
+	fieldsById: FieldsById,
+	titleFieldId: string,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
 	lastSyncedDate: string | null
@@ -368,7 +376,7 @@ async function processAllItems(
 		warnings: [],
 	};
 	const promises = data.map((item) =>
-		limit(() => processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
+		limit(() => processItem(item, tableSchema, fieldsById, titleFieldId, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
 	);
 	const results = await Promise.all(promises);
 
@@ -384,7 +392,7 @@ export async function synchronizeDatabase(
 	table: object,
 	baseId: string,
 	baseName: string,
-	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
+	{ fields, ignoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
 	const collection = await framer.getCollection();
 	await collection.setFields(fields);
@@ -403,7 +411,9 @@ export async function synchronizeDatabase(
 
 	const { collectionItems, status } = await processAllItems(
 		data.records,
+		table,
 		fieldsById,
+		titleFieldId,
 		slugFieldId,
 		unsyncedItemIds,
 		lastSyncedTime
@@ -423,6 +433,7 @@ export async function synchronizeDatabase(
 			collection.setPluginData(pluginBaseIdKey, baseId),
 			collection.setPluginData(pluginTableIdKey, table.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
+			collection.setPluginData(pluginTitleFieldIdKey, titleFieldId),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
 			collection.setPluginData(baseNameKey, richTextToPlainText(baseName)),
 		]);
@@ -497,6 +508,7 @@ export interface PluginContextUpdate {
 	lastSyncedTime: string;
 	hasChangedFields: boolean;
 	ignoredFieldIds: FieldId[];
+	titleFieldId: string | null;
 	slugFieldId: string | null;
 	isAuthenticated: boolean;
 }
@@ -563,9 +575,10 @@ export async function getPluginContext(): Promise<PluginContext> {
 		const table = baseSchema.tables.find((t) => t.id === tableId);
 		console.log(table);
 
-		const [rawIgnoredFieldIds, lastSyncedTime, slugFieldId] = await Promise.all([
+		const [rawIgnoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId] = await Promise.all([
 			collection.getPluginData(ignoredFieldIdsKey),
 			collection.getPluginData(pluginLastSyncedKey),
+			collection.getPluginData(pluginTitleFieldIdKey),
 			collection.getPluginData(pluginSlugIdKey),
 		]);
 
@@ -581,6 +594,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 			collectionFields,
 			ignoredFieldIds,
 			lastSyncedTime,
+			titleFieldId,
 			slugFieldId,
 			// hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
 			isAuthenticated: hasAuthToken,
