@@ -1,6 +1,6 @@
 import { framer, Draggable } from "framer-plugin";
 import { useState, useRef, useEffect, Fragment } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, animate } from "framer-motion";
 import { tags, icons, components } from "./framestackData";
 import { ComponentIcons } from "./componentIcons";
 import { SearchBar, XIcon } from "@shared/components";
@@ -20,7 +20,7 @@ framer.showUI({
 	title: "Framestack",
 	position: "center",
 	width: 300,
-	height: 500,
+	height: 550,
 	minHeight: 400,
 	resizable: "height",
 });
@@ -29,12 +29,14 @@ const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
 const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB300", "#FF8822", "#FF4488"];
 
 export function App() {
-	console.log(motion.div);
 	const [activeIndex, setActiveIndex] = useState(-1);
 	const [selectedComponent, setSelectedComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
 	const activeIndexRef = useRef(activeIndex);
 	const containerRef = useRef(null);
+
+	const [tagMenuOpen, setTagMenuOpen] = useState(false);
+	const scrollTop = useMotionValue(0);
 
 	useEffect(() => {
 		if (searchText.length) {
@@ -73,33 +75,47 @@ export function App() {
 		}
 	}, [searchText.length == 0]);
 
-	const scrollToTagSection = (tagIndex) => {
-		if (containerRef.current) {
-			if (tagIndex === -1) {
-				containerRef.current.scrollTop = 0;
-			} else if (tagIndex === 0) {
-				containerRef.current.scrollTop = 1;
-			} else {
-				const element = document.getElementById(`framestack-tag-${tagIndex}`);
-				if (element) {
-					containerRef.current.scrollTop = element.offsetTop;
-				}
-			}
+	const onTagHeaderClick = (tag) => {
+		setTagMenuOpen(!tagMenuOpen);
+
+		if (!tagMenuOpen) {
+			console.log("animate");
+
+			scrollTop.jump(containerRef.current.scrollTop);
+			animate(scrollTop, 0, {
+				...TRANSITION,
+				onUpdate: (value) => {
+					containerRef.current.scrollTop = value;
+				},
+			});
 		}
+
+		// if (containerRef.current) {
+		// 	if (tagIndex === -1) {
+		// 		containerRef.current.scrollTop = 0;
+		// 	} else if (tagIndex === 0) {
+		// 		containerRef.current.scrollTop = 1;
+		// 	} else {
+		// 		const element = document.getElementById(`framestack-tag-${tagIndex}`);
+		// 		if (element) {
+		// 			containerRef.current.scrollTop = element.offsetTop;
+		// 		}
+		// 	}
+		// }
 	};
 
 	return (
 		<main className="relative size-full select-none">
 			<div
 				className={classNames(
-					"flex flex-col flex-1 size-full overflow-hidden",
+					"flex flex-col gap-1 flex-1 size-full overflow-hidden",
 					selectedComponent && "opacity-50 pointer-events-none"
 				)}
 			>
 				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
 				{searchText.length ? (
 					<div key="search-container" className="relative flex-1 overflow-hidden pt-2">
-						<div className="relative flex flex-col overflow-y-auto gap-6 px-3 pb-3 h-full">
+						<div className="relative flex flex-col overflow-y-auto gap-6 px-3 h-full">
 							<TileGrid>
 								{components
 									.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
@@ -112,25 +128,52 @@ export function App() {
 						<div className="absolute top-0 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					</div>
 				) : (
-					<div ref={containerRef} key="main-container" className="relative flex flex-col px-3 pb-3 flex-1 overflow-y-scroll">
-						{tags.map((tag, index) => (
-							<Fragment key={tag}>
-								<TagHeader
-									key={tag}
-									text={tag}
-									color={TAG_COLORS[index]}
-									selected={activeIndex === index}
-									onClick={() => scrollToTagSection(index)}
-								/>
-								<TileGrid>
-									{components
-										.filter((component) => component.tag === tag)
-										.map((component, _) => (
-											<ComponentTile key={component.name} component={component} onClick={() => setSelectedComponent(component)} />
-										))}
-								</TileGrid>
-							</Fragment>
-						))}
+					<div className="relative w-full flex flex-col flex-1 overflow-hidden">
+						<div className="absolute top-0 w-full h-3 bg-primary z-10" />
+						<motion.div
+							ref={containerRef}
+							key="main-container"
+							className="relative flex flex-col px-3 pt-2 flex-1 overflow-y-scroll"
+						>
+							{tags.map((tag, index) => (
+								<Fragment key={tag}>
+									<TagHeader
+										key={tag}
+										text={tag}
+										color={TAG_COLORS[index]}
+										selected={activeIndex === index}
+										tagMenuOpen={tagMenuOpen}
+										onClick={() => onTagHeaderClick(tag)}
+									/>
+									<motion.div
+										className="w-full"
+										style={{
+											overflowY: "hidden",
+											height: "auto",
+											flexShrink: 0,
+										}}
+										animate={{
+											height: tagMenuOpen ? 0 : "auto",
+											opacity: tagMenuOpen ? 0 : 1,
+										}}
+										initial={false}
+										transition={TRANSITION}
+									>
+										<TileGrid>
+											{components
+												.filter((component) => component.tag === tag)
+												.map((component, _) => (
+													<ComponentTile
+														key={component.name}
+														component={component}
+														onClick={() => setSelectedComponent(component)}
+													/>
+												))}
+										</TileGrid>
+									</motion.div>
+								</Fragment>
+							))}
+						</motion.div>
 					</div>
 				)}
 			</div>
@@ -157,12 +200,13 @@ function TagHeader(props) {
 			initial={false}
 			transition={TRANSITION}
 		>
-			<div className="relative flex flex-row items-center px-2 py-3 gap-2 h-full z-10 bg-primary">
+			<div className="relative flex flex-row items-center px-2 pb-3 pt-1 gap-2 h-full z-30 bg-primary">
+				<div className="absolute inset-x-0 bottom-1 -top-1 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
 				<div
 					style={{
 						background: props.color,
 					}}
-					className="relative rounded size-6 flex items-center justify-center text-[#FFF]"
+					className="relative rounded size-6 flex items-center justify-center text-[#FFF] pointer-events-none"
 				>
 					<div
 						style={{
@@ -172,95 +216,35 @@ function TagHeader(props) {
 					/>
 					{icons[props.text]}
 				</div>
-				<span className="flex-1 pt-[1px]">{props.text}</span>
-				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+				<span className="relative flex-1 pt-[1px] pointer-events-none">{props.text}</span>
+				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="rotate-90 pointer-events-none">
 					<path
 						d="M 7 0 L 3.5 3.5 L 0 0"
 						transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
 						fill="transparent"
 						strokeWidth="1.5"
-						stroke="var(--framestack-color-text-middle)"
+						stroke="var(--framer-color-text-tertiary)"
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					></path>
 				</svg>
 			</div>
-			<div className="absolute top-[calc(100%-10px)] -left-2 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-			<div className="absolute top-[calc(100%-10px)] -right-2 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-			<div className="absolute bottom-[calc(100%-10px)] left-0 w-10 border-[10px] border-t-[0px] border-primary rounded-b-[18px] h-5" />
-		</motion.div>
-	);
-}
-
-function TagButton(props) {
-	return (
-		<motion.div
-			{...props}
-			animate={{
-				color: props.selected ? "var(--framer-color-text)" : "var(--framestack-color-text-middle)",
-			}}
-			className="relative min-h-10 max-h-10 cursor-pointer"
-			initial={false}
-			transition={TRANSITION}
-		>
-			{props.selected && (
-				<motion.div
-					layoutId="tag-button-background"
-					className="absolute inset-0 rounded-xl bg-tertiary"
-					initial={false}
-					transition={TRANSITION}
-				/>
-			)}
-			<div className="relative flex flex-row items-center gap-2 px-2 h-full z-10">
-				<div
-					style={{
-						background: props.color,
-					}}
-					className="relative rounded size-6 flex items-center justify-center text-[#FFF]"
-				>
-					<div
-						style={{
-							boxShadow: `0 4px 8px 0 ${props.color.startsWith("#") ? props.color : `#${props.color.match(/#(.{6})/)?.[1]}`}`,
-						}}
-						className="absolute inset-0 rounded opacity-20"
-					/>
-					{icons[props.text]}
-				</div>
-				<span className="flex-1 pt-[1px]">{props.text}</span>
-				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-					<path
-						d="M 7 0 L 3.5 3.5 L 0 0"
-						transform="translate(1.5 3.5) rotate(-90 3.5 1.75)"
-						fill="transparent"
-						strokeWidth="1.5"
-						stroke="var(--framestack-color-text-middle)"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					></path>
-				</svg>
-			</div>
-		</motion.div>
-	);
-}
-
-function SectionDivider({ children }) {
-	return (
-		<>
-			<div className="relative z-10 min-h-[1px] w-full bg-divider my-3" />
-			<span
-				style={{
-					color: "var(--framestack-color-text-middle)",
+			<div className="absolute top-[calc(100%-5px)] -left-2 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+			<div className="absolute top-[calc(100%-5px)] -right-2 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+			<motion.div
+				className="absolute -top-3 h-3 inset-x-0 bg-gradient-to-t from-[var(--framer-color-bg)] to-transparent pointer-events-none"
+				animate={{
+					opacity: props.tagMenuOpen ? 0 : 1,
 				}}
-				className="relative z-10 pl-2 pb-2 pt-1"
-			>
-				{children}
-			</span>
-		</>
+				initial={false}
+				transition={TRANSITION}
+			/>
+		</motion.div>
 	);
 }
 
 function TileGrid({ children }) {
-	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-4">{children}</div>;
+	return <div className="grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 pt-1">{children}</div>;
 }
 
 function ComponentTile({ component, onClick }) {
