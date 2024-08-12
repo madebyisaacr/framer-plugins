@@ -18,7 +18,6 @@ export const getOauthURL = (writeKey: string) =>
 // Storage for the Airtable API key.
 const airtableAccessTokenKey = "airtableAccessToken";
 const airtableRefreshTokenKey = "airtableRefreshToken";
-const airtableTokenExpiresAtKey = "airtableTokenExpiresAt";
 
 const pluginBaseIdKey = "airtablePluginBaseId";
 const pluginLastSyncedKey = "airtablePluginLastSynced";
@@ -35,19 +34,31 @@ const concurrencyLimit = 5;
 // For simplicity we just close the plugin and clear storage in that case.
 // TODO: Refresh the token when it expires
 export function isAuthenticated() {
-	return localStorage.getItem(airtableAccessTokenKey) !== null;
+	return localStorage.getItem(airtableRefreshTokenKey) !== null;
 }
 
-// let airtable: Airtable | null = null;
+// TODO: Check if refresh token is expired (60 days)
+async function refreshToken() {
+	// Do not refresh if we already have an access token
+	if (sessionStorage.getItem(airtableAccessTokenKey)) {
+		return;
+	}
+
+	const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${sessionStorage.getItem(airtableRefreshTokenKey)}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+
+	const { access_token, refresh_token } = await response.json();
+
+	sessionStorage.setItem(airtableAccessTokenKey, access_token);
+	localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+}
 
 if (isAuthenticated()) {
-	initAirtableClient();
-}
-
-// TODO: This does not do anything anymore. Figure out how to replace it.
-export function initAirtableClient() {
-	const token = localStorage.getItem(airtableAccessTokenKey);
-	if (!token) throw new Error("Airtable API token is missing");
+	refreshToken();
 }
 
 // DONE
@@ -56,7 +67,7 @@ export async function airtableFetch(url: string) {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${localStorage.getItem(airtableAccessTokenKey)}`,
+			Authorization: `Bearer ${sessionStorage.getItem(airtableAccessTokenKey)}`,
 		},
 	});
 	const data = await response.json();
@@ -121,13 +132,9 @@ export async function authorize() {
 			if (resp.status === 200 && tokenInfo) {
 				const { access_token, refresh_token } = tokenInfo;
 
-				console.log("tokenInfo", tokenInfo);
-
 				clearInterval(interval);
-				localStorage.setItem(airtableAccessTokenKey, access_token);
+				sessionStorage.setItem(airtableAccessTokenKey, access_token);
 				localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-				localStorage.setItem(airtableTokenExpiresAtKey, new Date().toISOString() + tokenInfo.expires_in);
-				initAirtableClient();
 				resolve();
 			}
 		}, 2500);

@@ -100,7 +100,7 @@ async function handleRequest(request: Request, env: Env) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
-				Authorization: `Basic ${Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64')}`,
+				Authorization: getAuthorizationHeader(env),
 			},
 			body: tokenParams.toString(),
 		});
@@ -161,7 +161,7 @@ async function handleRequest(request: Request, env: Env) {
 	}
 
 	if (request.method === 'POST' && requestUrl.pathname.startsWith('/refresh/')) {
-		const refreshToken = requestUrl.searchParams.get('code');
+		const refreshToken = requestUrl.searchParams.get('refresh_token');
 
 		if (!refreshToken) {
 			return new Response('Missing refresh token URL param', {
@@ -175,7 +175,6 @@ async function handleRequest(request: Request, env: Env) {
 		const refreshParams = new URLSearchParams();
 		refreshParams.append('refresh_token', refreshToken);
 		refreshParams.append('client_id', env.CLIENT_ID);
-		refreshParams.append('client_secret', env.CLIENT_SECRET);
 		refreshParams.append('grant_type', 'refresh_token');
 
 		const refreshUrl = new URL(env.TOKEN_ENDPOINT);
@@ -183,6 +182,10 @@ async function handleRequest(request: Request, env: Env) {
 
 		const refreshResponse = await fetch(refreshUrl.toString(), {
 			method: 'POST',
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				Authorization: getAuthorizationHeader(env),
+			}
 		});
 
 		if (refreshResponse.status !== 200) {
@@ -237,3 +240,7 @@ export default {
 		});
 	},
 };
+
+function getAuthorizationHeader(env) {
+	return `Basic ${Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64')}`
+}
