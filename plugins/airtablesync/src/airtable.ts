@@ -3,8 +3,6 @@ import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
-import Airtable from "airtable";
-import type { Base, FieldSet } from "airtable";
 
 export type FieldId = string;
 
@@ -38,27 +36,26 @@ export function isAuthenticated() {
 }
 
 // TODO: Check if refresh token is expired (60 days)
-async function refreshToken() {
+export async function refreshAirtableToken() {
+	console.log("Refreshing token");
 	// Do not refresh if we already have an access token
 	if (sessionStorage.getItem(airtableAccessTokenKey)) {
 		return;
 	}
 
-	const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${sessionStorage.getItem(airtableRefreshTokenKey)}`, {
+	const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
 	});
 
-	const { access_token, refresh_token } = await response.json();
+	const responseJson = await response.json();
+	console.log(responseJson);
+	const { access_token, refresh_token } = responseJson;
 
 	sessionStorage.setItem(airtableAccessTokenKey, access_token);
 	localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-}
-
-if (isAuthenticated()) {
-	refreshToken();
 }
 
 // DONE
@@ -154,8 +151,9 @@ export function getCollectionFieldForAirtableField(airtableField: object, name: 
 	};
 }
 
-export function richTextToPlainText(richText: RichTextItemResponse[]) {
-	return richText.map((value) => value.plain_text).join("");
+// TODO: Support Airtable's rich text markdown format
+export function richTextToPlainText(richText: string) {
+	return richText;
 }
 
 export function getPropertyValue(airtableField, fieldType: string): unknown | undefined {

@@ -1,5 +1,5 @@
 // import { richTextToPlainText, useDatabasesQuery } from "./airtable";
-import { airtableFetch } from "./airtable";
+import { airtableFetch, authorize } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
 import notionConnectSrc from "./assets/notion-connect.png";
 import { assert } from "./utils";
@@ -19,7 +19,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 	const [bases, setBases] = useState([]);
 	const [isRefetching, setIsRefetching] = useState(false);
 
-	framer.showUI({ width: 750, height: 550 });
+	framer.showUI({ width: 450, height: 550 });
 
 	async function fetchBases() {
 		if (!isLoading) {
@@ -76,18 +76,11 @@ export function SelectDatabase({ onDatabaseSelected }) {
 	};
 
 	return (
-		<div className="flex flex-row gap-3 size-full px-3 pb-3">
-			<div className="flex flex-col gap-3 w-[280px]">
-				<img src={notionConnectSrc} className="rounded" />
-				<p>
-					Connect your databases: open a database in Notion, click the ... button in the top-right corner of the page, then pick
-					Connections → Connect to → Framer.
-				</p>
-			</div>
-			<div className="w-[1px] bg-divider" />
-			<div className="flex flex-col gap-1 flex-1 justify-between">
+		<div className="flex flex-row gap-3 size-full p-3">
+			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
+			<div className="flex flex-col gap-2 flex-1 justify-between">
 				<div className="flex items-center justify-between">
-					<span>Select a table from an Airtable base to sync</span>
+					<span className="text-secondary">Select a table from an Airtable base to sync</span>
 					<button
 						className="w-[32px] bg-transparent flex items-center justify-center text-secondary"
 						type="button"
@@ -131,6 +124,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						))}
 					</div>
 				)}
+				<Button onClick={authorize}>Connect Another Base</Button>
 				<Button primary disabled={!selectedBase} onClick={handleSubmit}>
 					Next: Configure Collection Fields
 				</Button>

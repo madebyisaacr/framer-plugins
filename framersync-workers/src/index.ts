@@ -106,8 +106,6 @@ async function handleRequest(request: Request, env: Env) {
 		});
 
 		if (tokenResponse.status !== 200) {
-			console.log(tokenResponse.status, tokenResponse.statusText);
-
 			return new Response(tokenResponse.statusText, {
 				status: tokenResponse.status,
 			});
@@ -177,7 +175,7 @@ async function handleRequest(request: Request, env: Env) {
 		refreshParams.append('client_id', env.CLIENT_ID);
 		refreshParams.append('grant_type', 'refresh_token');
 
-		const refreshUrl = new URL(env.TOKEN_ENDPOINT);
+		const refreshUrl = new URL("https://airtable.com/oauth2/v1/token");
 		refreshUrl.search = refreshParams.toString();
 
 		const refreshResponse = await fetch(refreshUrl.toString(), {

@@ -75,7 +75,7 @@ export function App() {
 		if (searchContainerRef.current) {
 			searchContainerRef.current.scrollTop = 0;
 		}
-	}, [searchText])
+	}, [searchText]);
 
 	const onTagClick = (index) => {
 		setTagMenuOpen(!tagMenuOpen);
