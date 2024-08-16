@@ -34,9 +34,9 @@ export function AuthenticatedApp({ context }: AppProps) {
 		<MapDatabaseFields
 			table={databaseConfig}
 			pluginContext={context}
-			onSubmit={synchronizeMutation.mutate}
-			error={synchronizeMutation.error}
-			isLoading={synchronizeMutation.isPending}
+			onSubmit={() => console.log("On Submit")}
+			error={null}
+			isLoading={false}
 		/>
 	);
 }

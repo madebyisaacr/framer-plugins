@@ -518,11 +518,11 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 export async function getPluginContext(): Promise<PluginContext> {
 	const collection = await framer.getManagedCollection();
 	const collectionFields = await collection.getFields();
-	const base.id = await collection.getPluginData(pluginBaseIdKey);
+	const baseId = await collection.getPluginData(pluginBaseIdKey);
 	const tableId = await collection.getPluginData(pluginTableIdKey);
 	const hasAuthToken = isAuthenticated();
 
-	if (!base.id || !tableId || !hasAuthToken) {
+	if (!baseId || !tableId || !hasAuthToken) {
 		return {
 			type: "new",
 			collection,
@@ -534,7 +534,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		// assert(notion, "Notion client is not initialized");
 		// const database = await notion.databases.retrieve({ database_id: databaseId });
 
-		const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
+		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
 		console.log(baseSchema);
 
 		const table = baseSchema.tables.find((t) => t.id === tableId);
@@ -553,7 +553,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		return {
 			type: "update",
 			base: {
-				id: base.id,
+				id: baseId,
 				name: "Base Name", // TODO: Get base name
 			},
 			table,

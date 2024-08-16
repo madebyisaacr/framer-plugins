@@ -91,9 +91,9 @@ async function runPlugin() {
 		renderPlugin(pluginContext, <App context={pluginContext} />);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		framer.closePlugin("An unexpected error ocurred: " + message, {
-			variant: "error",
-		});
+		// framer.closePlugin("An unexpected error ocurred: " + message, {
+		// 	variant: "error",
+		// });
 	}
 }
 

@@ -72,7 +72,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 			return;
 		}
 
-		onDatabaseSelected(database);
+		onDatabaseSelected(baseTables[selectedBase].find((table) => table.id === selectedTable));
 	};
 
 	return (
