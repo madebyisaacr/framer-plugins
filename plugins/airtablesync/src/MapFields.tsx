@@ -3,7 +3,7 @@ import { assert } from "./utils";
 import {
 	PluginContext,
 	SynchronizeMutationOptions,
-	getCollectionFieldForAirtableField,
+	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	richTextToPlainText,
@@ -16,7 +16,7 @@ import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 
 const fieldConversionMessages = {};
-const airtableFieldTypeNames = {
+const propertyTypeNames = {
 	aiText: "AI Text",
 	multipleAttachments: "Attachment",
 	autoNumber: "Auto number",
@@ -64,7 +64,7 @@ const cmsFieldTypeNames = {
 	slug: "Slug",
 	title: "Title",
 };
-const airtableFieldConversionTypes: Record<string, string[]> = {
+const propertyConversionTypes: Record<string, string[]> = {
 	aiText: ["string"],
 	multipleAttachments: ["link", "image"],
 	autoNumber: ["number"],
@@ -101,7 +101,7 @@ const airtableFieldConversionTypes: Record<string, string[]> = {
 };
 
 interface CollectionFieldConfig {
-	airtableField: object;
+	property: object;
 	isNewField: boolean;
 	originalFieldName: string;
 	unsupported: boolean;
@@ -130,17 +130,17 @@ function createFieldConfig(table: object, pluginContext: PluginContext): Collect
 	);
 
 	for (const key in table.fields) {
-		const airtableField = table.fields[key];
-		assert(airtableField);
+		const property = table.fields[key];
+		assert(property);
 
-		const conversionTypes = airtableFieldConversionTypes[airtableField.type] ?? [];
+		const conversionTypes = propertyConversionTypes[property.type] ?? [];
 
 		result.push({
 			// field: getCollectionFieldForProperty(property),
-			originalFieldName: airtableField.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(airtableField.id),
+			originalFieldName: property.name,
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
 			unsupported: !conversionTypes.length,
-			airtableField,
+			property,
 			conversionTypes,
 			isPageLevelField: false,
 		});
@@ -248,18 +248,18 @@ export function MapDatabaseFields({
 		for (const fieldConfig of fieldConfigList) {
 			if (
 				!fieldConfig ||
-				!fieldConfig.airtableField ||
+				!fieldConfig.property ||
 				fieldConfig.unsupported ||
-				disabledFieldIds.has(fieldConfig.airtableField.id)
+				disabledFieldIds.has(fieldConfig.property.id)
 			) {
 				continue;
 			}
 
 			fields.push(
-				getCollectionFieldForAirtableField(
-					fieldConfig.airtableField,
-					fieldNameOverrides[fieldConfig.airtableField.id] || fieldConfig.airtableField.name,
-					fieldTypes[fieldConfig.airtableField.id]
+				getCollectionFieldForProperty(
+					fieldConfig.property,
+					fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
+					fieldTypes[fieldConfig.property.id]
 				)
 			);
 		}
@@ -275,7 +275,7 @@ export function MapDatabaseFields({
 	};
 
 	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {
-		const id = fieldConfig.airtableField.id;
+		const id = fieldConfig.property.id;
 		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
 		return (
@@ -287,21 +287,21 @@ export function MapDatabaseFields({
 					<input
 						type="checkbox"
 						id={`${id}-checkbox`}
-						disabled={!fieldConfig.airtableField}
-						checked={!!fieldConfig.airtableField && !isDisabled}
+						disabled={!fieldConfig.property}
+						checked={!!fieldConfig.property && !isDisabled}
 						className={classNames(
 							"mx-auto",
-							!fieldConfig.airtableField && "opacity-50",
-							fieldConfig.airtableField && !fieldConfig.unsupported && "cursor-pointer"
+							!fieldConfig.property && "opacity-50",
+							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
 						)}
 						onChange={() => {
-							assert(fieldConfig.airtableField);
+							assert(fieldConfig.property);
 
 							handleFieldToggle(id);
 						}}
 					/>
 				</label>
-				<StaticInput disabled={isDisabled} leftText={airtableFieldTypeNames[fieldConfig.airtableField.type]}>
+				<StaticInput disabled={isDisabled} leftText={propertyTypeNames[fieldConfig.property.type]}>
 					{fieldConfig.originalFieldName}
 					{fieldConfig.isNewField && !fieldConfig.unsupported && (
 						<div
@@ -328,7 +328,7 @@ export function MapDatabaseFields({
 							placeholder={fieldConfig.originalFieldName}
 							value={fieldNameOverrides[id] ?? ""}
 							onChange={(e) => {
-								assert(fieldConfig.airtableField);
+								assert(fieldConfig.property);
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
@@ -342,7 +342,7 @@ export function MapDatabaseFields({
 				)}
 				<FieldInfoTooltip
 					fieldType={fieldTypes[id]}
-					propertyType={fieldConfig.airtableField.type}
+					propertyType={fieldConfig.property.type}
 					unsupported={fieldConfig.unsupported}
 				/>
 			</Fragment>
@@ -387,9 +387,9 @@ export function MapDatabaseFields({
 								Slug Field Property
 							</option>
 							<hr />
-							{slugFields.map((airtableField) => (
-								<option key={airtableField.id} value={airtableField.id}>
-									{airtableField.name}
+							{slugFields.map((property) => (
+								<option key={property.id} value={property.id}>
+									{property.name}
 								</option>
 							))}
 						</select>
@@ -443,8 +443,8 @@ export function MapDatabaseFields({
 function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
 	const title = unsupported
-		? `${airtableFieldTypeNames[propertyType]} is not supported`
-		: `${propertyType == "page-icon" ? "Page Icon" : airtableFieldTypeNames[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
+		? `${propertyTypeNames[propertyType]} is not supported`
+		: `${propertyType == "page-icon" ? "Page Icon" : propertyTypeNames[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
 
 	const [hover, setHover] = useState(false);
 

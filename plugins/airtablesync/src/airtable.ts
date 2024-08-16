@@ -89,9 +89,9 @@ export function getPossibleSlugFields(table: object) {
 
 	const options: object[] = [];
 
-	for (const airtableField of table.fields) {
-		if (slugFieldTypes.includes(airtableField.type)) {
-			options.push(airtableField);
+	for (const property of table.fields) {
+		if (slugFieldTypes.includes(property.type)) {
+			options.push(property);
 		}
 	}
 	function getOrderIndex(type: string): number {
@@ -145,10 +145,10 @@ export async function authorize() {
  * That maps the Airtable field to the Framer CMS collection property type
  */
 // DONE
-export function getCollectionFieldForAirtableField(airtableField: object, name: string, type: string): CollectionField | null {
+export function getCollectionFieldForProperty(property: object, name: string, type: string): CollectionField | null {
 	return {
 		type: type,
-		id: airtableField.id,
+		id: property.id,
 		name,
 	};
 }
@@ -159,12 +159,12 @@ export function richTextToPlainText(richText: string) {
 }
 
 // DONE
-export function getPropertyValue(airtableField: object, value: any, fieldType: string): unknown | undefined {
-	if (airtableField === null || airtableField === undefined || value === null || value === undefined) {
+export function getPropertyValue(property: object, value: any, fieldType: string): unknown | undefined {
+	if (property === null || property === undefined || value === null || value === undefined) {
 		return null;
 	}
 
-	switch (airtableField.type) {
+	switch (property.type) {
 		case "createdTime":
 		case "currency":
 		case "date":
@@ -247,9 +247,9 @@ async function processItem(
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
-	const airtableFields = {};
+	const properties = {};
 	for (const field of tableSchema.fields) {
-		airtableFields[field.id] = field;
+		properties[field.id] = field;
 	}
 
 	const fieldData: Record<string, unknown> = {};
@@ -269,10 +269,10 @@ async function processItem(
 
 	for (const fieldId in item.fields) {
 		const value = item.fields[fieldId];
-		const airtableField = airtableFields[fieldId];
+		const property = properties[fieldId];
 
 		if (fieldId === slugFieldId) {
-			const resolvedSlug = getPropertyValue(airtableField, value, "string");
+			const resolvedSlug = getPropertyValue(property, value, "string");
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
@@ -286,7 +286,7 @@ async function processItem(
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(airtableField, value, field.type);
+		const fieldValue = getPropertyValue(property, value, field.type);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -500,19 +500,19 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 }
 
 function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
-	const airtableFields: object[] = [];
+	const properties: object[] = [];
 
-	for (const airtableField of table.airtableFields) {
+	for (const property of table.properties) {
 		// These fields were ignored by the user
-		if (ignoredFieldIds.includes(airtableField.id)) continue;
+		if (ignoredFieldIds.includes(property.id)) continue;
 
-		const field = getCollectionFieldForAirtableField(airtableField);
+		const field = getCollectionFieldForProperty(property);
 		if (field) {
-			airtableFields.push(field);
+			properties.push(field);
 		}
 	}
 
-	return airtableFields;
+	return properties;
 }
 
 export async function getPluginContext(): Promise<PluginContext> {
