@@ -211,8 +211,6 @@ export function MapDatabaseFields({
 	);
 	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext));
 
-	assert(isFullDatabase(database));
-
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
 			const nextSet = new Set(current);
@@ -248,15 +246,20 @@ export function MapDatabaseFields({
 		const fields: any[] = [];
 
 		for (const fieldConfig of fieldConfigList) {
-			if (!fieldConfig || !fieldConfig.property || fieldConfig.unsupported || disabledFieldIds.has(fieldConfig.property.id)) {
+			if (
+				!fieldConfig ||
+				!fieldConfig.airtableField ||
+				fieldConfig.unsupported ||
+				disabledFieldIds.has(fieldConfig.airtableField.id)
+			) {
 				continue;
 			}
 
 			fields.push(
-				getCollectionFieldForProperty(
-					fieldConfig.property,
-					fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
-					fieldTypes[fieldConfig.property.id]
+				getCollectionFieldForAirtableField(
+					fieldConfig.airtableField,
+					fieldNameOverrides[fieldConfig.airtableField.id] || fieldConfig.airtableField.name,
+					fieldTypes[fieldConfig.airtableField.id]
 				)
 			);
 		}
@@ -267,12 +270,12 @@ export function MapDatabaseFields({
 			fields,
 			ignoredFieldIds: Array.from(disabledFieldIds),
 			slugFieldId,
-			lastSyncedTime: getLastSyncedTime(pluginContext, database, slugFieldId, disabledFieldIds),
+			lastSyncedTime: getLastSyncedTime(pluginContext, table, slugFieldId, disabledFieldIds),
 		});
 	};
 
 	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {
-		const id = fieldConfig.property.id;
+		const id = fieldConfig.airtableField.id;
 		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
 		return (
@@ -284,21 +287,21 @@ export function MapDatabaseFields({
 					<input
 						type="checkbox"
 						id={`${id}-checkbox`}
-						disabled={!fieldConfig.property}
-						checked={!!fieldConfig.property && !isDisabled}
+						disabled={!fieldConfig.airtableField}
+						checked={!!fieldConfig.airtableField && !isDisabled}
 						className={classNames(
 							"mx-auto",
-							!fieldConfig.property && "opacity-50",
-							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
+							!fieldConfig.airtableField && "opacity-50",
+							fieldConfig.airtableField && !fieldConfig.unsupported && "cursor-pointer"
 						)}
 						onChange={() => {
-							assert(fieldConfig.property);
+							assert(fieldConfig.airtableField);
 
 							handleFieldToggle(id);
 						}}
 					/>
 				</label>
-				<StaticInput disabled={isDisabled} leftText={airtableFieldTypeNames[fieldConfig.property.type]}>
+				<StaticInput disabled={isDisabled} leftText={airtableFieldTypeNames[fieldConfig.airtableField.type]}>
 					{fieldConfig.originalFieldName}
 					{fieldConfig.isNewField && !fieldConfig.unsupported && (
 						<div
@@ -325,7 +328,7 @@ export function MapDatabaseFields({
 							placeholder={fieldConfig.originalFieldName}
 							value={fieldNameOverrides[id] ?? ""}
 							onChange={(e) => {
-								assert(fieldConfig.property);
+								assert(fieldConfig.airtableField);
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
@@ -339,7 +342,7 @@ export function MapDatabaseFields({
 				)}
 				<FieldInfoTooltip
 					fieldType={fieldTypes[id]}
-					propertyType={fieldConfig.property.type}
+					propertyType={fieldConfig.airtableField.type}
 					unsupported={fieldConfig.unsupported}
 				/>
 			</Fragment>
@@ -412,17 +415,17 @@ export function MapDatabaseFields({
 							<>
 								<span className="text-tertiary flex-shrink-0 whitespace-pre">Importing from </span>
 								<a
-									href={database?.url}
+									href={`https://airtable.com/${pluginContext.base?.id}/${table.id}`}
 									className="font-semibold text-secondary hover:text-primary truncate"
 									target="_blank"
 									tabIndex={-1}
 								>
-									{database ? richTextToPlainText(database.title) : ""}
+									{pluginContext.base?.name || ""}
 								</a>
 							</>
 						)}
 					</div>
-					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
+					<Button primary className="w-auto px-3" disabled={!slugFieldId || !table}>
 						{pluginContext.type === "update" ? "Save & Import" : "Import"}
 					</Button>
 				</div>

@@ -21,7 +21,6 @@ const pluginBaseIdKey = "airtablePluginBaseId";
 const pluginTableIdKey = "airtablePluginTableId";
 const pluginLastSyncedKey = "airtablePluginLastSynced";
 const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
-const pluginTitleFieldIdKey = "airtablePluginTitleFieldId";
 const pluginSlugIdKey = "airtablePluginSlugId";
 const baseNameKey = "airtableBaseName";
 
@@ -218,7 +217,6 @@ export interface SynchronizeMutationOptions {
 	fields: CollectionField[];
 	ignoredFieldIds: string[];
 	lastSyncedTime: string | null;
-	titleFieldId: string;
 	slugFieldId: string;
 }
 
@@ -242,14 +240,12 @@ async function processItem(
 	item: object,
 	tableSchema: object,
 	fieldsById: FieldsById,
-	titleFieldId: string,
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
 	lastSyncedTime: string | null
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
-	let titleValue: null | string = null;
 
 	const airtableFields = {};
 	for (const field of tableSchema.fields) {
@@ -262,7 +258,7 @@ async function processItem(
 	unsyncedItemIds.delete(item.id);
 
 	// TODO: Airtable records do not have last edited time, so find a workaround.
-	
+
 	// if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
 	// 	status.info.push({
 	// 		message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
@@ -274,15 +270,6 @@ async function processItem(
 	for (const fieldId in item.fields) {
 		const value = item.fields[fieldId];
 		const airtableField = airtableFields[fieldId];
-
-		if (fieldId === titleFieldId) {
-			const resolvedTitle = getPropertyValue(airtableField, value, "string");
-			if (!resolvedTitle || typeof resolvedTitle !== "string") {
-				continue;
-			}
-
-			titleValue = resolvedTitle;
-		}
 
 		if (fieldId === slugFieldId) {
 			const resolvedSlug = getPropertyValue(airtableField, value, "string");
@@ -342,10 +329,10 @@ async function processItem(
 		}
 	}
 
-	if (!slugValue || !titleValue) {
+	if (!slugValue) {
 		status.warnings.push({
 			url: item.url,
-			message: "Slug or Title is missing. Skipping item.",
+			message: "Slug is missing. Skipping item.",
 		});
 		return null;
 	}
@@ -354,7 +341,6 @@ async function processItem(
 		id: item.id,
 		fieldData,
 		slug: slugValue,
-		title: titleValue,
 	};
 }
 
@@ -365,7 +351,6 @@ async function processAllItems(
 	data: object[],
 	tableSchema: object,
 	fieldsById: FieldsById,
-	titleFieldId: string,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
 	lastSyncedDate: string | null
@@ -377,7 +362,7 @@ async function processAllItems(
 		warnings: [],
 	};
 	const promises = data.map((item) =>
-		limit(() => processItem(item, tableSchema, fieldsById, titleFieldId, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
+		limit(() => processItem(item, tableSchema, fieldsById, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
 	);
 	const results = await Promise.all(promises);
 
@@ -392,7 +377,7 @@ async function processAllItems(
 export async function synchronizeDatabase(
 	base: object,
 	table: object,
-	{ fields, ignoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId }: SynchronizeMutationOptions
+	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
 	const collection = await framer.getManagedCollection();
 	await collection.setFields(fields);
@@ -413,7 +398,6 @@ export async function synchronizeDatabase(
 		data.records,
 		table,
 		fieldsById,
-		titleFieldId,
 		slugFieldId,
 		unsyncedItemIds,
 		lastSyncedTime
@@ -433,7 +417,6 @@ export async function synchronizeDatabase(
 			collection.setPluginData(pluginBaseIdKey, base.id),
 			collection.setPluginData(pluginTableIdKey, table.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
-			collection.setPluginData(pluginTitleFieldIdKey, titleFieldId),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
 			collection.setPluginData(baseNameKey, richTextToPlainText(base.name)),
 		]);
@@ -484,13 +467,13 @@ export interface PluginContextNew {
 
 export interface PluginContextUpdate {
 	type: "update";
+	base: object;
 	table: object;
 	collection: ManagedCollection;
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;
 	hasChangedFields: boolean;
 	ignoredFieldIds: FieldId[];
-	titleFieldId: string | null;
 	slugFieldId: string | null;
 	isAuthenticated: boolean;
 }
@@ -557,10 +540,9 @@ export async function getPluginContext(): Promise<PluginContext> {
 		const table = baseSchema.tables.find((t) => t.id === tableId);
 		console.log(table);
 
-		const [rawIgnoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId] = await Promise.all([
+		const [rawIgnoredFieldIds, lastSyncedTime, slugFieldId] = await Promise.all([
 			collection.getPluginData(ignoredFieldIdsKey),
 			collection.getPluginData(pluginLastSyncedKey),
-			collection.getPluginData(pluginTitleFieldIdKey),
 			collection.getPluginData(pluginSlugIdKey),
 		]);
 
@@ -570,7 +552,6 @@ export async function getPluginContext(): Promise<PluginContext> {
 
 		return {
 			type: "update",
-			// database,
 			base: {
 				id: base.id,
 				name: "Base Name", // TODO: Get base name
@@ -580,7 +561,6 @@ export async function getPluginContext(): Promise<PluginContext> {
 			collectionFields,
 			ignoredFieldIds,
 			lastSyncedTime,
-			titleFieldId,
 			slugFieldId,
 			// hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
 			isAuthenticated: hasAuthToken,
