@@ -442,7 +442,7 @@ export async function synchronizeDatabase(
 	assert(isFullDatabase(database));
 	assert(notion);
 
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	await collection.setFields(fields);
 
 	const fieldsById = new Map<string, CollectionField>();

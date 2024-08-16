@@ -1,6 +1,6 @@
 {
     "id": "Xj485W",
     "name": "NotionSync",
-    "modes": ["configureCollection", "syncCollection"],
+    "modes": ["configureManagedCollection", "syncManagedCollection"],
     "icon": "/notion.png"
 }

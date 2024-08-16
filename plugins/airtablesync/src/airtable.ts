@@ -394,7 +394,7 @@ export async function synchronizeDatabase(
 	baseName: string,
 	{ fields, ignoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	await collection.setFields(fields);
 
 	const fieldsById = new Map<string, CollectionField>();
@@ -551,7 +551,7 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 }
 
 export async function getPluginContext(): Promise<PluginContext> {
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	const collectionFields = await collection.getFields();
 	const baseId = await collection.getPluginData(pluginBaseIdKey);
 	const tableId = await collection.getPluginData(pluginTableIdKey);

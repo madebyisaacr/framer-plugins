@@ -24,7 +24,7 @@ export const cmsFieldTypeNames = {
 };
 
 export async function syncCollectionItems(pluginContext, items) {
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	const existingItemIds = await collection.getItemIds();
 	const itemIds = items.map((item) => item.id);
 
@@ -38,7 +38,7 @@ export async function syncCollectionItems(pluginContext, items) {
 }
 
 export async function syncCollectionFields(pluginContext, fields) {
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	const disabledFieldIds = pluginContext.disabledFieldIds;
 
 	let collectionFields = fields.filter((field) => !disabledFieldIds.includes(field.id));

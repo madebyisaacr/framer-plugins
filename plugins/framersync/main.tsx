@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
 	},
 });
 
-const collection = await framer.getCollection();
+const collection = await framer.getManagedCollection();
 
 const integrationId = await collection.getPluginData(pluginDataKeys.integrationId);
 const isAuthenticated = await collection.getPluginData(pluginDataKeys.isAuthenticated);

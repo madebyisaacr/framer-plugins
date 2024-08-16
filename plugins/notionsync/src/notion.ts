@@ -430,7 +430,7 @@ export async function synchronizeDatabase(
 	assert(isFullDatabase(database));
 	assert(notion);
 
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	await collection.setFields(fields);
 
 	const fieldsById = new Map<string, CollectionField>();
@@ -583,7 +583,7 @@ function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFie
 }
 
 export async function getPluginContext(): Promise<PluginContext> {
-	const collection = await framer.getCollection();
+	const collection = await framer.getManagedCollection();
 	const collectionFields = await collection.getFields();
 	const databaseId = await collection.getPluginData(pluginDatabaseIdKey);
 	const hasAuthToken = isAuthenticated();
