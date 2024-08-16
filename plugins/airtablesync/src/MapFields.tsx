@@ -122,7 +122,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(table, pluginContext: PluginContext): CollectionFieldConfig[] {
+function createFieldConfig(table: object, pluginContext: PluginContext): CollectionFieldConfig[] {
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
@@ -130,17 +130,17 @@ function createFieldConfig(table, pluginContext: PluginContext): CollectionField
 	);
 
 	for (const key in table.fields) {
-		const property = table.fields[key];
-		assert(property);
+		const airtableField = table.fields[key];
+		assert(airtableField);
 
-		const conversionTypes = airtableFieldConversionTypes[property.type] ?? [];
+		const conversionTypes = airtableFieldConversionTypes[airtableField.type] ?? [];
 
 		result.push({
 			// field: getCollectionFieldForProperty(property),
-			originalFieldName: property.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+			originalFieldName: airtableField.name,
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(airtableField.id),
 			unsupported: !conversionTypes.length,
-			property,
+			airtableField,
 			conversionTypes,
 			isPageLevelField: false,
 		});
@@ -168,7 +168,7 @@ function getInitialSlugFieldId(context: PluginContext, fieldOptions): string | n
 
 function getLastSyncedTime(
 	pluginContext: PluginContext,
-	database: GetDatabaseResponse,
+	table: object,
 	slugFieldId: string,
 	disabledFieldIds: Set<string>
 ): string | null {
@@ -178,7 +178,7 @@ function getLastSyncedTime(
 	if (pluginContext.slugFieldId !== slugFieldId) return null;
 
 	// Always resync if field config changes
-	if (hasFieldConfigurationChanged(pluginContext.collectionFields, database, Array.from(disabledFieldIds))) {
+	if (hasFieldConfigurationChanged(pluginContext.collectionFields, table, Array.from(disabledFieldIds))) {
 		return null;
 	}
 
@@ -186,13 +186,13 @@ function getLastSyncedTime(
 }
 
 export function MapDatabaseFields({
-	database,
+	table,
 	onSubmit,
 	isLoading,
 	error,
 	pluginContext,
 }: {
-	database: GetDatabaseResponse;
+	table: object;
 	onSubmit: (options: SynchronizeMutationOptions) => void;
 	isLoading: boolean;
 	error: Error | null;
@@ -200,9 +200,9 @@ export function MapDatabaseFields({
 }) {
 	framer.showUI({ width: 750, height: 550 });
 
-	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
+	const slugFields = useMemo(() => getPossibleSlugFields(table), [table]);
 	const [slugFieldId, setSlugFieldId] = useState<string | null>(() => getInitialSlugFieldId(pluginContext, slugFields));
-	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
+	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(table, pluginContext));
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
 	);
@@ -210,9 +210,6 @@ export function MapDatabaseFields({
 		getFieldNameOverrides(pluginContext)
 	);
 	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext));
-
-	const titleField =
-		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
 
 	assert(isFullDatabase(database));
 
@@ -382,24 +379,14 @@ export function MapDatabaseFields({
 						<span className="pl-2">Collection Field Name</span>
 						<span className="col-span-2 pl-[4px]">Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<StaticInput disabled leftText="Title">
-							{titleField?.name ?? "Title"}
-						</StaticInput>
-						<div className="flex items-center justify-center">
-							<IconChevron />
-						</div>
-						<StaticInput disabled>Title</StaticInput>
-						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} />
-						<div />
-						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
 							<option value="" disabled>
 								Slug Field Property
 							</option>
 							<hr />
-							{slugFields.map((field) => (
-								<option key={field.id} value={field.id}>
-									{field.name}
+							{slugFields.map((airtableField) => (
+								<option key={airtableField.id} value={airtableField.id}>
+									{airtableField.name}
 								</option>
 							))}
 						</select>
