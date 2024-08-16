@@ -72,10 +72,10 @@ async function runPlugin() {
 		const pluginContext = await getPluginContext();
 		const mode = framer.mode;
 
-		if (mode === "syncCollection" && shouldSyncImmediately(pluginContext)) {
+		if (mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
 			assert(pluginContext.slugFieldId);
 
-			const result = await synchronizeDatabase(pluginContext.database, {
+			const result = await synchronizeDatabase(pluginContext.base, pluginContext.table, {
 				fields: pluginContext.collectionFields,
 				ignoredFieldIds: pluginContext.ignoredFieldIds,
 				lastSyncedTime: pluginContext.lastSyncedTime,

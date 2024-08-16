@@ -1,6 +1,6 @@
 import pLimit from "p-limit";
 import { assert, formatDate, isDefined, isString, slugify } from "./utils";
-import { Collection, CollectionField, CollectionItem, framer } from "framer-plugin";
+import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 
@@ -251,17 +251,18 @@ async function processItem(
 	let slugValue: null | string = null;
 	let titleValue: null | string = null;
 
-	const airtableFields = {}
+	const airtableFields = {};
 	for (const field of tableSchema.fields) {
-		airtableFields[field.id] = field
+		airtableFields[field.id] = field;
 	}
 
 	const fieldData: Record<string, unknown> = {};
 
 	// Mark the item as seen
 	unsyncedItemIds.delete(item.id);
-	
+
 	// TODO: Airtable records do not have last edited time, so find a workaround.
+	
 	// if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
 	// 	status.info.push({
 	// 		message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
@@ -389,9 +390,8 @@ async function processAllItems(
 }
 
 export async function synchronizeDatabase(
+	base: object,
 	table: object,
-	baseId: string,
-	baseName: string,
 	{ fields, ignoredFieldIds, lastSyncedTime, titleFieldId, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
 	const collection = await framer.getManagedCollection();
@@ -404,7 +404,7 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await airtableFetch(`${baseId}/${table.id}`, {
+	const data = await airtableFetch(`${base.id}/${table.id}`, {
 		cellFormat: "json",
 		returnFieldsByFieldId: true,
 	});
@@ -430,12 +430,12 @@ export async function synchronizeDatabase(
 
 		await Promise.all([
 			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginBaseIdKey, baseId),
+			collection.setPluginData(pluginBaseIdKey, base.id),
 			collection.setPluginData(pluginTableIdKey, table.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
 			collection.setPluginData(pluginTitleFieldIdKey, titleFieldId),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(baseNameKey, richTextToPlainText(baseName)),
+			collection.setPluginData(baseNameKey, richTextToPlainText(base.name)),
 		]);
 
 		return {
@@ -456,7 +456,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	database: GetDatabaseResponse | null,
+	table: object | null,
 	{ onSuccess, onError }: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
 ) {
 	return null;
@@ -476,34 +476,16 @@ export function useSynchronizeDatabaseMutation(
 	// });
 }
 
-export function useDatabasesQuery() {
-	assert(notion);
-	return useQuery({
-		queryKey: ["databases"],
-		queryFn: async () => {
-			assert(notion);
-			const results = await collectPaginatedAPI(notion.search, {
-				filter: {
-					property: "object",
-					value: "database",
-				},
-			});
-
-			return results.filter(isFullDatabase);
-		},
-	});
-}
-
 export interface PluginContextNew {
 	type: "new";
-	collection: Collection;
+	collection: ManagedCollection;
 	isAuthenticated: boolean;
 }
 
 export interface PluginContextUpdate {
 	type: "update";
 	table: object;
-	collection: Collection;
+	collection: ManagedCollection;
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;
 	hasChangedFields: boolean;
@@ -553,11 +535,11 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 export async function getPluginContext(): Promise<PluginContext> {
 	const collection = await framer.getManagedCollection();
 	const collectionFields = await collection.getFields();
-	const baseId = await collection.getPluginData(pluginBaseIdKey);
+	const base.id = await collection.getPluginData(pluginBaseIdKey);
 	const tableId = await collection.getPluginData(pluginTableIdKey);
 	const hasAuthToken = isAuthenticated();
 
-	if (!baseId || !tableId || !hasAuthToken) {
+	if (!base.id || !tableId || !hasAuthToken) {
 		return {
 			type: "new",
 			collection,
@@ -569,7 +551,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		// assert(notion, "Notion client is not initialized");
 		// const database = await notion.databases.retrieve({ database_id: databaseId });
 
-		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
+		const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
 		console.log(baseSchema);
 
 		const table = baseSchema.tables.find((t) => t.id === tableId);
@@ -589,6 +571,10 @@ export async function getPluginContext(): Promise<PluginContext> {
 		return {
 			type: "update",
 			// database,
+			base: {
+				id: base.id,
+				name: "Base Name", // TODO: Get base name
+			},
 			table,
 			collection,
 			collectionFields,

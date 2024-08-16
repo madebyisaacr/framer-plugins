@@ -13,7 +13,7 @@ interface AppProps {
 }
 
 export function AuthenticatedApp({ context }: AppProps) {
-	const [databaseConfig, setDatabaseConfig] = useState(context.type === "update" ? context.database : null);
+	const [databaseConfig, setDatabaseConfig] = useState(context.type === "update" ? context.table : null);
 
 	const synchronizeMutation = useSynchronizeDatabaseMutation(databaseConfig, {
 		onSuccess(result) {
@@ -32,7 +32,7 @@ export function AuthenticatedApp({ context }: AppProps) {
 
 	return (
 		<MapDatabaseFields
-			database={databaseConfig}
+			table={databaseConfig}
 			pluginContext={context}
 			onSubmit={synchronizeMutation.mutate}
 			error={synchronizeMutation.error}
