@@ -491,7 +491,7 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 	const properties: object[] = [];
 
-	for (const property of table.properties) {
+	for (const property of table.fields) {
 		// These fields were ignored by the user
 		if (ignoredFieldIds.includes(property.id)) continue;
 
