@@ -66,17 +66,15 @@ export function SelectDatabase({ onDatabaseSelected }) {
 
 		assert(bases);
 
-		const database = bases.find((base) => base.id === selectedBase);
-		console.log(database);
-		if (!database) {
+		const base = bases.find((base) => base.id === selectedBase);
+		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable)
+		if (!base || !table) {
 			setSelectedBase(null);
+			setSelectedTable(null);
 			return;
 		}
 
-		onDatabaseSelected(
-			database,
-			baseTables[selectedBase].find((table) => table.id === selectedTable)
-		);
+		onDatabaseSelected({ base, table });
 	};
 
 	return (
