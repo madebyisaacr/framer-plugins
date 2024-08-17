@@ -61,13 +61,12 @@ export async function refreshAirtableToken() {
 
 // DONE
 export async function airtableFetch(url: string, body?: object) {
-	const response = await fetch(`https://api.airtable.com/v0/${url}`, {
+	const response = await fetch(`https://api.airtable.com/v0/${url}${objectToUrlParams(body)}`, {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${sessionStorage.getItem(airtableAccessTokenKey)}`,
 		},
-		body: body ? JSON.stringify(body) : undefined,
 	});
 	const data = await response.json();
 	return data;
@@ -146,8 +145,20 @@ export async function authorize() {
  */
 // DONE
 export function getCollectionFieldForProperty(property: object, name: string, type: string): CollectionField | null {
+	if (type == "enum") {
+		return {
+			type,
+			id: property.id,
+			name,
+			cases: property.options.choices.map((option) => ({
+				id: option.id,
+				name: option.name,
+			})),
+		};
+	}
+
 	return {
-		type: type,
+		type,
 		id: property.id,
 		name,
 	};
@@ -379,6 +390,15 @@ export async function synchronizeDatabase(
 	table: object,
 	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
 ): Promise<SynchronizeResult> {
+	if (!base || !table) {
+		return {
+			status: "error",
+			errors: [],
+			info: [],
+			warnings: [],
+		};
+	}
+
 	const collection = await framer.getManagedCollection();
 	await collection.setFields(fields);
 
@@ -393,6 +413,8 @@ export async function synchronizeDatabase(
 		cellFormat: "json",
 		returnFieldsByFieldId: true,
 	});
+
+	console.log(`${base.id}/${table.id}`);
 
 	const { collectionItems, status } = await processAllItems(
 		data.records,
@@ -439,24 +461,21 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
+	base: object | null,
 	table: object | null,
 	{ onSuccess, onError }: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
 ) {
-	return null;
+	return useMutation({
+		onError(error) {
+			console.error("Synchronization failed", error);
 
-	// return useMutation({
-	// 	onError(error) {
-	// 		console.error("Synchronization failed", error);
-
-	// 		onError?.(error);
-	// 	},
-	// 	onSuccess,
-	// 	mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
-	// 		assert(database);
-
-	// 		return synchronizeDatabase(database, options);
-	// 	},
-	// });
+			onError?.(error);
+		},
+		onSuccess,
+		mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
+			return synchronizeDatabase(base, table, options);
+		},
+	});
 }
 
 export interface PluginContextNew {
@@ -615,3 +634,18 @@ export function hasFieldConfigurationChanged(
 
 // 	return lastSynced > lastEdited;
 // }
+
+function objectToUrlParams(obj) {
+	if (!obj || !Object.keys(obj).length) {
+		return "";
+	}
+
+	return `?${Object.keys(obj)
+		.map((key) => {
+			if (obj[key] === null || obj[key] === undefined) {
+				return encodeURIComponent(key);
+			}
+			return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+		})
+		.join("&")}`;
+}

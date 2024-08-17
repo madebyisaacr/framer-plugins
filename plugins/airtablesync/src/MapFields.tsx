@@ -6,7 +6,6 @@ import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
-	richTextToPlainText,
 } from "./airtable";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
@@ -18,7 +17,7 @@ import { Spinner } from "@shared/spinner/Spinner";
 const fieldConversionMessages = {};
 const propertyTypeNames = {
 	aiText: "AI Text",
-	multipleAttachments: "Attachment",
+	multipleAttachments: "Attachments",
 	autoNumber: "Auto number",
 	barcode: "Barcode",
 	button: "Button",
@@ -186,12 +185,14 @@ function getLastSyncedTime(
 }
 
 export function MapDatabaseFields({
+	base,
 	table,
 	onSubmit,
 	isLoading,
 	error,
 	pluginContext,
 }: {
+	base: object;
 	table: object;
 	onSubmit: (options: SynchronizeMutationOptions) => void;
 	isLoading: boolean;
@@ -375,7 +376,7 @@ export function MapDatabaseFields({
 						}}
 					>
 						<div className="col-start-2 flex flex-row justify-between px-2">
-							<span>Notion Property</span>
+							<span>Airtable Field</span>
 							<span className="text-tertiary">Type</span>
 						</div>
 						<div></div>

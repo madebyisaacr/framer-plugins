@@ -13,9 +13,11 @@ interface AppProps {
 }
 
 export function AuthenticatedApp({ context }: AppProps) {
-	const [databaseConfig, setDatabaseConfig] = useState(context.type === "update" ? context.table : null);
+	const [databaseConfig, setDatabaseConfig] = useState(
+		context.type === "update" ? { base: context.base, table: context.table } : null
+	);
 
-	const synchronizeMutation = useSynchronizeDatabaseMutation(databaseConfig, {
+	const synchronizeMutation = useSynchronizeDatabaseMutation(databaseConfig?.base, databaseConfig?.table, {
 		onSuccess(result) {
 			logSyncResult(result);
 
@@ -32,11 +34,12 @@ export function AuthenticatedApp({ context }: AppProps) {
 
 	return (
 		<MapDatabaseFields
-			table={databaseConfig}
+			base={databaseConfig.base}
+			table={databaseConfig.table}
 			pluginContext={context}
-			onSubmit={() => console.log("On Submit")}
-			error={null}
-			isLoading={false}
+			onSubmit={synchronizeMutation.mutate}
+			error={synchronizeMutation.error}
+			isLoading={synchronizeMutation.isPending}
 		/>
 	);
 }
