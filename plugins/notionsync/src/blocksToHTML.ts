@@ -1,5 +1,6 @@
 import { BlockObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
 import { assert } from "./utils";
+import { richTextToPlainText } from "./notion";
 
 export function richTextToHTML(texts: RichTextItemResponse[]) {
 	return texts
@@ -112,7 +113,6 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				break;
 			default:
 				// TODO: More block types can be added here!
-				// video
 				break;
 		}
 	}
@@ -128,17 +128,35 @@ function childrenToHtml(block) {
 	return "";
 }
 
-function componentBlockToHtml(type, block) {
+function componentBlockToHtml(type: string, item: object) {
 	let identifier = "";
 	let props = {};
 
 	switch (type) {
 		case "YouTube":
-			identifier = "module:NEd4VmDdsxM3StIUbddO/9rhBPUZttCbLCWqJEL42/YouTube.js:Youtube";
-			props = {};
+			const url = item.external?.url || "";
+			if (url.includes("youtube.com") || url.includes("youtu.be")) {
+				identifier = "module:NEd4VmDdsxM3StIUbddO/9rhBPUZttCbLCWqJEL42/YouTube.js:Youtube";
+				props = {
+					url: { type: "string", value: url },
+					play: { type: "enum", value: "Off" },
+					shouldMute: { type: "boolean", value: true },
+				};
+			}
+			break;
 		case "CodeBlock":
 			identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
-			props = {};
+			props = {
+				code: {
+					type: "string",
+					value: richTextToPlainText(item.rich_text),
+				},
+				language: {
+					type: "enum",
+					value: codeLanguageMapping[item.language] || "JSX",
+				},
+			};
+			break;
 	}
 
 	return identifier
@@ -146,114 +164,77 @@ function componentBlockToHtml(type, block) {
 		: "";
 }
 
-
-const notionCodeLanguages = [
-	"abap",
-	"arduino",
-	"bash",
-	"basic",
-	"c",
-	"clojure",
-	"coffeescript",
-	"c++",
-	"c#",
-	"css",
-	"dart",
-	"diff",
-	"docker",
-	"elixir",
-	"elm",
-	"erlang",
-	"flow",
-	"fortran",
-	"f#",
-	"gherkin",
-	"glsl",
-	"go",
-	"graphql",
-	"groovy",
-	"haskell",
-	"html",
-	"java",
-	"javascript",
-	"json",
-	"julia",
-	"kotlin",
-	"latex",
-	"less",
-	"lisp",
-	"livescript",
-	"lua",
-	"makefile",
-	"markdown",
-	"markup",
-	"matlab",
-	"mermaid",
-	"nix",
-	"objective-c",
-	"ocaml",
-	"pascal",
-	"perl",
-	"php",
-	"plain text",
-	"powershell",
-	"prolog",
-	"protobuf",
-	"python",
-	"r",
-	"reason",
-	"ruby",
-	"rust",
-	"sass",
-	"scala",
-	"scheme",
-	"scss",
-	"shell",
-	"sql",
-	"swift",
-	"typescript",
-	"vb.net",
-	"verilog",
-	"vhdl",
-	"visual basic",
-	"webassembly",
-	"xml",
-	"yaml",
-	"java/c/c++/c#",
-];
-
-const framerCodeLanguages = [
-	"Angular",
-	"C",
-	"C#",
-	"C++",
-	"CSS",
-	"Go",
-	"Haskell",
-	"HTML",
-	"Java",
-	"JavaScript",
-	"JSX",
-	"Julia",
-	"Kotlin",
-	"Less",
-	"Lua",
-	"Markdown",
-	"MATLAB",
-	"Nginx",
-	"Objective-C",
-	"Perl",
-	"PHP",
-	"Python",
-	"Ruby",
-	"Rust",
-	"Scala",
-	"SCSS",
-	"Shell",
-	"SQL",
-	"Swift",
-	"TSX",
-	"TypeScript",
-	"Vue",
-	"YAML",
-]
+const codeLanguageMapping = {
+	abap: null,
+	arduino: null,
+	bash: "Shell",
+	basic: null,
+	c: "C",
+	clojure: null,
+	coffeescript: null,
+	"c++": "C++",
+	"c#": "C#",
+	css: "CSS",
+	dart: null,
+	diff: null,
+	docker: null,
+	elixir: null,
+	elm: null,
+	erlang: null,
+	flow: null,
+	fortran: null,
+	"f#": null,
+	gherkin: null,
+	glsl: null,
+	go: "Go",
+	graphql: null,
+	groovy: null,
+	haskell: "Haskell",
+	html: "HTML",
+	java: "Java",
+	javascript: "JSX",
+	json: null,
+	julia: "Julia",
+	kotlin: "Kotlin",
+	latex: null,
+	less: "Less",
+	lisp: null,
+	livescript: null,
+	lua: "Lua",
+	makefile: null,
+	markdown: "Markdown",
+	markup: null,
+	matlab: "MATLAB",
+	mermaid: null,
+	nix: null,
+	"objective-c": "Objective-C",
+	ocaml: null,
+	pascal: null,
+	perl: "Perl",
+	php: "PHP",
+	"plain text": null,
+	powershell: null,
+	prolog: null,
+	protobuf: null,
+	python: "Python",
+	r: null,
+	reason: null,
+	ruby: "Ruby",
+	rust: "Rust",
+	sass: null,
+	scala: "Scala",
+	scheme: null,
+	scss: "SCSS",
+	shell: "Shell",
+	sql: "SQL",
+	swift: "Swift",
+	typescript: "TSX",
+	"vb.net": null,
+	verilog: null,
+	vhdl: null,
+	"visual basic": null,
+	webassembly: null,
+	xml: null,
+	yaml: "YAML",
+	"java/c/c++/c#": null,
+};
