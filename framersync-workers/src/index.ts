@@ -4,6 +4,8 @@ import { generateRandomId, generateAirtableChallengeParams } from './generateAir
 async function handleRequest(request: Request, env: Env) {
 	const requestUrl = new URL(request.url);
 
+	const ACCESS_CONTROL_ORIGIN = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
+
 	// Generate an authorization URL to login into the provider, and a set of
 	// read and write keys for retrieving the access token later on.
 	if (request.method === 'POST' && requestUrl.pathname.startsWith('/authorize/')) {
@@ -37,7 +39,7 @@ async function handleRequest(request: Request, env: Env) {
 		return new Response(response, {
 			headers: {
 				'Content-Type': 'application/json',
-				'Access-Control-Allow-Origin': env.PLUGIN_URI,
+				...ACCESS_CONTROL_ORIGIN,
 			},
 		});
 	}
@@ -132,7 +134,7 @@ async function handleRequest(request: Request, env: Env) {
 			return new Response('Missing read key URL param', {
 				status: 400,
 				headers: {
-					'Access-Control-Allow-Origin': env.PLUGIN_URI,
+					...ACCESS_CONTROL_ORIGIN,
 				},
 			});
 		}
@@ -142,7 +144,7 @@ async function handleRequest(request: Request, env: Env) {
 		if (!tokens) {
 			return new Response(null, {
 				status: 404,
-				headers: { 'Access-Control-Allow-Origin': env.PLUGIN_URI },
+				headers: { ...ACCESS_CONTROL_ORIGIN },
 			});
 		}
 
@@ -153,7 +155,7 @@ async function handleRequest(request: Request, env: Env) {
 		return new Response(tokens, {
 			headers: {
 				'Content-Type': 'application/json',
-				'Access-Control-Allow-Origin': env.PLUGIN_URI,
+				...ACCESS_CONTROL_ORIGIN,
 			},
 		});
 	}
@@ -165,30 +167,26 @@ async function handleRequest(request: Request, env: Env) {
 			return new Response('Missing refresh token URL param', {
 				status: 400,
 				headers: {
-					'Access-Control-Allow-Origin': env.PLUGIN_URI,
+					...ACCESS_CONTROL_ORIGIN,
 				},
 			});
 		}
 
-		const refreshParams = new URLSearchParams();
-		refreshParams.append('refresh_token', refreshToken);
-		refreshParams.append('client_id', env.CLIENT_ID);
-		refreshParams.append('grant_type', 'refresh_token');
-
-		const refreshUrl = new URL("https://airtable.com/oauth2/v1/token");
-		refreshUrl.search = refreshParams.toString();
-
-		const refreshResponse = await fetch(refreshUrl.toString(), {
+		const refreshResponse = await fetch('https://airtable.com/oauth2/v1/token', {
 			method: 'POST',
 			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+				'Content-Type': 'application/x-www-form-urlencoded',
 				Authorization: getAuthorizationHeader(env),
-			}
+			},
+			body: `refresh_token=${refreshToken}&grant_type=refresh_token`,
 		});
 
 		if (refreshResponse.status !== 200) {
 			return new Response(refreshResponse.statusText, {
 				status: refreshResponse.status,
+				headers: {
+					...ACCESS_CONTROL_ORIGIN,
+				},
 			});
 		}
 
@@ -196,7 +194,7 @@ async function handleRequest(request: Request, env: Env) {
 
 		return new Response(JSON.stringify(tokens), {
 			headers: {
-				'Access-Control-Allow-Origin': env.PLUGIN_URI,
+				...ACCESS_CONTROL_ORIGIN,
 			},
 		});
 	}
@@ -209,7 +207,7 @@ async function handleRequest(request: Request, env: Env) {
 	if (request.method === 'OPTIONS') {
 		return new Response(null, {
 			headers: {
-				'Access-Control-Allow-Origin': env.PLUGIN_URI,
+				...ACCESS_CONTROL_ORIGIN,
 				'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 				'Access-Control-Allow-Headers': 'Content-Type',
 			},
@@ -219,7 +217,7 @@ async function handleRequest(request: Request, env: Env) {
 	return new Response('Page not found', {
 		status: 404,
 		headers: {
-			'Access-Control-Allow-Origin': env.PLUGIN_URI,
+			...ACCESS_CONTROL_ORIGIN,
 		},
 	});
 }
@@ -232,7 +230,7 @@ export default {
 			return new Response(`😔 Internal error: ${message}`, {
 				status: 500,
 				headers: {
-					'Access-Control-Allow-Origin': env.PLUGIN_URI,
+					"Access-Control-Allow-Origin": env.PLUGIN_URI,
 				},
 			});
 		});
@@ -240,5 +238,5 @@ export default {
 };
 
 function getAuthorizationHeader(env) {
-	return `Basic ${Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64')}`
+	return `Basic ${Buffer.from(`${env.CLIENT_ID}:${env.CLIENT_SECRET}`).toString('base64')}`;
 }

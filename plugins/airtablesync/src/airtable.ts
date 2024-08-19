@@ -13,8 +13,9 @@ const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
 export const getOauthURL = (writeKey: string) =>
 	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
 
-// Storage for the Airtable API key.
-const airtableAccessTokenKey = "airtableAccessToken";
+let airtableAccessToken: string | null = null;
+
+// Storage for the Airtable API key refresh token.
 const airtableRefreshTokenKey = "airtableRefreshToken";
 
 const pluginBaseIdKey = "airtablePluginBaseId";
@@ -38,9 +39,8 @@ export function isAuthenticated() {
 
 // TODO: Check if refresh token is expired (60 days)
 export async function refreshAirtableToken() {
-	console.log("Refreshing token");
 	// Do not refresh if we already have an access token
-	if (sessionStorage.getItem(airtableAccessTokenKey)) {
+	if (airtableAccessToken) {
 		return;
 	}
 
@@ -55,8 +55,9 @@ export async function refreshAirtableToken() {
 	console.log(responseJson);
 	const { access_token, refresh_token } = responseJson;
 
-	sessionStorage.setItem(airtableAccessTokenKey, access_token);
+	airtableAccessToken = access_token;
 	localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+	console.log("Set refresh token to:", refresh_token);
 }
 
 // DONE
@@ -65,7 +66,7 @@ export async function airtableFetch(url: string, body?: object) {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${sessionStorage.getItem(airtableAccessTokenKey)}`,
+			Authorization: `Bearer ${airtableAccessToken}`,
 		},
 	});
 	const data = await response.json();
@@ -125,14 +126,18 @@ export async function authorize() {
 				method: "POST",
 			});
 
-			const tokenInfo = await resp.json();
+			if (resp.status === 200) {
+				const tokenInfo = await resp.json();
 
-			if (resp.status === 200 && tokenInfo) {
-				const { access_token, refresh_token } = tokenInfo;
+				if (tokenInfo) {
+					const { access_token, refresh_token } = tokenInfo;
 
-				clearInterval(interval);
-				sessionStorage.setItem(airtableAccessTokenKey, access_token);
-				localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+					clearInterval(interval);
+					airtableAccessToken = access_token;
+					localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+					console.log("Set refresh token to:", refresh_token);
+				}
+
 				resolve();
 			}
 		}, 2500);
@@ -180,7 +185,6 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 		case "currency":
 		case "date":
 		case "dateTime":
-		case "duration":
 		case "email":
 		case "autoNumber":
 		case "count":
@@ -219,6 +223,38 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 		case "singleSelect":
 		case "externalSyncSource":
 			return value.name;
+		case "duration":
+			const hours = Math.floor(value / 3600);
+			const minutes = Math.floor((value % 3600) / 60);
+			const remainingSeconds = value % 60;
+			const seconds = Math.floor(remainingSeconds).toString().padStart(2, "0")
+
+			let result = "";
+			result += hours.toString();
+			result += ":" + minutes.toString().padStart(2, "0");
+
+			// Handle seconds and milliseconds based on format
+			switch (property.options?.durationFormat) {
+				case "h:mm":
+					break;
+				case "h:mm:ss":
+					result += ":" + seconds;
+					break;
+				case "h:mm:ss.S":
+					result += ":" + seconds;
+					result += "." + (remainingSeconds % 1).toFixed(1).substring(2);
+					break;
+				case "h:mm:ss.SS":
+					result += ":" + seconds;
+					result += "." + (remainingSeconds % 1).toFixed(2).substring(2);
+					break;
+				case "h:mm:ss.SSS":
+					result += ":" + seconds;
+					result += "." + (remainingSeconds % 1).toFixed(3).substring(2);
+					break;
+			}
+
+			return value;
 	}
 
 	return null;
