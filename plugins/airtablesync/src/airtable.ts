@@ -214,7 +214,21 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 		case "lastModifiedBy":
 			return value.name || null;
 		case "formula":
-			return Array.isArray(value) ? value.join(", ") : value;
+			const isArray = Array.isArray(value);
+
+			switch (fieldType) {
+				case "string":
+				case "link":
+				case "image":
+				case "date":
+					return isArray ? value.join(", ") : String(value);
+				case "number":
+					return isArray ? value.join(", ") : Number(value);
+				case "boolean":
+					return isArray ? value.map((a) => (a ? "Yes" : "No")).join(", ") : value ? "Yes" : "No";
+				default:
+					return null;
+			}
 		case "multipleLookupValues":
 			return value.map((item) => String(item)).join(", ");
 		case "multipleCollaborators":
@@ -227,7 +241,7 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 			const hours = Math.floor(value / 3600);
 			const minutes = Math.floor((value % 3600) / 60);
 			const remainingSeconds = value % 60;
-			const seconds = Math.floor(remainingSeconds).toString().padStart(2, "0")
+			const seconds = Math.floor(remainingSeconds).toString().padStart(2, "0");
 
 			let result = "";
 			result += hours.toString();
@@ -254,7 +268,7 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 					break;
 			}
 
-			return value;
+			return result;
 	}
 
 	return null;
