@@ -1,6 +1,5 @@
 import { airtableFetch, authorize } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
-import notionConnectSrc from "./assets/notion-connect.png";
 import { assert } from "./utils";
 import { ReloadIcon } from "./components/Icons";
 import { framer } from "framer-plugin";

@@ -189,12 +189,13 @@ export function getPropertyValue(property: object, value: any, fieldType: string
 		case "percent":
 		case "phoneNumber":
 		case "rating":
-		case "richText":
 		case "rollup":
 		case "singleLineText":
 		case "multilineText":
 		case "url":
 			return value;
+		case "richText":
+			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
 		case "aiText":
 			return value.value;
 		case "multipleAttachments":
