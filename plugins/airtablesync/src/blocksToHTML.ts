@@ -12,29 +12,69 @@ const PrefixTags = {
 export function richTextToHTML(richText: string) {
 	let lines: string[] = [];
 	let listStack: { type: string; level: number }[] = [];
+	let currentListType: string | null = null;
+	let inCodeBlock = false;
+	let codeBlockContent: string[] = [];
 
 	for (const line of richText.split("\n")) {
+		if (line.trim() === "```") {
+			if (inCodeBlock) {
+				const identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
+				const props = {
+					code: {
+						type: "string",
+						value: codeBlockContent.join("\n"),
+					},
+					language: {
+						type: "enum",
+						value: "JSX",
+					},
+				};
+
+				lines.push(
+					`<template data-module-identifier="${identifier}" data-module-props='${JSON.stringify(
+						props
+					)}'></template>`
+				);
+				codeBlockContent = [];
+			}
+			inCodeBlock = !inCodeBlock;
+			continue;
+		}
+
+		if (inCodeBlock) {
+			codeBlockContent.push(line);
+			continue;
+		}
+
 		const [tag, text, isNumbered, indentLevel] = getTextAndTag(line, false);
-		
+
 		// Close lists if needed
-		while (listStack.length > 0 && listStack[listStack.length - 1].level >= indentLevel) {
+		while (listStack.length > 0 && listStack[listStack.length - 1].level > indentLevel) {
 			lines.push(`</${listStack.pop().type}>`);
 		}
 
-		if (tag === 'ul' || isNumbered) {
-			const newListType = isNumbered ? 'ol' : 'ul';
-			
+		if (tag === "ul" || isNumbered) {
+			const newListType = isNumbered ? "ol" : "ul";
+
 			if (listStack.length === 0 || listStack[listStack.length - 1].level < indentLevel) {
 				lines.push(`<${newListType}>`);
 				listStack.push({ type: newListType, level: indentLevel });
+				currentListType = newListType;
 			} else if (listStack[listStack.length - 1].type !== newListType) {
-				lines.push(`</${listStack.pop().type}>`);
-				lines.push(`<${newListType}>`);
-				listStack.push({ type: newListType, level: indentLevel });
+				if (currentListType !== newListType) {
+					lines.push(`</${currentListType}>`);
+					lines.push(`<${newListType}>`);
+					currentListType = newListType;
+				}
 			}
-			
-			lines.push(`<li>${text}`);
+
+			lines.push(`<li>${text}</li>`);
 		} else {
+			if (currentListType) {
+				lines.push(`</${currentListType}>`);
+				currentListType = null;
+			}
 			if (tag) {
 				lines.push(`<${tag}>${text}</${tag}>`);
 			} else {
@@ -44,23 +84,34 @@ export function richTextToHTML(richText: string) {
 	}
 
 	// Close any remaining open lists
+	if (currentListType) {
+		lines.push(`</${currentListType}>`);
+	}
 	while (listStack.length > 0) {
 		lines.push(`</${listStack.pop().type}>`);
 	}
+
+	console.log(lines.join("\n"));
 
 	return lines.join("\n");
 }
 
 export function richTextToPlainText(richText: string) {
 	let lines: string[] = [];
+	let inCodeBlock = false;
 
 	for (const line of richText.split("\n")) {
-		if (line == "```") {
+		if (line.trim() === "```") {
+			inCodeBlock = !inCodeBlock;
 			continue;
 		}
 
-		const [tag, text] = getTextAndTag(line, true);
-		lines.push(text);
+		if (inCodeBlock) {
+			lines.push(line);
+		} else {
+			const [tag, text] = getTextAndTag(line, true);
+			lines.push(text);
+		}
 	}
 
 	return lines.join("\n");
@@ -88,9 +139,11 @@ function getTextAndTag(text: string, removeMarkdown: boolean) {
 }
 
 function markdownToText(line: string, removeMarkdown: boolean) {
-	console.log("to html", line);
 	// Convert bold
-	line = line.replace(/(\*\*|__)((?:\\[\s\S]|[^\\])+?)\1/g, removeMarkdown ? "$2" : "<strong>$2</strong>");
+	line = line.replace(
+		/(\*\*|__)((?:\\[\s\S]|[^\\])+?)\1/g,
+		removeMarkdown ? "$2" : "<strong>$2</strong>"
+	);
 
 	// Convert italics
 	line = line.replace(/(\*|_)((?:\\[\s\S]|[^\\])+?)\1/g, removeMarkdown ? "$2" : "<em>$2</em>");
@@ -105,4 +158,13 @@ function markdownToText(line: string, removeMarkdown: boolean) {
 	line = line.replace(/`((?:\\[\s\S]|[^\\])+?)`/g, removeMarkdown ? "$1" : "<code>$1</code>");
 
 	return line;
+}
+
+function escapeHtml(unsafe: string) {
+	return unsafe
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }
