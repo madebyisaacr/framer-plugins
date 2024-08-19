@@ -2,7 +2,7 @@ import pLimit from "p-limit";
 import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
+import { richTextToPlainText, richTextToHTML } from "./blocksToHTML";
 
 export type FieldId = string;
 
@@ -167,11 +167,6 @@ export function getCollectionFieldForProperty(property: object, name: string, ty
 		id: property.id,
 		name,
 	};
-}
-
-// TODO: Support Airtable's rich text markdown format
-export function richTextToPlainText(richText: string) {
-	return richText;
 }
 
 // DONE
@@ -460,7 +455,7 @@ export async function synchronizeDatabase(
 			collection.setPluginData(pluginTableIdKey, table.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(baseNameKey, richTextToPlainText(base.name)),
+			collection.setPluginData(baseNameKey, base.name),
 		]);
 
 		return {

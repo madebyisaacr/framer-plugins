@@ -1,4 +1,3 @@
-// import { richTextToPlainText, useDatabasesQuery } from "./airtable";
 import { airtableFetch, authorize } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
 import notionConnectSrc from "./assets/notion-connect.png";
