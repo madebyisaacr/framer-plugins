@@ -1,0 +1,6 @@
+{
+    "id": "qG3xyD",
+    "name": "GoogleSheetsSync",
+    "modes": ["configureManagedCollection", "syncManagedCollection"],
+    "icon": "/notion.png"
+}

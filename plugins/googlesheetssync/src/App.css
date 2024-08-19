@@ -1,0 +1,9 @@
+@import url("@shared/shared.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+select {
+	@apply pl-2 pr-5 cursor-pointer;
+}
