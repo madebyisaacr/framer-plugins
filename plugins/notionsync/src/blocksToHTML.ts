@@ -90,7 +90,7 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				}
 				break;
 			case "code":
-				htmlContent += `<pre><code>${richTextToHTML(item.rich_text)}</code></pre>`;
+				htmlContent += componentBlockToHtml("CodeBlock", item);
 				break;
 			case "quote":
 				htmlContent += `<blockquote>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</blockquote>`;
@@ -106,6 +106,9 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				break;
 			case "equation":
 				htmlContent += `<p>${item.expression}</p>`;
+				break;
+			case "video":
+				htmlContent += componentBlockToHtml("YouTube", item);
 				break;
 			default:
 				// TODO: More block types can be added here!
@@ -124,3 +127,133 @@ function childrenToHtml(block) {
 
 	return "";
 }
+
+function componentBlockToHtml(type, block) {
+	let identifier = "";
+	let props = {};
+
+	switch (type) {
+		case "YouTube":
+			identifier = "module:NEd4VmDdsxM3StIUbddO/9rhBPUZttCbLCWqJEL42/YouTube.js:Youtube";
+			props = {};
+		case "CodeBlock":
+			identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
+			props = {};
+	}
+
+	return identifier
+		? `<template data-module-identifier="${identifier}" data-module-props='${JSON.stringify(props)}'></template>`
+		: "";
+}
+
+
+const notionCodeLanguages = [
+	"abap",
+	"arduino",
+	"bash",
+	"basic",
+	"c",
+	"clojure",
+	"coffeescript",
+	"c++",
+	"c#",
+	"css",
+	"dart",
+	"diff",
+	"docker",
+	"elixir",
+	"elm",
+	"erlang",
+	"flow",
+	"fortran",
+	"f#",
+	"gherkin",
+	"glsl",
+	"go",
+	"graphql",
+	"groovy",
+	"haskell",
+	"html",
+	"java",
+	"javascript",
+	"json",
+	"julia",
+	"kotlin",
+	"latex",
+	"less",
+	"lisp",
+	"livescript",
+	"lua",
+	"makefile",
+	"markdown",
+	"markup",
+	"matlab",
+	"mermaid",
+	"nix",
+	"objective-c",
+	"ocaml",
+	"pascal",
+	"perl",
+	"php",
+	"plain text",
+	"powershell",
+	"prolog",
+	"protobuf",
+	"python",
+	"r",
+	"reason",
+	"ruby",
+	"rust",
+	"sass",
+	"scala",
+	"scheme",
+	"scss",
+	"shell",
+	"sql",
+	"swift",
+	"typescript",
+	"vb.net",
+	"verilog",
+	"vhdl",
+	"visual basic",
+	"webassembly",
+	"xml",
+	"yaml",
+	"java/c/c++/c#",
+];
+
+const framerCodeLanguages = [
+	"Angular",
+	"C",
+	"C#",
+	"C++",
+	"CSS",
+	"Go",
+	"Haskell",
+	"HTML",
+	"Java",
+	"JavaScript",
+	"JSX",
+	"Julia",
+	"Kotlin",
+	"Less",
+	"Lua",
+	"Markdown",
+	"MATLAB",
+	"Nginx",
+	"Objective-C",
+	"Perl",
+	"PHP",
+	"Python",
+	"Ruby",
+	"Rust",
+	"Scala",
+	"SCSS",
+	"Shell",
+	"SQL",
+	"Swift",
+	"TSX",
+	"TypeScript",
+	"Vue",
+	"YAML",
+]
