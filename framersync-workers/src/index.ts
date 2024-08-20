@@ -1,4 +1,5 @@
 import { getHTMLTemplate } from './getHTMLTemplate';
+import { getGooglePickerHTML } from './getGooglePickerHTML';
 import { generateRandomId, generateAirtableChallengeParams } from './generateAirtableChallenge';
 
 enum Platform {
@@ -12,6 +13,9 @@ enum Command {
 	Poll = 'poll',
 	Refresh = 'refresh',
 	Redirect = 'redirect',
+	OpenGooglePicker = 'open-picker',
+	PollGooglePicker = 'poll-picker',
+	GooglePickerCallback = 'picker-callback',
 }
 
 async function handleRequest(request: Request, env: Env) {
@@ -22,7 +26,7 @@ async function handleRequest(request: Request, env: Env) {
 	const command = (platform ? sections[1] : sections[0]) as Command;
 
 	const accessControlOrigin = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
-	const redirectURI = env.REDIRECT_URI.replace('{platform}', platform);
+	const redirectURI = `${env.REDIRECT_URI}/${platform}/${Command.Redirect}`;
 
 	// Generate an authorization URL to login into the provider, and a set of
 	// read and write keys for retrieving the access token later on.
@@ -63,7 +67,10 @@ async function handleRequest(request: Request, env: Env) {
 				googleAuthorizeParams.append('client_id', env.GOOGLE_CLIENT_ID);
 				googleAuthorizeParams.append('redirect_uri', redirectURI);
 				googleAuthorizeParams.append('response_type', 'code');
-				googleAuthorizeParams.append('scope', 'https://www.googleapis.com/auth/spreadsheets.readonly');
+				googleAuthorizeParams.append(
+					'scope',
+					'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.file'
+				);
 				googleAuthorizeParams.append('access_type', 'offline');
 				googleAuthorizeParams.append('include_granted_scopes', 'true');
 				googleAuthorizeParams.append('state', writeKey);
@@ -315,6 +322,39 @@ async function handleRequest(request: Request, env: Env) {
 				...accessControlOrigin,
 			},
 		});
+	}
+
+	// Open Google Picker //
+	if (request.method === 'GET' && command === Command.OpenGooglePicker && platform === Platform.GoogleSheets) {
+		const accessToken = requestUrl.searchParams.get('access_token');
+
+		if (!accessToken) {
+			return new Response('Missing access token URL param', {
+				status: 400,
+			});
+		}
+
+		return new Response(
+			getGooglePickerHTML({
+				accessToken,
+				developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
+				pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/html',
+				},
+			}
+		);
+	}
+
+	// Poll Google Picker //
+	if (request.method === 'POST' && command === Command.PollGooglePicker && platform === Platform.GoogleSheets) {
+		return new Response('Polling Google Picker');
+	}
+
+	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
+		return new Response('Google Picker Callback');
 	}
 
 	if (request.method === 'GET' && requestUrl.pathname === '/') {

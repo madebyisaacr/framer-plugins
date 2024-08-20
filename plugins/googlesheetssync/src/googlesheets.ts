@@ -8,7 +8,7 @@ export type FieldId = string;
 
 const apiBaseUrl =
 	window.location.hostname === "localhost"
-		? "http://localhost:8787/google-sheets"
+		? "https://localhost:8787/google-sheets"
 		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
 let accessToken: string | null = null;
@@ -56,6 +56,10 @@ export async function refreshGoogleToken() {
 	const { access_token } = responseJson;
 
 	accessToken = access_token;
+}
+
+export function getGooglePickerUrl() {
+	return `${apiBaseUrl.replace("http:", "https:")}/open-picker/?access_token=${accessToken}`;
 }
 
 // DONE

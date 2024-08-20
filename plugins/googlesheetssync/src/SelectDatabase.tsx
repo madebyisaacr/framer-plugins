@@ -1,5 +1,5 @@
-import { googleFetch, authorize } from "./googlesheets";
-import { FormEvent, useEffect, useState } from "react";
+import { googleFetch, authorize, getGooglePickerUrl } from "./googlesheets";
+import { FormEvent, useEffect, useState, useCallback } from "react";
 import { assert } from "./utils";
 import { ReloadIcon } from "./components/Icons";
 import { framer } from "framer-plugin";
@@ -7,57 +7,37 @@ import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
 
+const GOOGLE_CLIENT_ID = "830588332904-7i1eb1jjv2ped73sniikp1od2d9ri0vl.apps.googleusercontent.com";
+const GOOGLE_API_KEY = "";
+
+declare global {
+	interface Window {
+		gapi: any;
+	}
+}
+
 export function SelectDatabase({ onDatabaseSelected }) {
 	// const { data, refetch, isRefetching, isLoading } = {} //useDatabasesQuery();
 	const [selectedBase, setSelectedBase] = useState<string | null>(null);
 	const [selectedTable, setSelectedTable] = useState<string | null>(null);
 	const [baseTables, setBaseTables] = useState({});
 
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
 	const [bases, setBases] = useState([]);
 	const [isRefetching, setIsRefetching] = useState(false);
 
 	framer.showUI({ width: 450, height: 550 });
 
-	async function fetchBases() {
-		if (!isLoading) {
-			setIsRefetching(true);
-		}
-
-		const data = await googleFetch("meta/bases");
-
-		setBases(data.bases);
-
-		if (isLoading) {
-			setIsLoading(false);
-		} else {
-			setIsRefetching(false);
-		}
-
-		if (!data.bases) return;
-
-		for (const base of data.bases) {
-			const baseSchema = await googleFetch(`meta/bases/${base.id}/tables`);
-			if (baseSchema?.tables) {
-				setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
-			}
-		}
-	}
+	async function fetchBases() {}
 
 	// TODO: Implement global cache for bases and tables to prevent refetching twice on first load
 	useEffect(() => {
 		fetchBases();
 	}, []);
 
-	const onTableClick = (base, table) => {
-		if (selectedTable == table.id) {
-			setSelectedBase(null);
-			setSelectedTable(null);
-		} else {
-			setSelectedBase(base.id);
-			setSelectedTable(table.id);
-		}
-	};
+	function onSelect(data) {
+		console.log("onSelect", data);
+	}
 
 	const handleSubmit = (event: FormEvent) => {
 		event.preventDefault();
@@ -65,7 +45,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 		assert(bases);
 
 		const base = bases.find((base) => base.id === selectedBase);
-		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable)
+		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable);
 		if (!base || !table) {
 			setSelectedBase(null);
 			setSelectedTable(null);
@@ -89,6 +69,9 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
 					</button>
 				</div>
+				<Button primary href={getGooglePickerUrl()} newTab>
+					Pick a sheet
+				</Button>
 				{isLoading ? (
 					<div className="flex flex-col items-center justify-center flex-1 gap-4">
 						<Spinner inline />
@@ -110,13 +93,17 @@ export function SelectDatabase({ onDatabaseSelected }) {
 									<label
 										htmlFor={table.id}
 										key={table.id}
-										onClick={() => onTableClick(base, table)}
 										className={classNames(
 											"flex flex-row gap-1.5 items-center cursor-pointer px-2 py-1.5 rounded transition-colors",
 											selectedTable == table.id && "bg-secondary"
 										)}
 									>
-										<input type="checkbox" name={table.id} checked={selectedTable === table.id} readOnly />
+										<input
+											type="checkbox"
+											name={table.id}
+											checked={selectedTable === table.id}
+											readOnly
+										/>
 										{table.name}
 									</label>
 								))}
