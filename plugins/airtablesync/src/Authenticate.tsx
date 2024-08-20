@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { PluginContext, authorize, getOauthURL, getPluginContext } from "./airtable";
+import { PluginContext, authorize, getPluginContext } from "./airtable";
 import loginIllustration from "./assets/notion-login.png";
 import Button from "@shared/Button";
 import { generateRandomId } from "./utils";

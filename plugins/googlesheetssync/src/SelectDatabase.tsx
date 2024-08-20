@@ -1,4 +1,4 @@
-import { airtableFetch, authorize } from "./googlesheets";
+import { googleFetch, authorize } from "./googlesheets";
 import { FormEvent, useEffect, useState } from "react";
 import { assert } from "./utils";
 import { ReloadIcon } from "./components/Icons";
@@ -24,7 +24,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 			setIsRefetching(true);
 		}
 
-		const data = await airtableFetch("meta/bases");
+		const data = await googleFetch("meta/bases");
 
 		setBases(data.bases);
 
@@ -37,7 +37,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 		if (!data.bases) return;
 
 		for (const base of data.bases) {
-			const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
+			const baseSchema = await googleFetch(`meta/bases/${base.id}/tables`);
 			if (baseSchema?.tables) {
 				setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
 			}
@@ -80,7 +80,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
 			<div className="flex flex-col gap-2 flex-1 justify-between">
 				<div className="flex items-center justify-between">
-					<span className="text-secondary">Select a table from an Airtable base to sync</span>
+					<span className="text-secondary">Select a Google Sheet to sync</span>
 					<button
 						className="w-[32px] bg-transparent flex items-center justify-center text-secondary"
 						type="button"
@@ -124,7 +124,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						))}
 					</div>
 				)}
-				<Button onClick={authorize}>Connect Another Base</Button>
+				<Button onClick={authorize}>Connect Another Sheet</Button>
 				<Button primary disabled={!selectedBase} onClick={handleSubmit}>
 					Next: Configure Collection Fields
 				</Button>

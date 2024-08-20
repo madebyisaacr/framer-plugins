@@ -59,7 +59,7 @@ export async function refreshGoogleToken() {
 }
 
 // DONE
-export async function airtableFetch(url: string, body?: object) {
+export async function googleFetch(url: string, body?: object) {
 	const response = await fetch(`https://api.airtable.com/v0/${url}${objectToUrlParams(body)}`, {
 		method: "GET",
 		headers: {
@@ -441,7 +441,7 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await airtableFetch(`${base.id}/${table.id}`, {
+	const data = await googleFetch(`${base.id}/${table.id}`, {
 		cellFormat: "json",
 		returnFieldsByFieldId: true,
 	});
@@ -588,7 +588,7 @@ export async function getPluginContext(): Promise<PluginContext> {
 		// assert(notion, "Notion client is not initialized");
 		// const database = await notion.databases.retrieve({ database_id: databaseId });
 
-		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
+		const baseSchema = await googleFetch(`meta/bases/${baseId}/tables`);
 		console.log(baseSchema);
 
 		const table = baseSchema.tables.find((t) => t.id === tableId);

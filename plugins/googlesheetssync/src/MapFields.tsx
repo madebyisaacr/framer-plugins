@@ -376,7 +376,7 @@ export function MapDatabaseFields({
 						}}
 					>
 						<div className="col-start-2 flex flex-row justify-between px-2">
-							<span>Airtable Field</span>
+							<span>Google Sheet Column</span>
 						</div>
 						<div></div>
 						<span className="pl-2">Collection Field Name</span>
