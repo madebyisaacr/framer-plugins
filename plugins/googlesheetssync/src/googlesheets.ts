@@ -35,8 +35,7 @@ export function isAuthenticated() {
 	return localStorage.getItem(refreshTokenKey) !== null;
 }
 
-// TODO: Check if refresh token is expired (60 days)
-export async function refreshAirtableToken() {
+export async function refreshGoogleToken() {
 	// Do not refresh if we already have an access token
 	if (accessToken) {
 		return;
@@ -54,11 +53,9 @@ export async function refreshAirtableToken() {
 
 	const responseJson = await response.json();
 	console.log(responseJson);
-	const { access_token, refresh_token } = responseJson;
+	const { access_token } = responseJson;
 
 	accessToken = access_token;
-	localStorage.setItem(refreshTokenKey, refresh_token);
-	console.log("Set refresh token to:", refresh_token);
 }
 
 // DONE

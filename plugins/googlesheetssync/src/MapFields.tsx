@@ -9,9 +9,9 @@ import {
 } from "./googlesheets.js";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
-import { IconChevron } from "./components/Icons.js";
+import { IconChevron } from "./components/Icons";
 import Button from "@shared/Button";
-import { cmsFieldIcons } from "./assets/cmsFieldIcons.js";
+import { cmsFieldIcons } from "./assets/cmsFieldIcons";
 import { Spinner } from "@shared/spinner/Spinner";
 
 const fieldConversionMessages = {};

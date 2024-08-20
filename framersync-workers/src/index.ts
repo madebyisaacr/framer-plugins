@@ -26,6 +26,8 @@ async function handleRequest(request: Request, env: Env) {
 
 	// Generate an authorization URL to login into the provider, and a set of
 	// read and write keys for retrieving the access token later on.
+
+	// Authorize //
 	if (request.method === 'POST' && command === Command.Authorize) {
 		const readKey = generateRandomId(16);
 		let writeKey;
@@ -59,10 +61,10 @@ async function handleRequest(request: Request, env: Env) {
 
 				const googleAuthorizeParams = new URLSearchParams();
 				googleAuthorizeParams.append('client_id', env.GOOGLE_CLIENT_ID);
-				googleAuthorizeParams.append('redirect_uri', env.GOOGLE_REDIRECT_URI);
+				googleAuthorizeParams.append('redirect_uri', redirectURI);
 				googleAuthorizeParams.append('response_type', 'code');
 				googleAuthorizeParams.append('scope', 'https://www.googleapis.com/auth/spreadsheets.readonly');
-				googleAuthorizeParams.append('access_type', 'online');
+				googleAuthorizeParams.append('access_type', 'offline');
 				googleAuthorizeParams.append('include_granted_scopes', 'true');
 				googleAuthorizeParams.append('state', writeKey);
 
@@ -97,6 +99,8 @@ async function handleRequest(request: Request, env: Env) {
 	// Once the user has been authorized via login page, the provider will
 	// redirect them back this URL with an access code (not an access token) and
 	// the write key we stored in the state param.
+
+	// Redirect //
 	if (request.method === 'GET' && command === Command.Redirect) {
 		const authorizationCode = requestUrl.searchParams.get('code');
 		const writeKey = requestUrl.searchParams.get('state');
@@ -145,7 +149,7 @@ async function handleRequest(request: Request, env: Env) {
 		const valueJson = JSON.parse(storedValue);
 		const { readKey } = valueJson;
 
-		let keyValueStoreData;
+		let tokenResponse;
 
 		switch (platform) {
 			case Platform.Airtable:
@@ -162,36 +166,47 @@ async function handleRequest(request: Request, env: Env) {
 
 				// This additional POST request retrieves the access token and expiry
 				// information used for further API requests to the provider.
-				const tokenResponse = await fetch('https://airtable.com/oauth2/v1/token', {
+				tokenResponse = await fetch('https://airtable.com/oauth2/v1/token', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
-						Authorization: getAuthorizationHeader(env),
+						Authorization: getAirtableAuthorizationHeader(env),
 					},
 					body: airtableTokenParams.toString(),
 				});
-
-				if (tokenResponse.status !== 200) {
-					return new Response(tokenResponse.statusText, {
-						status: tokenResponse.status,
-					});
-				}
-
-				keyValueStoreData = JSON.stringify(await tokenResponse.json());
-
 				break;
 			case Platform.GoogleSheets:
-				keyValueStoreData = JSON.stringify({
-					authorization_code: authorizationCode,
-				});
+				// Generate a new URL with the access code and client secret.
+				const googleTokenParams = new URLSearchParams();
+				googleTokenParams.append('client_id', env.GOOGLE_CLIENT_ID);
+				googleTokenParams.append('client_secret', env.GOOGLE_CLIENT_SECRET);
+				googleTokenParams.append('code', authorizationCode);
+				googleTokenParams.append('grant_type', 'authorization_code');
+				googleTokenParams.append('redirect_uri', redirectURI);
 
+				// This additional POST request retrieves the access token and expiry
+				// information used for further API requests to the provider.
+				tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: googleTokenParams.toString(),
+				});
 				break;
 			default:
 				throw new Error('Unsupported platform');
 		}
 
+		if (tokenResponse.status !== 200) {
+			return new Response(tokenResponse.statusText, {
+				status: tokenResponse.status,
+			});
+		}
+
 		// Store the tokens temporarily inside a key value store. This will be
 		// retrieved when the plugin polls for them.
+		const keyValueStoreData = JSON.stringify(await tokenResponse.json());
 		await env.keyValueStore.put(`tokens:${readKey}`, keyValueStoreData, {
 			expirationTtl: 300,
 		});
@@ -203,6 +218,7 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
+	// Poll //
 	if (request.method === 'POST' && command === Command.Poll) {
 		const readKey = requestUrl.searchParams.get('readKey');
 
@@ -236,6 +252,7 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
+	// Refresh //
 	if (request.method === 'POST' && command === Command.Refresh) {
 		const refreshToken = requestUrl.searchParams.get('refresh_token');
 
@@ -256,7 +273,7 @@ async function handleRequest(request: Request, env: Env) {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
-						Authorization: getAuthorizationHeader(env),
+						Authorization: getAirtableAuthorizationHeader(env),
 					},
 					body: objectToURLParams({
 						refresh_token: refreshToken,
@@ -265,20 +282,18 @@ async function handleRequest(request: Request, env: Env) {
 				});
 				break;
 			case Platform.GoogleSheets:
-				// refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-				// 	method: 'POST',
-				// 	headers: {
-				// 		'Content-Type': 'application/x-www-form-urlencoded',
-				// 		Authorization: getAuthorizationHeader(env),
-				// 	},
-				// 	body: objectToURLParams({
-				// 		client_id: env.GOOGLE_CLIENT_ID,
-				// 		client_secret: env.GOOGLE_CLIENT_SECRET,
-				// 		code: authorizationCode,
-				// 		redirect_uri: '',
-				// 		grant_type: 'authorization_code',
-				// 	}),
-				// });
+				refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: objectToURLParams({
+						client_id: env.GOOGLE_CLIENT_ID,
+						client_secret: env.GOOGLE_CLIENT_SECRET,
+						grant_type: 'refresh_token',
+						refresh_token: refreshToken,
+					}),
+				});
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -340,7 +355,7 @@ export default {
 	},
 };
 
-function getAuthorizationHeader(env) {
+function getAirtableAuthorizationHeader(env) {
 	return `Basic ${Buffer.from(`${env.AIRTABLE_CLIENT_ID}:${env.AIRTABLE_CLIENT_SECRET}`).toString('base64')}`;
 }
 

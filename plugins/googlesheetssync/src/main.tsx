@@ -12,7 +12,7 @@ import {
 	getPluginContext,
 	synchronizeDatabase,
 	isAuthenticated,
-	refreshAirtableToken,
+	refreshGoogleToken,
 } from "./googlesheets.ts";
 
 import { framer } from "framer-plugin";
@@ -66,7 +66,7 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 async function runPlugin() {
 	try {
 		if (isAuthenticated()) {
-			await refreshAirtableToken();
+			await refreshGoogleToken();
 		}
 
 		const pluginContext = await getPluginContext();
