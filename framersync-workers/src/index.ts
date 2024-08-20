@@ -4,7 +4,7 @@ import { generateRandomId, generateAirtableChallengeParams } from './generateAir
 enum Platform {
 	Notion = 'notion',
 	Airtable = 'airtable',
-	GoogleSheets = 'googleSheets',
+	GoogleSheets = 'google-sheets',
 }
 
 enum Command {
@@ -36,22 +36,42 @@ async function handleRequest(request: Request, env: Env) {
 				const challengeParams = await generateAirtableChallengeParams();
 				writeKey = challengeParams.state;
 
-				const authorizeParams = new URLSearchParams();
-				authorizeParams.append('client_id', env.AIRTABLE_CLIENT_ID);
-				authorizeParams.append('redirect_uri', getRedirectURI(env));
-				authorizeParams.append('response_type', 'code');
-				authorizeParams.append('scope', 'data.records:read schema.bases:read');
+				const airtableAuthorizeParams = new URLSearchParams();
+				airtableAuthorizeParams.append('client_id', env.AIRTABLE_CLIENT_ID);
+				airtableAuthorizeParams.append('redirect_uri', getRedirectURI(env));
+				airtableAuthorizeParams.append('response_type', 'code');
+				airtableAuthorizeParams.append('scope', 'data.records:read schema.bases:read');
 
-				authorizeParams.append('state', challengeParams.state);
-				authorizeParams.append('code_challenge', challengeParams.code_challenge);
-				authorizeParams.append('code_challenge_method', 'S256');
+				airtableAuthorizeParams.append('state', challengeParams.state);
+				airtableAuthorizeParams.append('code_challenge', challengeParams.code_challenge);
+				airtableAuthorizeParams.append('code_challenge_method', 'S256');
 
 				// Generate the login URL for the provider.
-				const authorizeUrlObject = new URL('https://airtable.com/oauth2/v1/authorize/');
-				authorizeUrlObject.search = authorizeParams.toString();
-				authorizeUrl = authorizeUrlObject.toString();
+				const airtableAuthorizeUrl = new URL('https://airtable.com/oauth2/v1/authorize/');
+				airtableAuthorizeUrl.search = airtableAuthorizeParams.toString();
+				authorizeUrl = airtableAuthorizeUrl.toString();
 
 				keyValueStoreData = JSON.stringify({ readKey, challengeVerifier: challengeParams.code_verifier });
+				break;
+			case Platform.GoogleSheets:
+				writeKey = generateRandomId(16);
+
+				const googleAuthorizeParams = new URLSearchParams();
+				googleAuthorizeParams.append('client_id', env.GOOGLE_CLIENT_ID);
+				googleAuthorizeParams.append('redirect_uri', env.GOOGLE_REDIRECT_URI);
+				googleAuthorizeParams.append('response_type', 'code');
+				googleAuthorizeParams.append('scope', 'https://www.googleapis.com/auth/spreadsheets.readonly');
+				googleAuthorizeParams.append('access_type', 'online');
+				googleAuthorizeParams.append('include_granted_scopes', 'true');
+				googleAuthorizeParams.append('state', writeKey);
+
+				// Generate the login URL for the provider.
+				const googleAuthorizeUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+				googleAuthorizeUrl.search = googleAuthorizeParams.toString();
+				authorizeUrl = googleAuthorizeUrl.toString();
+
+				keyValueStoreData = JSON.stringify({ readKey });
+
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -97,6 +117,8 @@ async function handleRequest(request: Request, env: Env) {
 						status: 400,
 					});
 				}
+				break;
+			case Platform.GoogleSheets:
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -151,6 +173,8 @@ async function handleRequest(request: Request, env: Env) {
 					},
 					body: tokenParams.toString(),
 				});
+				break;
+			case Platform.GoogleSheets:
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -235,6 +259,8 @@ async function handleRequest(request: Request, env: Env) {
 						body: `refresh_token=${refreshToken}&grant_type=refresh_token`,
 					});
 				}
+				break;
+			case Platform.GoogleSheets:
 				break;
 			default:
 				throw new Error('Unsupported platform');

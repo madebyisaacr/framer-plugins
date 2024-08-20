@@ -7,7 +7,9 @@ import { richTextToPlainText, richTextToHTML } from "./blocksToHTML";
 export type FieldId = string;
 
 const apiBaseUrl =
-	window.location.hostname === "localhost" ? "http://localhost:8787" : "https://framersync-workers.isaac-b49.workers.dev";
+	window.location.hostname === "localhost"
+		? "http://localhost:8787/google-sheets"
+		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
 
 export const getOauthURL = (writeKey: string) =>
@@ -44,12 +46,15 @@ export async function refreshAirtableToken() {
 		return;
 	}
 
-	const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+	const response = await fetch(
+		`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}
+	);
 
 	const responseJson = await response.json();
 	console.log(responseJson);
@@ -149,7 +154,11 @@ export async function authorize() {
  * That maps the Airtable field to the Framer CMS collection property type
  */
 // DONE
-export function getCollectionFieldForProperty(property: object, name: string, type: string): CollectionField | null {
+export function getCollectionFieldForProperty(
+	property: object,
+	name: string,
+	type: string
+): CollectionField | null {
 	if (type == "enum") {
 		return {
 			type,
@@ -170,7 +179,11 @@ export function getCollectionFieldForProperty(property: object, name: string, ty
 }
 
 // DONE
-export function getPropertyValue(property: object, value: any, fieldType: string): unknown | undefined {
+export function getPropertyValue(
+	property: object,
+	value: any,
+	fieldType: string
+): unknown | undefined {
 	if (property === null || property === undefined || value === null || value === undefined) {
 		return null;
 	}
@@ -389,7 +402,17 @@ async function processAllItems(
 		warnings: [],
 	};
 	const promises = data.map((item) =>
-		limit(() => processItem(item, tableSchema, fieldsById, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
+		limit(() =>
+			processItem(
+				item,
+				tableSchema,
+				fieldsById,
+				slugFieldId,
+				status,
+				unsyncedItemIds,
+				lastSyncedDate
+			)
+		)
 	);
 	const results = await Promise.all(promises);
 
@@ -479,7 +502,10 @@ export async function synchronizeDatabase(
 export function useSynchronizeDatabaseMutation(
 	base: object | null,
 	table: object | null,
-	{ onSuccess, onError }: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
+	{
+		onSuccess,
+		onError,
+	}: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
 ) {
 	return useMutation({
 		onError(error) {
