@@ -10,10 +10,6 @@ const apiBaseUrl =
 	window.location.hostname === "localhost"
 		? "http://localhost:8787/airtable"
 		: "https://framersync-workers.isaac-b49.workers.dev/airtable";
-const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
-
-export const getOauthURL = (writeKey: string) =>
-	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
 
 let airtableAccessToken: string | null = null;
 

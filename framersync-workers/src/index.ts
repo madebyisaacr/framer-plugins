@@ -16,12 +16,13 @@ enum Command {
 
 async function handleRequest(request: Request, env: Env) {
 	const requestUrl = new URL(request.url);
-
-	const ACCESS_CONTROL_ORIGIN = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
 	const sections = requestUrl.pathname.replace(/^\/+|\/+$/g, '').split('/');
 
-	const platform = sections[0]; // notion, airtable, googleSheets
-	const command = (platform as Platform) ? sections[1] : sections[0]; // authorize, poll, refresh, or redirect
+	const platform = sections[0] as Platform;
+	const command = (platform ? sections[1] : sections[0]) as Command;
+
+	const accessControlOrigin = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
+	const redirectURI = env.REDIRECT_URI.replace('{platform}', platform);
 
 	// Generate an authorization URL to login into the provider, and a set of
 	// read and write keys for retrieving the access token later on.
@@ -38,7 +39,7 @@ async function handleRequest(request: Request, env: Env) {
 
 				const airtableAuthorizeParams = new URLSearchParams();
 				airtableAuthorizeParams.append('client_id', env.AIRTABLE_CLIENT_ID);
-				airtableAuthorizeParams.append('redirect_uri', getRedirectURI(env));
+				airtableAuthorizeParams.append('redirect_uri', redirectURI);
 				airtableAuthorizeParams.append('response_type', 'code');
 				airtableAuthorizeParams.append('scope', 'data.records:read schema.bases:read');
 
@@ -71,7 +72,6 @@ async function handleRequest(request: Request, env: Env) {
 				authorizeUrl = googleAuthorizeUrl.toString();
 
 				keyValueStoreData = JSON.stringify({ readKey });
-
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -89,7 +89,7 @@ async function handleRequest(request: Request, env: Env) {
 		return new Response(response, {
 			headers: {
 				'Content-Type': 'application/json',
-				...ACCESS_CONTROL_ORIGIN,
+				...accessControlOrigin,
 			},
 		});
 	}
@@ -118,10 +118,8 @@ async function handleRequest(request: Request, env: Env) {
 					});
 				}
 				break;
-			case Platform.GoogleSheets:
-				break;
 			default:
-				throw new Error('Unsupported platform');
+				break;
 		}
 
 		if (!authorizationCode) {
@@ -145,51 +143,56 @@ async function handleRequest(request: Request, env: Env) {
 		}
 
 		const valueJson = JSON.parse(storedValue);
-
 		const { readKey } = valueJson;
 
-		let tokenResponse;
+		let keyValueStoreData;
 
 		switch (platform) {
 			case Platform.Airtable:
 				const { challengeVerifier } = JSON.parse(storedValue);
 
 				// Generate a new URL with the access code and client secret.
-				const tokenParams = new URLSearchParams();
-				tokenParams.append('redirect_uri', getRedirectURI(env));
-				tokenParams.append('code', authorizationCode);
-				tokenParams.append('client_id', env.AIRTABLE_CLIENT_ID);
-				tokenParams.append('client_secret', env.AIRTABLE_CLIENT_SECRET);
-				tokenParams.append('grant_type', 'authorization_code');
-				tokenParams.append('code_verifier', challengeVerifier);
+				const airtableTokenParams = new URLSearchParams();
+				airtableTokenParams.append('redirect_uri', redirectURI);
+				airtableTokenParams.append('code', authorizationCode);
+				airtableTokenParams.append('client_id', env.AIRTABLE_CLIENT_ID);
+				airtableTokenParams.append('client_secret', env.AIRTABLE_CLIENT_SECRET);
+				airtableTokenParams.append('grant_type', 'authorization_code');
+				airtableTokenParams.append('code_verifier', challengeVerifier);
 
 				// This additional POST request retrieves the access token and expiry
 				// information used for further API requests to the provider.
-				tokenResponse = await fetch('https://airtable.com/oauth2/v1/token', {
+				const tokenResponse = await fetch('https://airtable.com/oauth2/v1/token', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded',
 						Authorization: getAuthorizationHeader(env),
 					},
-					body: tokenParams.toString(),
+					body: airtableTokenParams.toString(),
 				});
+
+				if (tokenResponse.status !== 200) {
+					return new Response(tokenResponse.statusText, {
+						status: tokenResponse.status,
+					});
+				}
+
+				keyValueStoreData = JSON.stringify(await tokenResponse.json());
+
 				break;
 			case Platform.GoogleSheets:
+				keyValueStoreData = JSON.stringify({
+					authorization_code: authorizationCode,
+				});
+
 				break;
 			default:
 				throw new Error('Unsupported platform');
 		}
 
-		if (tokenResponse.status !== 200) {
-			return new Response(tokenResponse.statusText, {
-				status: tokenResponse.status,
-			});
-		}
-
 		// Store the tokens temporarily inside a key value store. This will be
 		// retrieved when the plugin polls for them.
-		const tokens = (await tokenResponse.json()) as unknown;
-		await env.keyValueStore.put(`tokens:${readKey}`, JSON.stringify(tokens), {
+		await env.keyValueStore.put(`tokens:${readKey}`, keyValueStoreData, {
 			expirationTtl: 300,
 		});
 
@@ -207,7 +210,7 @@ async function handleRequest(request: Request, env: Env) {
 			return new Response('Missing read key URL param', {
 				status: 400,
 				headers: {
-					...ACCESS_CONTROL_ORIGIN,
+					...accessControlOrigin,
 				},
 			});
 		}
@@ -217,7 +220,7 @@ async function handleRequest(request: Request, env: Env) {
 		if (!tokens) {
 			return new Response(null, {
 				status: 404,
-				headers: { ...ACCESS_CONTROL_ORIGIN },
+				headers: { ...accessControlOrigin },
 			});
 		}
 
@@ -228,7 +231,7 @@ async function handleRequest(request: Request, env: Env) {
 		return new Response(tokens, {
 			headers: {
 				'Content-Type': 'application/json',
-				...ACCESS_CONTROL_ORIGIN,
+				...accessControlOrigin,
 			},
 		});
 	}
@@ -240,7 +243,7 @@ async function handleRequest(request: Request, env: Env) {
 			return new Response('Missing refresh token URL param', {
 				status: 400,
 				headers: {
-					...ACCESS_CONTROL_ORIGIN,
+					...accessControlOrigin,
 				},
 			});
 		}
@@ -249,18 +252,33 @@ async function handleRequest(request: Request, env: Env) {
 
 		switch (platform) {
 			case Platform.Airtable:
-				if (platform === Platform.Airtable) {
-					refreshResponse = await fetch('https://airtable.com/oauth2/v1/token', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded',
-							Authorization: getAuthorizationHeader(env),
-						},
-						body: `refresh_token=${refreshToken}&grant_type=refresh_token`,
-					});
-				}
+				refreshResponse = await fetch('https://airtable.com/oauth2/v1/token', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+						Authorization: getAuthorizationHeader(env),
+					},
+					body: objectToURLParams({
+						refresh_token: refreshToken,
+						grant_type: 'refresh_token',
+					}),
+				});
 				break;
 			case Platform.GoogleSheets:
+				// refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
+				// 	method: 'POST',
+				// 	headers: {
+				// 		'Content-Type': 'application/x-www-form-urlencoded',
+				// 		Authorization: getAuthorizationHeader(env),
+				// 	},
+				// 	body: objectToURLParams({
+				// 		client_id: env.GOOGLE_CLIENT_ID,
+				// 		client_secret: env.GOOGLE_CLIENT_SECRET,
+				// 		code: authorizationCode,
+				// 		redirect_uri: '',
+				// 		grant_type: 'authorization_code',
+				// 	}),
+				// });
 				break;
 			default:
 				throw new Error('Unsupported platform');
@@ -270,7 +288,7 @@ async function handleRequest(request: Request, env: Env) {
 			return new Response(refreshResponse.statusText, {
 				status: refreshResponse.status,
 				headers: {
-					...ACCESS_CONTROL_ORIGIN,
+					...accessControlOrigin,
 				},
 			});
 		}
@@ -279,7 +297,7 @@ async function handleRequest(request: Request, env: Env) {
 
 		return new Response(JSON.stringify(tokens), {
 			headers: {
-				...ACCESS_CONTROL_ORIGIN,
+				...accessControlOrigin,
 			},
 		});
 	}
@@ -292,7 +310,7 @@ async function handleRequest(request: Request, env: Env) {
 	if (request.method === 'OPTIONS') {
 		return new Response(null, {
 			headers: {
-				...ACCESS_CONTROL_ORIGIN,
+				...accessControlOrigin,
 				'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 				'Access-Control-Allow-Headers': 'Content-Type',
 			},
@@ -302,7 +320,7 @@ async function handleRequest(request: Request, env: Env) {
 	return new Response('Page not found', {
 		status: 404,
 		headers: {
-			...ACCESS_CONTROL_ORIGIN,
+			...accessControlOrigin,
 		},
 	});
 }
@@ -326,6 +344,10 @@ function getAuthorizationHeader(env) {
 	return `Basic ${Buffer.from(`${env.AIRTABLE_CLIENT_ID}:${env.AIRTABLE_CLIENT_SECRET}`).toString('base64')}`;
 }
 
-function getRedirectURI(env) {
-	return env.REDIRECT_URI.replace('{platform}', Platform.Airtable);
+function objectToURLParams(object: Record<string, string>) {
+	const params = new URLSearchParams();
+	for (const [key, value] of Object.entries(object)) {
+		params.append(key, value);
+	}
+	return params.toString();
 }

@@ -10,44 +10,40 @@ const apiBaseUrl =
 	window.location.hostname === "localhost"
 		? "http://localhost:8787/google-sheets"
 		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
-const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/redirect/`);
 
-export const getOauthURL = (writeKey: string) =>
-	`https://airtable.com/oauth2/v1/authorize?client_id=da5fb6c7-a40e-4931-8f06-67507c3816eb&response_type=code&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
+let accessToken: string | null = null;
 
-let airtableAccessToken: string | null = null;
+// Storage for the Google API key refresh token.
+const refreshTokenKey = "googleSheetsRefreshToken";
 
-// Storage for the Airtable API key refresh token.
-const airtableRefreshTokenKey = "airtableRefreshToken";
+const pluginBaseIdKey = "googleSheetsPluginBaseId";
+const pluginTableIdKey = "googleSheetsPluginTableId";
+const pluginLastSyncedKey = "googleSheetsPluginLastSynced";
+const ignoredFieldIdsKey = "googleSheetsPluginIgnoredFieldIds";
+const pluginSlugIdKey = "googleSheetsPluginSlugId";
+const baseNameKey = "googleSheetsBaseName";
 
-const pluginBaseIdKey = "airtablePluginBaseId";
-const pluginTableIdKey = "airtablePluginTableId";
-const pluginLastSyncedKey = "airtablePluginLastSynced";
-const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
-const pluginSlugIdKey = "airtablePluginSlugId";
-const baseNameKey = "airtableBaseName";
-
-// Maximum number of concurrent requests to Airtable API
+// Maximum number of concurrent requests to Google API
 // This is to prevent rate limiting.
-// TODO: Is this necessary with Airtable?
+// TODO: Is this necessary with Google API?
 const concurrencyLimit = 5;
 
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 // TODO: Refresh the token when it expires
 export function isAuthenticated() {
-	return localStorage.getItem(airtableRefreshTokenKey) !== null;
+	return localStorage.getItem(refreshTokenKey) !== null;
 }
 
 // TODO: Check if refresh token is expired (60 days)
 export async function refreshAirtableToken() {
 	// Do not refresh if we already have an access token
-	if (airtableAccessToken) {
+	if (accessToken) {
 		return;
 	}
 
 	const response = await fetch(
-		`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`,
+		`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(refreshTokenKey)}`,
 		{
 			method: "POST",
 			headers: {
@@ -60,8 +56,8 @@ export async function refreshAirtableToken() {
 	console.log(responseJson);
 	const { access_token, refresh_token } = responseJson;
 
-	airtableAccessToken = access_token;
-	localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+	accessToken = access_token;
+	localStorage.setItem(refreshTokenKey, refresh_token);
 	console.log("Set refresh token to:", refresh_token);
 }
 
@@ -71,7 +67,7 @@ export async function airtableFetch(url: string, body?: object) {
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${airtableAccessToken}`,
+			Authorization: `Bearer ${accessToken}`,
 		},
 	});
 	const data = await response.json();
@@ -138,8 +134,8 @@ export async function authorize() {
 					const { access_token, refresh_token } = tokenInfo;
 
 					clearInterval(interval);
-					airtableAccessToken = access_token;
-					localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+					accessToken = access_token;
+					localStorage.setItem(refreshTokenKey, refresh_token);
 					console.log("Set refresh token to:", refresh_token);
 				}
 

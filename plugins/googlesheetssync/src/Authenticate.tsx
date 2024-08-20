@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { PluginContext, authorize, getOauthURL, getPluginContext } from "./googlesheets";
+import { PluginContext, authorize, getPluginContext } from "./googlesheets";
 import loginIllustration from "./assets/notion-login.png";
 import Button from "@shared/Button";
-import { generateRandomId } from "./utils";
 import { framer } from "framer-plugin";
 
 function useIsDocumentVisibile() {
@@ -46,7 +45,6 @@ export function Authentication({ onAuthenticated, context }: AuthenticationProps
 
 	const handleAuth = () => {
 		setIsLoading(true);
-		// const writeKey = generateRandomId();
 
 		// It is important to call `window.open` directly in the event handler
 		// So that Safari does not block any popups.
