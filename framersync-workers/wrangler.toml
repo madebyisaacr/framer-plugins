@@ -6,9 +6,9 @@ node_compat = true
 
 [dev]
 port = 8787
-local_protocol = "https"
-https_key_path = "./localhost-key.pem"
-https_cert_path = "./localhost.pem"
+local_protocol = "http"
+# https_key_path = "./localhost-key.pem"
+# https_cert_path = "./localhost.pem"
 
 kv_namespaces = [
   { binding = "keyValueStore", id = "a869bdc0e9a24b50b8874e01203fa449" }
