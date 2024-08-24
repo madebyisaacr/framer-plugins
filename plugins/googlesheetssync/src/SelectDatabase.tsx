@@ -1,4 +1,4 @@
-import { googleFetch, authorize, getGooglePickerUrl } from "./googlesheets";
+import { googleFetch, authorize } from "./googlesheets";
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { assert } from "./utils";
 import { ReloadIcon } from "./components/Icons";
@@ -69,7 +69,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 						<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
 					</button>
 				</div>
-				<Button primary href={getGooglePickerUrl()} newTab>
+				<Button primary href="" newTab>
 					Pick a sheet
 				</Button>
 				{isLoading ? (

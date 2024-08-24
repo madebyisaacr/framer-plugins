@@ -58,9 +58,9 @@ export async function refreshGoogleToken() {
 	accessToken = access_token;
 }
 
-export function getGooglePickerUrl() {
-	return `${apiBaseUrl.replace("http:", "https:")}/open-picker/?access_token=${accessToken}`;
-}
+// export function getGooglePickerUrl() {
+// 	return `${apiBaseUrl.replace("http:", "https:")}/open-picker/?access_token=${accessToken}`;
+// }
 
 // DONE
 export async function googleFetch(url: string, body?: object) {
