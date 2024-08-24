@@ -1,4 +1,4 @@
-import { SynchronizeResult } from "./airtable";
+import { SynchronizeResult } from "./airtable/airtable";
 
 export function logSyncResult(result: SynchronizeResult) {
 	if (result.errors.length > 0) {

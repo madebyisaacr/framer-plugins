@@ -13,7 +13,7 @@ import {
 	synchronizeDatabase,
 	isAuthenticated,
 	refreshAirtableToken,
-} from "./airtable.ts";
+} from "./airtable/airtable.ts";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";

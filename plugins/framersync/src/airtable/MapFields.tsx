@@ -1,5 +1,5 @@
 import { framer } from "framer-plugin";
-import { assert } from "./utils.js";
+import { assert } from "../utils.js";
 import {
 	PluginContext,
 	SynchronizeMutationOptions,
@@ -9,9 +9,9 @@ import {
 } from "./airtable.js";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
-import { IconChevron } from "./components/Icons.js";
+import { IconChevron } from "../components/Icons.js";
 import Button from "@shared/Button";
-import { cmsFieldIcons } from "./assets/cmsFieldIcons.js";
+import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 
 const fieldConversionMessages = {};

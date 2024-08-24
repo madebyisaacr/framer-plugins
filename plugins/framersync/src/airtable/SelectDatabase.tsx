@@ -1,7 +1,7 @@
 import { airtableFetch, authorize } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
-import { assert } from "./utils";
-import { ReloadIcon } from "./components/Icons";
+import { assert } from "../utils";
+import { ReloadIcon } from "../components/Icons";
 import { framer } from "framer-plugin";
 import Button from "@shared/Button";
 import classNames from "classnames";

@@ -1,6 +1,6 @@
 {
-    "id": "W4zWWL",
-    "name": "AirtableSync",
+    "id": "Kd2XEn",
+    "name": "FramerSync",
     "modes": ["configureManagedCollection", "syncManagedCollection"],
     "icon": "/notion.png"
 }

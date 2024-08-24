@@ -1,12 +1,12 @@
 import { framer } from "framer-plugin";
 import { useEffect, useState } from "react";
 import "./App.css";
-import { PluginContext, useSynchronizeDatabaseMutation } from "./airtable";
+import { PluginContext, useSynchronizeDatabaseMutation } from "./airtable/airtable";
 
-import { SelectDatabase } from "./SelectDatabase";
-import { MapDatabaseFields } from "./MapFields";
+import { SelectDatabase } from "./airtable/SelectDatabase";
+import { MapDatabaseFields } from "./airtable/MapFields";
 import { logSyncResult } from "./debug";
-import { Authentication } from "./Authenticate";
+import { Authentication } from "./airtable/Authenticate";
 
 interface AppProps {
 	context: PluginContext;

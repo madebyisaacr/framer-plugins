@@ -1,5 +1,5 @@
 import pLimit from "p-limit";
-import { assert, formatDate, isDefined, isString, slugify } from "./utils";
+import { assert, formatDate, isDefined, isString, slugify } from "../utils";
 import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./blocksToHTML";
