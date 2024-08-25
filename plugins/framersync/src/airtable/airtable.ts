@@ -29,15 +29,63 @@ const baseNameKey = "airtableBaseName";
 // TODO: Is this necessary with Airtable?
 const concurrencyLimit = 5;
 
+export const Airtable = {
+	synchronizeDatabase,
+	isAuthenticated,
+	refreshToken: refreshAirtableToken,
+	getIntegrationContext,
+	getStoredIntegrationData,
+};
+
+async function getIntegrationContext(integrationData: object) {
+	const { baseId, tableId } = integrationData;
+
+	if (!baseId || !tableId) {
+		return null;
+	}
+
+	try {
+		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
+		console.log(baseSchema);
+
+		const table = baseSchema.tables.find((t) => t.id === tableId);
+		console.log(table);
+
+		return {
+			baseId,
+			tableId,
+			baseSchema,
+			table,
+		};
+	} catch (error) {
+		return new Error(
+			"Failed to get Airtable base information. Log in with Airtable and select the Base to sync."
+		);
+	}
+}
+
+function getStoredIntegrationData(integrationContext: object) {
+	const { baseId, tableId } = integrationContext;
+
+	if (!baseId || !tableId) {
+		return null;
+	}
+
+	return {
+		baseId,
+		tableId,
+	};
+}
+
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 // TODO: Refresh the token when it expires
-export function isAuthenticated() {
+function isAuthenticated() {
 	return localStorage.getItem(airtableRefreshTokenKey) !== null;
 }
 
 // TODO: Check if refresh token is expired (60 days)
-export async function refreshAirtableToken() {
+async function refreshAirtableToken() {
 	// Do not refresh if we already have an access token
 	if (airtableAccessToken) {
 		return;
@@ -421,7 +469,7 @@ async function processAllItems(
 	};
 }
 
-export async function synchronizeDatabase(
+async function synchronizeDatabase(
 	base: object,
 	table: object,
 	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions

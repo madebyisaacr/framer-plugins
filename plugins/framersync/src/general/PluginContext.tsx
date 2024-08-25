@@ -1,5 +1,11 @@
 import { ManagedCollection, CollectionField } from "framer-plugin";
 
+export enum Integration {
+	Airtable = "airtable",
+	Notion = "notion",
+	GoogleSheets = "google-sheets",
+}
+
 export interface PluginContextNew {
 	type: "new";
 	collection: ManagedCollection;
@@ -8,7 +14,8 @@ export interface PluginContextNew {
 
 export interface PluginContextUpdate {
 	type: "update";
-	database: object;
+	integration: Integration;
+	integrationData: object;
 	collection: ManagedCollection;
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;

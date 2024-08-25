@@ -78,3 +78,7 @@ export function generateRandomId() {
 
 	return id;
 }
+
+export function createObject(keys: string[]) {
+	return Object.fromEntries(keys.map((key) => [key, key]));
+}
