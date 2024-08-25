@@ -15,7 +15,7 @@ export interface PluginContextNew {
 export interface PluginContextUpdate {
 	type: "update";
 	integration: Integration;
-	integrationData: object;
+	integrationContext: object;
 	collection: ManagedCollection;
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;

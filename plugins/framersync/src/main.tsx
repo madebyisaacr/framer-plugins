@@ -177,7 +177,7 @@ async function runPlugin() {
 			if (mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
 				assert(pluginContext.slugFieldId);
 
-				const result = await integration.synchronizeDatabase(pluginContext.integrationData, {
+				const result = await integration.synchronizeDatabase(pluginContext.integrationContext, {
 					fields: pluginContext.collectionFields,
 					ignoredFieldIds: pluginContext.ignoredFieldIds,
 					lastSyncedTime: pluginContext.lastSyncedTime,
