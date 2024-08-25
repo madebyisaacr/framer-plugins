@@ -26,7 +26,7 @@ async function handleRequest(request: Request, env: Env) {
 	const command = (platform ? sections[1] : sections[0]) as Command;
 
 	const accessControlOrigin = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
-	const redirectURI = `${env.REDIRECT_URI}/${platform}/${Command.Redirect}`;
+	const redirectURI = `${env.REDIRECT_URI}/${platform}/${Command.Redirect}/`;
 
 	// Generate an authorization URL to login into the provider, and a set of
 	// read and write keys for retrieving the access token later on.
