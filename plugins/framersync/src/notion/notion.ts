@@ -13,6 +13,7 @@ import { assert, formatDate, isDefined, isString, slugify } from "./utils";
 import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
+import { PluginContext } from "../general/PluginContext";
 
 export type FieldId = string;
 
@@ -518,32 +519,6 @@ export function useDatabasesQuery() {
 		},
 	});
 }
-
-export interface PluginContextNew {
-	type: "new";
-	collection: ManagedCollection;
-	isAuthenticated: boolean;
-}
-
-export interface PluginContextUpdate {
-	type: "update";
-	database: GetDatabaseResponse;
-	collection: ManagedCollection;
-	collectionFields: CollectionField[];
-	lastSyncedTime: string;
-	hasChangedFields: boolean;
-	ignoredFieldIds: FieldId[];
-	slugFieldId: string | null;
-	isAuthenticated: boolean;
-}
-
-export interface PluginContextError {
-	type: "error";
-	message: string;
-	isAuthenticated: false;
-}
-
-export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
 
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	if (!rawIgnoredFields) {

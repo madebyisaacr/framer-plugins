@@ -7,13 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner.tsx";
 import {
-	PluginContext,
-	PluginContextUpdate,
-	getPluginContext,
 	synchronizeDatabase,
 	isAuthenticated,
 	refreshAirtableToken,
+	getPluginContext,
 } from "./airtable/airtable.ts";
+import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";
