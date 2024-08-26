@@ -30,7 +30,6 @@ export function SelectDatabasePage() {
 
 		updatePluginContext({
 			integrationContext: { database },
-			databaseName: richTextToPlainText(database.title),
 		});
 	};
 

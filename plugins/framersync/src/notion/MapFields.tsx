@@ -321,6 +321,7 @@ export function MapFieldsPage({
 				collectionFields: fields,
 				slugFieldId,
 				ignoredFieldIds: Array.from(disabledFieldIds),
+				databaseName: richTextToPlainText(database.title),
 			},
 			onSubmit
 		);

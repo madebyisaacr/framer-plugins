@@ -21,15 +21,6 @@ export async function updateCollection(
 		pluginContext;
 	const collection = await framer.getManagedCollection();
 
-	console.log(
-		collectionFields,
-		collectionItems,
-		itemsToDelete,
-		ignoredFieldIds,
-		slugFieldId,
-		databaseName
-	);
-
 	await collection.setFields(collectionFields);
 
 	await collection.addItems(collectionItems);
