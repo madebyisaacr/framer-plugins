@@ -18,6 +18,7 @@ import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 import { PluginContext } from "../general/PluginContext";
+import { updateCollection } from "../general/updateCollection";
 
 export type FieldId = string;
 
@@ -493,8 +494,7 @@ async function processAllItems(
 }
 
 export async function synchronizeDatabase(
-	pluginContext: PluginContext,
-	updateCollection: Function
+	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
 	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
@@ -533,12 +533,14 @@ export async function synchronizeDatabase(
 		const itemsToDelete = Array.from(unsyncedItemIds);
 		const databaseName = richTextToPlainText(database.title);
 		await updateCollection(
+			pluginContext,
 			fields,
 			collectionItems,
 			itemsToDelete,
 			ignoredFieldIds,
 			slugFieldId,
-			databaseName
+			databaseName,
+			getStoredIntegrationData(pluginContext.integrationContext)
 		);
 
 		return {
@@ -560,7 +562,6 @@ export async function synchronizeDatabase(
 
 export function useSynchronizeDatabaseMutation(
 	pluginContext: object,
-	updateCollection: Function,
 	{
 		onSuccess,
 		onError,
@@ -574,7 +575,7 @@ export function useSynchronizeDatabaseMutation(
 		},
 		onSuccess,
 		mutationFn: async (): Promise<SynchronizeResult> => {
-			return synchronizeDatabase(pluginContext, updateCollection);
+			return synchronizeDatabase(pluginContext);
 		},
 	});
 }

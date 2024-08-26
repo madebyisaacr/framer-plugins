@@ -9,11 +9,7 @@ import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
 import { updateWindowSize } from "../general/PageWindowSizes";
 
-interface SelectDatabaseProps {
-	onDatabaseSelected: (integrationContext: { database: GetDatabaseResponse }) => void;
-}
-
-export function SelectDatabasePage({ onDatabaseSelected }: SelectDatabaseProps) {
+export function SelectDatabasePage({ setIntegrationContext }) {
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 
@@ -30,7 +26,7 @@ export function SelectDatabasePage({ onDatabaseSelected }: SelectDatabaseProps) 
 			return;
 		}
 
-		onDatabaseSelected({ database });
+		setIntegrationContext({ database });
 	};
 
 	return (

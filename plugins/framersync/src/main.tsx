@@ -5,26 +5,18 @@ import { ReactNode, StrictMode, Suspense, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
-import { CenteredSpinner } from "./components/CenteredSpinner.tsx";
+import { CenteredSpinner } from "./components/CenteredSpinner";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 import { updateWindowSize } from "./general/PageWindowSizes";
 
-import { framer, CollectionField, CollectionItem } from "framer-plugin";
-import { logSyncResult } from "./debug.ts";
-import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback.tsx";
-import { assert, stringToJSON, createObject } from "./utils.ts";
-import IntegrationsPage from "./general/IntegrationsPage.jsx";
-
-const PluginDataKey = createObject([
-	"integrationId",
-	"integrationData",
-	"ignoredFieldIds",
-	"lastSyncedTime",
-	"slugFieldId",
-	"databaseName",
-]);
+import { framer } from "framer-plugin";
+import { logSyncResult } from "./debug";
+import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
+import { assert, stringToJSON } from "./utils";
+import IntegrationsPage from "./general/IntegrationsPage";
+import { PluginDataKey } from "./general/updateCollection";
 
 const integrations = {
 	notion: Notion,
@@ -161,67 +153,36 @@ interface AppProps {
 }
 
 function AuthenticatedApp({ context }: AppProps) {
-	const [integrationContext, setIntegrationContext] = useState(
-		context.type === "update" ? context.integrationContext : null
-	);
+	const [pluginContext, setPluginContext] = useState(context);
 
-	const pluginContext = { ...context, integrationContext };
-	const integration = integrations[context.integrationId];
+	const integration = integrations[pluginContext.integrationId];
 
 	if (!integration) {
 		// TODO: Handle this case
 		return <div>Invalid integration</div>;
 	}
 
-	async function updateCollection(
-		fields: CollectionField[],
-		collectionItems: CollectionItem[],
-		itemsToDelete: string[],
-		ignoredFieldIds: string[],
-		slugFieldId: string,
-		databaseName: string,
-	) {
-		const collection = await framer.getManagedCollection();
+	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(pluginContext, {
+		onSuccess(result) {
+			logSyncResult(result);
 
-		console.log(fields, collectionItems, itemsToDelete, ignoredFieldIds, slugFieldId, databaseName);
-
-		await collection.setFields(fields);
-
-		await collection.addItems(collectionItems);
-		await collection.removeItems(itemsToDelete);
-
-		await Promise.all([
-			collection.setPluginData(PluginDataKey.integrationId, context.integrationId),
-			collection.setPluginData(PluginDataKey.ignoredFieldIds, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(
-				PluginDataKey.integrationData,
-				JSON.stringify(integration.getStoredIntegrationData(integrationContext))
-			),
-			collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString()),
-			collection.setPluginData(PluginDataKey.slugFieldId, slugFieldId),
-			collection.setPluginData(PluginDataKey.databaseName, databaseName),
-		]);
-	}
-
-	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(
-		pluginContext,
-		updateCollection,
-		{
-			onSuccess(result) {
-				logSyncResult(result);
-
-				if (result.status === "success") {
-					framer.closePlugin("Synchronization successful");
-					return;
-				}
-			},
-		}
-	);
+			if (result.status === "success") {
+				framer.closePlugin("Synchronization successful");
+				return;
+			}
+		},
+	});
 
 	const { SelectDatabasePage, MapFieldsPage } = integration;
 
-	if (!integrationContext) {
-		return <SelectDatabasePage onDatabaseSelected={setIntegrationContext} />;
+	if (!pluginContext.integrationContext) {
+		return (
+			<SelectDatabasePage
+				setIntegrationContext={(value) =>
+					setPluginContext({ ...pluginContext, integrationContext: value })
+				}
+			/>
+		);
 	}
 
 	return (
