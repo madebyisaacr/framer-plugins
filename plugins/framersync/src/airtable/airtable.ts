@@ -537,8 +537,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	base: object | null,
-	table: object | null,
+	integrationContext: object,
 	{
 		onSuccess,
 		onError,
@@ -552,6 +551,7 @@ export function useSynchronizeDatabaseMutation(
 		},
 		onSuccess,
 		mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
+			const { base, table } = integrationContext;
 			return synchronizeDatabase(base, table, options);
 		},
 	});

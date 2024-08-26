@@ -1,6 +1,6 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { framer, CollectionField } from "framer-plugin";
-import { assert } from "./utils";
+import { assert } from "../utils";
 import {
 	NotionProperty,
 	PluginContext,
@@ -29,7 +29,8 @@ const fieldConversionMessages = {
 	"last_edited_time - date": timeMessage,
 	"multi_select - string": "Values are imported as a comma-separated list of option names.",
 	"files - link": "Only the first file's URL will be included.",
-	"files - image": "Only the first image will be included. The file must be an image, otherwise importing will fail.",
+	"files - image":
+		"Only the first image will be included. The file must be an image, otherwise importing will fail.",
 	"page-icon - string":
 		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the import type to "Image"',
 	"page-icon - image":
@@ -103,7 +104,10 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(database: GetDatabaseResponse, pluginContext: PluginContext): CollectionFieldConfig[] {
+function createFieldConfig(
+	database: GetDatabaseResponse,
+	pluginContext: PluginContext
+): CollectionFieldConfig[] {
 	const result: CollectionFieldConfig[] = [];
 
 	const existingFieldIds = new Set(
@@ -185,7 +189,10 @@ function getFieldNameOverrides(pluginContext: PluginContext): Record<string, str
 	return result;
 }
 
-function getInitialSlugFieldId(context: PluginContext, fieldOptions: NotionProperty[]): string | null {
+function getInitialSlugFieldId(
+	context: PluginContext,
+	fieldOptions: NotionProperty[]
+): string | null {
 	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
 
 	return fieldOptions[0]?.id ?? null;
@@ -203,7 +210,13 @@ function getLastSyncedTime(
 	if (pluginContext.slugFieldId !== slugFieldId) return null;
 
 	// Always resync if field config changes
-	if (hasFieldConfigurationChanged(pluginContext.collectionFields, database, Array.from(disabledFieldIds))) {
+	if (
+		hasFieldConfigurationChanged(
+			pluginContext.collectionFields,
+			database,
+			Array.from(disabledFieldIds)
+		)
+	) {
 		return null;
 	}
 
@@ -211,33 +224,41 @@ function getLastSyncedTime(
 }
 
 export function MapFieldsPage({
-	database,
+	pluginContext,
 	onSubmit,
 	isLoading,
 	error,
-	pluginContext,
 }: {
-	database: GetDatabaseResponse;
+	pluginContext: PluginContext;
 	onSubmit: (options: SynchronizeMutationOptions) => void;
 	isLoading: boolean;
 	error: Error | null;
-	pluginContext: PluginContext;
 }) {
 	framer.showUI({ width: 750, height: 550 });
 
+	const { database } = pluginContext.integrationContext;
+
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
-	const [slugFieldId, setSlugFieldId] = useState<string | null>(() => getInitialSlugFieldId(pluginContext, slugFields));
-	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(database, pluginContext));
+	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
+		getInitialSlugFieldId(pluginContext, slugFields)
+	);
+	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
+		createFieldConfig(database, pluginContext)
+	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
 	);
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
-	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext));
+	const [fieldTypes, setFieldTypes] = useState(
+		createFieldTypesList(fieldConfigList, pluginContext)
+	);
 
 	const titleField =
-		(database?.properties && Object.values(database?.properties).find((property) => property.type === "title")) || null;
+		(database?.properties &&
+			Object.values(database?.properties).find((property) => property.type === "title")) ||
+		null;
 
 	assert(isFullDatabase(database));
 
@@ -276,7 +297,12 @@ export function MapFieldsPage({
 		const fields: any[] = [];
 
 		for (const fieldConfig of fieldConfigList) {
-			if (!fieldConfig || !fieldConfig.property || fieldConfig.unsupported || disabledFieldIds.has(fieldConfig.property.id)) {
+			if (
+				!fieldConfig ||
+				!fieldConfig.property ||
+				fieldConfig.unsupported ||
+				disabledFieldIds.has(fieldConfig.property.id)
+			) {
 				continue;
 			}
 
@@ -307,7 +333,10 @@ export function MapFieldsPage({
 			<Fragment key={fieldConfig.originalFieldName}>
 				<label
 					htmlFor={`${id}-checkbox`}
-					className={classNames("size-full flex items-center", !fieldConfig.unsupported && "cursor-pointer")}
+					className={classNames(
+						"size-full flex items-center",
+						!fieldConfig.unsupported && "cursor-pointer"
+					)}
 				>
 					<input
 						type="checkbox"
@@ -326,7 +355,10 @@ export function MapFieldsPage({
 						}}
 					/>
 				</label>
-				<StaticInput disabled={isDisabled} leftText={notionPropertyTypes[fieldConfig.property.type]}>
+				<StaticInput
+					disabled={isDisabled}
+					leftText={notionPropertyTypes[fieldConfig.property.type]}
+				>
 					{fieldConfig.originalFieldName}
 					{fieldConfig.isNewField && !fieldConfig.unsupported && (
 						<div
@@ -374,11 +406,14 @@ export function MapFieldsPage({
 		);
 	}
 
-	const newFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported);
+	const newFields = fieldConfigList.filter(
+		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
+	);
 	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
 	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
 	const otherFields = fieldConfigList.filter(
-		(fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
+		(fieldConfig) =>
+			!fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
 	);
 
 	return (
@@ -417,7 +452,12 @@ export function MapFieldsPage({
 						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} />
 						<div />
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
+						<select
+							className="w-full"
+							value={slugFieldId ?? ""}
+							onChange={(e) => setSlugFieldId(e.target.value)}
+							required
+						>
 							<option value="" disabled>
 								Slug Field Property
 							</option>
@@ -435,10 +475,14 @@ export function MapFieldsPage({
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
 						{pageLevelFields.map(createFieldConfigRow)}
-						{newFields.length + otherFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{newFields.length + otherFields.length > 0 && (
+							<div className="h-[1px] bg-divider col-span-full"></div>
+						)}
 						{newFields.map(createFieldConfigRow)}
 						{otherFields.map(createFieldConfigRow)}
-						{unsupportedFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{unsupportedFields.length > 0 && (
+							<div className="h-[1px] bg-divider col-span-full"></div>
+						)}
 						{unsupportedFields.map(createFieldConfigRow)}
 					</div>
 				</div>
@@ -476,10 +520,13 @@ export function MapFieldsPage({
 }
 
 function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
-	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+	const text =
+		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
 	const title = unsupported
 		? `${notionPropertyTypes[propertyType]} is not supported`
-		: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
+		: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${
+				cmsFieldTypeNames[fieldType]
+		  }`;
 
 	const [hover, setHover] = useState(false);
 
@@ -526,12 +573,24 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	);
 }
 
-function FieldTypeSelector({ fieldType, availableFieldTypes, disabled = false, onChange = (value) => {} }) {
+function FieldTypeSelector({
+	fieldType,
+	availableFieldTypes,
+	disabled = false,
+	onChange = (value) => {},
+}) {
 	return (
 		<div className="relative">
-			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">{cmsFieldIcons[fieldType]}</div>
+			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
+				{cmsFieldIcons[fieldType]}
+			</div>
 			{availableFieldTypes?.length > 1 ? (
-				<select disabled={disabled} value={fieldType} onChange={(e) => onChange(e.target.value)} className="pl-[34px] w-full">
+				<select
+					disabled={disabled}
+					value={fieldType}
+					onChange={(e) => onChange(e.target.value)}
+					className="pl-[34px] w-full"
+				>
 					{availableFieldTypes?.map((type) => (
 						<option key={type} value={type}>
 							{cmsFieldTypeNames[type]}
@@ -559,13 +618,20 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 		>
 			{children}
 			{leftText && (
-				<span className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}>{leftText}</span>
+				<span
+					className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}
+				>
+					{leftText}
+				</span>
 			)}
 		</div>
 	);
 }
 
-function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginContext: PluginContext) {
+function createFieldTypesList(
+	fieldConfigList: CollectionFieldConfig[],
+	pluginContext: PluginContext
+) {
 	const result: Record<string, string> = {};
 
 	for (const fieldConfig of fieldConfigList) {
@@ -577,7 +643,9 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginCo
 		if (pluginContext.type !== "update") {
 			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
 		} else {
-			const field = pluginContext.collectionFields.find((field) => field.id === fieldConfig.property.id);
+			const field = pluginContext.collectionFields.find(
+				(field) => field.id === fieldConfig.property.id
+			);
 
 			if (field && conversionTypes.includes(field.type)) {
 				result[fieldConfig.property.id] = field.type;

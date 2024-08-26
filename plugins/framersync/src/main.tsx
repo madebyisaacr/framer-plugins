@@ -1,6 +1,7 @@
 import "./globals.css";
+import "./App.css";
 
-import React, { ReactNode, Suspense } from "react";
+import { ReactNode, StrictMode, Suspense, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +24,11 @@ const PluginDataKey = createObject([
 	"slugFieldId",
 	"databaseName",
 ]);
+
+const integrations = {
+	notion: Notion,
+	airtable: Airtable,
+};
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Root element not found");
@@ -56,7 +62,7 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 	});
 
 	ReactDOM.createRoot(root).render(
-		<React.StrictMode>
+		<StrictMode>
 			<QueryClientProvider client={queryClient}>
 				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
@@ -64,19 +70,8 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 					</ErrorBoundary>
 				</div>
 			</QueryClientProvider>
-		</React.StrictMode>
+		</StrictMode>
 	);
-}
-
-function getIntegration(integrationId: string | null) {
-	switch (integrationId) {
-		case Integration.Notion:
-			return Notion;
-		case Integration.Airtable:
-			return Airtable;
-	}
-
-	return null;
 }
 
 async function getPluginContext(): Promise<PluginContext> {
@@ -88,7 +83,7 @@ async function getPluginContext(): Promise<PluginContext> {
 		ignoredFieldIdsJson,
 		lastSyncedTime,
 		slugFieldId,
-		databaseName,
+		databaseNameValue,
 	] = await Promise.all([
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
@@ -99,7 +94,7 @@ async function getPluginContext(): Promise<PluginContext> {
 		collection.getPluginData(PluginDataKey.databaseName),
 	]);
 
-	const integration = getIntegration(integrationId);
+	const integration = integrations[integrationId];
 
 	if (!integration) {
 		return {
@@ -119,10 +114,15 @@ async function getPluginContext(): Promise<PluginContext> {
 		};
 	}
 
+	const databaseName = databaseNameValue ?? "[Unknown]";
+
 	try {
 		const ignoredFieldIds = stringToJSON(ignoredFieldIdsJson);
 		const integrationData = stringToJSON(integrationDataJson);
-		const integrationContext = await integration.getIntegrationContext(integrationData, databaseName);
+		const integrationContext = await integration.getIntegrationContext(
+			integrationData,
+			databaseName
+		);
 
 		if (integrationContext instanceof Error) {
 			return {
@@ -155,12 +155,79 @@ async function getPluginContext(): Promise<PluginContext> {
 	}
 }
 
+interface AppProps {
+	context: PluginContext;
+}
+
+function AuthenticatedApp({ context }: AppProps) {
+	const [databaseConfig, setDatabaseConfig] = useState(
+		context.type === "update" ? { base: context.base, table: context.table } : null
+	);
+
+	const integration = integrations[context.integrationId];
+
+	if (!integration) {
+		return <div>Invalid integration</div>;
+	}
+
+	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(
+		context.integrationContext,
+		{
+			onSuccess(result) {
+				logSyncResult(result);
+
+				if (result.status === "success") {
+					framer.closePlugin("Synchronization successful");
+					return;
+				}
+			},
+		}
+	);
+
+	const { SelectDatabasePage, MapFieldsPage } = integration;
+
+	if (!databaseConfig) {
+		return <SelectDatabasePage onDatabaseSelected={setDatabaseConfig} />;
+	}
+
+	return (
+		<MapFieldsPage
+			pluginContext={context}
+			onSubmit={synchronizeMutation.mutate}
+			error={synchronizeMutation.error}
+			isLoading={synchronizeMutation.isPending}
+		/>
+	);
+}
+
+function App({ context }: AppProps) {
+	const [pluginContext, setPluginContext] = useState(context);
+
+	const handleAuthenticated = (authenticatedContext: PluginContext) => {
+		setPluginContext(authenticatedContext);
+	};
+
+	if (!pluginContext.isAuthenticated) {
+		const integration = integrations[pluginContext.integrationId];
+
+		if (!integration) {
+			return null;
+		}
+
+		const { AuthenticatePage } = integration;
+		return <AuthenticatePage context={pluginContext} onAuthenticated={handleAuthenticated} />;
+	}
+
+	return <AuthenticatedApp context={pluginContext} />;
+}
+
 async function runPlugin() {
 	const collection = await framer.getManagedCollection();
 
 	const integrationId = await collection.getPluginData(PluginDataKey.integrationId);
-	const integration = getIntegration(integrationId);
+	const integration = integrations[integrationId];
 
+	// TODO: Figure out why pluginContext is set in two places
 	let pluginContext: PluginContext;
 
 	if (!integration) {
@@ -171,10 +238,11 @@ async function runPlugin() {
 		};
 	} else {
 		try {
-			if (integration.isAuthenticated()) {
+			if (integration.isAuthenticated() && typeof integration.refreshToken === "function") {
 				await integration.refreshToken();
 			}
 
+			// Here is the other place where pluginContext is set
 			const pluginContext = await getPluginContext();
 			const mode = framer.mode;
 

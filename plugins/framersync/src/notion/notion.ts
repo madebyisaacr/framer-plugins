@@ -13,7 +13,7 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify } from "./utils";
+import { assert, formatDate, isDefined, isString, slugify } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
@@ -558,7 +558,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	database: GetDatabaseResponse | null,
+	integrationContext: object,
 	{
 		onSuccess,
 		onError,
@@ -572,6 +572,7 @@ export function useSynchronizeDatabaseMutation(
 		},
 		onSuccess,
 		mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
+			const database = integrationContext.database as GetDatabaseResponse;
 			assert(database);
 
 			return synchronizeDatabase(database, options);

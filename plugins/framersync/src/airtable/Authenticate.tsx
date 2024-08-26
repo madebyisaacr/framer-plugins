@@ -26,7 +26,7 @@ interface AuthenticationProps {
 	context: PluginContext;
 }
 
-export function Authentication({ onAuthenticated, context }: AuthenticationProps) {
+export function AuthenticatePage({ onAuthenticated, context }: AuthenticationProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const isDocumentVisible = useIsDocumentVisibile();
 	const notifiedForContextRef = useRef<PluginContext | null>(null);

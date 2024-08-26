@@ -177,7 +177,13 @@ function getLastSyncedTime(
 	if (pluginContext.slugFieldId !== slugFieldId) return null;
 
 	// Always resync if field config changes
-	if (hasFieldConfigurationChanged(pluginContext.collectionFields, table, Array.from(disabledFieldIds))) {
+	if (
+		hasFieldConfigurationChanged(
+			pluginContext.collectionFields,
+			table,
+			Array.from(disabledFieldIds)
+		)
+	) {
 		return null;
 	}
 
@@ -185,32 +191,36 @@ function getLastSyncedTime(
 }
 
 export function MapFieldsPage({
-	base,
-	table,
+	pluginContext,
 	onSubmit,
 	isLoading,
 	error,
-	pluginContext,
 }: {
-	base: object;
-	table: object;
+	pluginContext: PluginContext;
 	onSubmit: (options: SynchronizeMutationOptions) => void;
 	isLoading: boolean;
 	error: Error | null;
-	pluginContext: PluginContext;
 }) {
 	framer.showUI({ width: 750, height: 550 });
 
+	const { table } = pluginContext.integrationContext;
+
 	const slugFields = useMemo(() => getPossibleSlugFields(table), [table]);
-	const [slugFieldId, setSlugFieldId] = useState<string | null>(() => getInitialSlugFieldId(pluginContext, slugFields));
-	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() => createFieldConfig(table, pluginContext));
+	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
+		getInitialSlugFieldId(pluginContext, slugFields)
+	);
+	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
+		createFieldConfig(table, pluginContext)
+	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
 	);
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
 	);
-	const [fieldTypes, setFieldTypes] = useState(createFieldTypesList(fieldConfigList, pluginContext));
+	const [fieldTypes, setFieldTypes] = useState(
+		createFieldTypesList(fieldConfigList, pluginContext)
+	);
 
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
@@ -283,7 +293,10 @@ export function MapFieldsPage({
 			<Fragment key={fieldConfig.originalFieldName}>
 				<label
 					htmlFor={`${id}-checkbox`}
-					className={classNames("size-full flex items-center", !fieldConfig.unsupported && "cursor-pointer")}
+					className={classNames(
+						"size-full flex items-center",
+						!fieldConfig.unsupported && "cursor-pointer"
+					)}
 				>
 					<input
 						type="checkbox"
@@ -350,11 +363,14 @@ export function MapFieldsPage({
 		);
 	}
 
-	const newFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported);
+	const newFields = fieldConfigList.filter(
+		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
+	);
 	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
 	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
 	const otherFields = fieldConfigList.filter(
-		(fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
+		(fieldConfig) =>
+			!fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
 	);
 
 	return (
@@ -382,7 +398,12 @@ export function MapFieldsPage({
 						<span className="pl-2">Collection Field Name</span>
 						<span className="col-span-2 pl-[4px]">Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<select className="w-full" value={slugFieldId ?? ""} onChange={(e) => setSlugFieldId(e.target.value)} required>
+						<select
+							className="w-full"
+							value={slugFieldId ?? ""}
+							onChange={(e) => setSlugFieldId(e.target.value)}
+							required
+						>
 							<option value="" disabled>
 								Slug Field Property
 							</option>
@@ -400,10 +421,14 @@ export function MapFieldsPage({
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
 						{pageLevelFields.map(createFieldConfigRow)}
-						{newFields.length + otherFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{newFields.length + otherFields.length > 0 && (
+							<div className="h-[1px] bg-divider col-span-full"></div>
+						)}
 						{newFields.map(createFieldConfigRow)}
 						{otherFields.map(createFieldConfigRow)}
-						{unsupportedFields.length > 0 && <div className="h-[1px] bg-divider col-span-full"></div>}
+						{unsupportedFields.length > 0 && (
+							<div className="h-[1px] bg-divider col-span-full"></div>
+						)}
 						{unsupportedFields.map(createFieldConfigRow)}
 					</div>
 				</div>
@@ -441,10 +466,13 @@ export function MapFieldsPage({
 }
 
 function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
-	const text = fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+	const text =
+		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
 	const title = unsupported
 		? `${propertyTypeNames[propertyType]} is not supported`
-		: `${propertyType == "page-icon" ? "Page Icon" : propertyTypeNames[propertyType]} → ${cmsFieldTypeNames[fieldType]}`;
+		: `${propertyType == "page-icon" ? "Page Icon" : propertyTypeNames[propertyType]} → ${
+				cmsFieldTypeNames[fieldType]
+		  }`;
 
 	const [hover, setHover] = useState(false);
 
@@ -491,12 +519,24 @@ function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
 	);
 }
 
-function FieldTypeSelector({ fieldType, availableFieldTypes, disabled = false, onChange = (value) => {} }) {
+function FieldTypeSelector({
+	fieldType,
+	availableFieldTypes,
+	disabled = false,
+	onChange = (value) => {},
+}) {
 	return (
 		<div className="relative">
-			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">{cmsFieldIcons[fieldType]}</div>
+			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
+				{cmsFieldIcons[fieldType]}
+			</div>
 			{availableFieldTypes?.length > 1 ? (
-				<select disabled={disabled} value={fieldType} onChange={(e) => onChange(e.target.value)} className="pl-[34px] w-full">
+				<select
+					disabled={disabled}
+					value={fieldType}
+					onChange={(e) => onChange(e.target.value)}
+					className="pl-[34px] w-full"
+				>
 					{availableFieldTypes?.map((type) => (
 						<option key={type} value={type}>
 							{cmsFieldTypeNames[type]}
@@ -524,13 +564,20 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 		>
 			{children}
 			{leftText && (
-				<span className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}>{leftText}</span>
+				<span
+					className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}
+				>
+					{leftText}
+				</span>
 			)}
 		</div>
 	);
 }
 
-function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginContext: PluginContext) {
+function createFieldTypesList(
+	fieldConfigList: CollectionFieldConfig[],
+	pluginContext: PluginContext
+) {
 	const result: Record<string, string> = {};
 
 	for (const fieldConfig of fieldConfigList) {
@@ -542,7 +589,9 @@ function createFieldTypesList(fieldConfigList: CollectionFieldConfig[], pluginCo
 		if (pluginContext.type !== "update") {
 			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
 		} else {
-			const field = pluginContext.collectionFields.find((field) => field.id === fieldConfig.property.id);
+			const field = pluginContext.collectionFields.find(
+				(field) => field.id === fieldConfig.property.id
+			);
 
 			if (field && conversionTypes.includes(field.type)) {
 				result[fieldConfig.property.id] = field.type;
