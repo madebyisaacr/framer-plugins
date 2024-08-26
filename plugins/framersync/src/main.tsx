@@ -13,7 +13,7 @@ import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback.tsx";
-import { assert, isString, createObject } from "./utils.ts";
+import { assert, stringToJSON, createObject } from "./utils.ts";
 
 const PluginDataKey = createObject([
 	"integrationId",
@@ -220,67 +220,48 @@ function App({ context }: AppProps) {
 }
 
 async function runPlugin() {
-	const collection = await framer.getManagedCollection();
+	try {
+		let pluginContext: PluginContext = await getPluginContext();
 
-	const integrationId = await collection.getPluginData(PluginDataKey.integrationId);
-	const integration = integrations[integrationId];
+		const collection = await framer.getManagedCollection();
+		const integration = integrations[pluginContext.integrationId];
 
-	// TODO: Figure out why pluginContext is set in two places
-	let pluginContext: PluginContext;
-
-	if (!integration) {
-		pluginContext = {
-			type: "new",
-			collection,
-			isAuthenticated: false,
-		};
-	} else {
-		try {
-			if (integration.isAuthenticated() && typeof integration.refreshToken === "function") {
-				await integration.refreshToken();
-			}
-
-			// Here is the other place where pluginContext is set
-			const pluginContext = await getPluginContext();
-			const mode = framer.mode;
-
-			if (mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
-				assert(pluginContext.slugFieldId);
-
-				const result = await integration.synchronizeDatabase(pluginContext.integrationContext, {
-					fields: pluginContext.collectionFields,
-					ignoredFieldIds: pluginContext.ignoredFieldIds,
-					lastSyncedTime: pluginContext.lastSyncedTime,
-					slugFieldId: pluginContext.slugFieldId,
-				});
-
-				logSyncResult(result);
-
-				await framer.closePlugin();
-				return;
-			}
-
-			renderPlugin(pluginContext, <App context={pluginContext} />);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			console.error(message);
-			// framer.closePlugin("An unexpected error ocurred: " + message, {
-			// 	variant: "error",
-			// });
+		if (!integration) {
+			pluginContext = {
+				type: "new",
+				collection,
+				isAuthenticated: false,
+			};
 		}
+
+		if (pluginContext.isAuthenticated && typeof integration.refreshToken === "function") {
+			await integration.refreshToken();
+		}
+
+		if (framer.mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
+			assert(pluginContext.slugFieldId);
+
+			const result = await integration.synchronizeDatabase(pluginContext.integrationContext, {
+				fields: pluginContext.collectionFields,
+				ignoredFieldIds: pluginContext.ignoredFieldIds,
+				lastSyncedTime: pluginContext.lastSyncedTime,
+				slugFieldId: pluginContext.slugFieldId,
+			});
+
+			logSyncResult(result);
+
+			await framer.closePlugin();
+			return;
+		}
+
+		renderPlugin(pluginContext, <App context={pluginContext} />);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		console.error(message);
+		// framer.closePlugin("An unexpected error ocurred: " + message, {
+		// 	variant: "error",
+		// });
 	}
-}
-
-function stringToJSON(jsonString: string | null) {
-	if (!jsonString) {
-		return [];
-	}
-
-	const parsed = JSON.parse(jsonString);
-	if (!Array.isArray(parsed)) return [];
-	if (!parsed.every(isString)) return [];
-
-	return parsed;
 }
 
 runPlugin();

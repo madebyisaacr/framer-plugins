@@ -82,3 +82,15 @@ export function generateRandomId() {
 export function createObject(keys: string[]) {
 	return Object.fromEntries(keys.map((key) => [key, key]));
 }
+
+export function stringToJSON(jsonString: string | null) {
+	if (!jsonString) {
+		return [];
+	}
+
+	const parsed = JSON.parse(jsonString);
+	if (!Array.isArray(parsed)) return [];
+	if (!parsed.every(isString)) return [];
+
+	return parsed;
+}
