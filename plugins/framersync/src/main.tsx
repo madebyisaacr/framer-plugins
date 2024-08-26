@@ -165,6 +165,7 @@ function AuthenticatedApp({ context }: AppProps) {
 		context.type === "update" ? context.integrationContext : null
 	);
 
+	const pluginContext = { ...context, integrationContext };
 	const integration = integrations[context.integrationId];
 
 	if (!integration) {
@@ -172,7 +173,7 @@ function AuthenticatedApp({ context }: AppProps) {
 		return <div>Invalid integration</div>;
 	}
 
-	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(integrationContext, {
+	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(pluginContext, {
 		onSuccess(result) {
 			logSyncResult(result);
 
@@ -191,7 +192,7 @@ function AuthenticatedApp({ context }: AppProps) {
 
 	return (
 		<MapFieldsPage
-			pluginContext={context}
+			pluginContext={pluginContext}
 			onSubmit={synchronizeMutation.mutate}
 			error={synchronizeMutation.error}
 			isLoading={synchronizeMutation.isPending}

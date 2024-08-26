@@ -230,7 +230,7 @@ export function MapFieldsPage({
 	error,
 }: {
 	pluginContext: PluginContext;
-	onSubmit: (options: SynchronizeMutationOptions) => void;
+	onSubmit: () => void;
 	isLoading: boolean;
 	error: Error | null;
 }) {
@@ -317,12 +317,7 @@ export function MapFieldsPage({
 
 		assert(slugFieldId);
 
-		onSubmit({
-			fields,
-			ignoredFieldIds: Array.from(disabledFieldIds),
-			slugFieldId,
-			lastSyncedTime: getLastSyncedTime(pluginContext, database, slugFieldId, disabledFieldIds),
-		});
+		onSubmit();
 	};
 
 	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {

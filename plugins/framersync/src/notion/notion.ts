@@ -561,7 +561,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	integrationContext: object,
+	pluginContext: object,
 	{
 		onSuccess,
 		onError,
@@ -574,11 +574,8 @@ export function useSynchronizeDatabaseMutation(
 			onError?.(error);
 		},
 		onSuccess,
-		mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
-			const database = integrationContext.database as GetDatabaseResponse;
-			assert(database);
-
-			return synchronizeDatabase(database, options);
+		mutationFn: async (): Promise<SynchronizeResult> => {
+			return synchronizeDatabase(pluginContext);
 		},
 	});
 }
