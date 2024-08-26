@@ -14,7 +14,7 @@ import { updateWindowSize } from "./general/PageWindowSizes";
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
-import { assert, stringToJSON } from "./utils";
+import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
@@ -111,8 +111,8 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 	}
 
 	try {
-		const ignoredFieldIds = stringToJSON(ignoredFieldIdsJson);
-		const integrationData = stringToJSON(integrationDataJson);
+		const ignoredFieldIds = jsonStringToArray(ignoredFieldIdsJson);
+		const integrationData = JSON.parse(integrationDataJson);
 		const integrationContext = await integration.getIntegrationContext(
 			integrationData,
 			databaseName

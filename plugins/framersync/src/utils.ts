@@ -83,7 +83,7 @@ export function createObject(keys: string[]) {
 	return Object.fromEntries(keys.map((key) => [key, key]));
 }
 
-export function stringToJSON(jsonString: string | null) {
+export function jsonStringToArray(jsonString: string | null) {
 	if (!jsonString) {
 		return [];
 	}

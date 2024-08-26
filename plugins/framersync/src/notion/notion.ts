@@ -31,12 +31,6 @@ export const getOauthURL = (writeKey: string) =>
 // Storage for the notion API key.
 const notionBearerStorageKey = "notionBearerToken";
 
-const pluginDatabaseIdKey = "notionPluginDatabaseId";
-const pluginLastSyncedKey = "notionPluginLastSynced";
-const ignoredFieldIdsKey = "notionPluginIgnoredFieldIds";
-const pluginSlugIdKey = "notionPluginSlugId";
-const databaseNameKey = "notionDatabaseName";
-
 // Maximum number of concurrent requests to Notion API
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
