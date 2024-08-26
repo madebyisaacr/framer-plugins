@@ -76,7 +76,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 		ignoredFieldIdsJson,
 		lastSyncedTime,
 		slugFieldId,
-		databaseNameValue,
+		databaseName,
 	] = await Promise.all([
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
@@ -109,8 +109,6 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			integrationId,
 		};
 	}
-
-	const databaseName = databaseNameValue ?? "[Unknown]";
 
 	try {
 		const ignoredFieldIds = stringToJSON(ignoredFieldIdsJson);
@@ -187,7 +185,7 @@ function AuthenticatedApp() {
 	);
 }
 
-function App({ context }) {
+function App() {
 	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const handleAuthenticated = async () => {
