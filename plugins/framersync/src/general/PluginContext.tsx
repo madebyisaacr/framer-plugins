@@ -10,6 +10,7 @@ export interface PluginContextNew {
 	type: "new";
 	collection: ManagedCollection;
 	isAuthenticated: boolean;
+	integrationId: Integration | null;
 }
 
 export interface PluginContextUpdate {

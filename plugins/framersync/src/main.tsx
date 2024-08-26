@@ -53,7 +53,7 @@ function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is P
 	return true;
 }
 
-function renderPlugin(context: PluginContext, app: ReactNode) {
+function renderPlugin(app: ReactNode) {
 	const root = document.getElementById("root");
 	if (!root) throw new Error("Root element not found");
 
@@ -72,11 +72,11 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 	);
 }
 
-async function getPluginContext(): Promise<PluginContext> {
+async function getPluginContext(selectedIntegrationId: string = ""): Promise<PluginContext> {
 	const collection = await framer.getManagedCollection();
 	const [
 		collectionFields,
-		integrationId,
+		collectionIntegrationId,
 		integrationDataJson,
 		ignoredFieldIdsJson,
 		lastSyncedTime,
@@ -92,6 +92,7 @@ async function getPluginContext(): Promise<PluginContext> {
 		collection.getPluginData(PluginDataKey.databaseName),
 	]);
 
+	const integrationId = collectionIntegrationId ?? selectedIntegrationId;
 	const integration = integrations[integrationId];
 
 	if (!integration) {
@@ -99,6 +100,7 @@ async function getPluginContext(): Promise<PluginContext> {
 			type: "new",
 			collection,
 			isAuthenticated: false,
+			integrationId: null,
 		};
 	}
 
@@ -109,6 +111,7 @@ async function getPluginContext(): Promise<PluginContext> {
 			type: "new",
 			collection,
 			isAuthenticated,
+			integrationId,
 		};
 	}
 
@@ -200,7 +203,7 @@ function App({ context }: AppProps) {
 	const [pluginContext, setPluginContext] = useState(context);
 
 	const handleAuthenticated = async () => {
-		const authenticatedContext = await getPluginContext();
+		const authenticatedContext = await getPluginContext(pluginContext.integrationId);
 		setPluginContext(authenticatedContext);
 	};
 
@@ -255,7 +258,7 @@ async function runPlugin() {
 			return;
 		}
 
-		renderPlugin(pluginContext, <App context={pluginContext} />);
+		renderPlugin(<App context={pluginContext} />);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error(message);
