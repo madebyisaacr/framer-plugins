@@ -3,7 +3,6 @@ import {
 	isAuthenticated,
 	refreshAirtableToken,
 	getIntegrationContext,
-	getStoredIntegrationData,
 	useSynchronizeDatabaseMutation,
 } from "./airtable";
 import { SelectDatabasePage } from "./SelectDatabase";
@@ -17,7 +16,6 @@ export default {
 	isAuthenticated,
 	refreshToken: refreshAirtableToken,
 	getIntegrationContext,
-	getStoredIntegrationData,
 	useSynchronizeDatabaseMutation,
 
 	AuthenticatePage,

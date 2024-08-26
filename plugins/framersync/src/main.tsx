@@ -17,6 +17,7 @@ import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert, stringToJSON } from "./utils";
 import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
+import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 
 const integrations = {
 	notion: Notion,
@@ -45,7 +46,7 @@ function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is P
 	return true;
 }
 
-function renderPlugin(app: ReactNode) {
+function renderPlugin(app: ReactNode, initialContext: PluginContext) {
 	const root = document.getElementById("root");
 	if (!root) throw new Error("Root element not found");
 
@@ -56,7 +57,9 @@ function renderPlugin(app: ReactNode) {
 			<QueryClientProvider client={queryClient}>
 				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-						<Suspense fallback={<CenteredSpinner />}>{app}</Suspense>
+						<PluginContextProvider initialContext={initialContext}>
+							<Suspense fallback={<CenteredSpinner />}>{app}</Suspense>
+						</PluginContextProvider>
 					</ErrorBoundary>
 				</div>
 			</QueryClientProvider>
@@ -64,7 +67,7 @@ function renderPlugin(app: ReactNode) {
 	);
 }
 
-async function getPluginContext(selectedIntegrationId: string = ""): Promise<PluginContext> {
+async function createPluginContext(selectedIntegrationId: string = ""): Promise<PluginContext> {
 	const collection = await framer.getManagedCollection();
 	const [
 		collectionFields,
@@ -148,12 +151,8 @@ async function getPluginContext(selectedIntegrationId: string = ""): Promise<Plu
 	}
 }
 
-interface AppProps {
-	context: PluginContext;
-}
-
-function AuthenticatedApp({ context }: AppProps) {
-	const [pluginContext, setPluginContext] = useState(context);
+function AuthenticatedApp() {
+	const { pluginContext } = usePluginContext();
 
 	const integration = integrations[pluginContext.integrationId];
 
@@ -176,18 +175,11 @@ function AuthenticatedApp({ context }: AppProps) {
 	const { SelectDatabasePage, MapFieldsPage } = integration;
 
 	if (!pluginContext.integrationContext) {
-		return (
-			<SelectDatabasePage
-				setIntegrationContext={(value) =>
-					setPluginContext({ ...pluginContext, integrationContext: value })
-				}
-			/>
-		);
+		return <SelectDatabasePage />;
 	}
 
 	return (
 		<MapFieldsPage
-			pluginContext={pluginContext}
 			onSubmit={synchronizeMutation.mutate}
 			error={synchronizeMutation.error}
 			isLoading={synchronizeMutation.isPending}
@@ -195,38 +187,31 @@ function AuthenticatedApp({ context }: AppProps) {
 	);
 }
 
-function App({ context }: AppProps) {
-	const [pluginContext, setPluginContext] = useState(context);
+function App({ context }) {
+	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const handleAuthenticated = async () => {
-		const authenticatedContext = await getPluginContext(pluginContext.integrationId);
-		setPluginContext(authenticatedContext);
-	};
-
-	const onSelectIntegration = (integrationId: string) => {
-		setPluginContext({
-			...pluginContext,
-			integrationId,
-		});
+		const authenticatedContext = await createPluginContext(pluginContext.integrationId);
+		updatePluginContext(authenticatedContext);
 	};
 
 	if (!pluginContext.isAuthenticated) {
 		const integration = integrations[pluginContext.integrationId];
 
 		if (!integration) {
-			return <IntegrationsPage onSelectIntegration={onSelectIntegration} />;
+			return <IntegrationsPage />;
 		}
 
 		const { AuthenticatePage } = integration;
-		return <AuthenticatePage context={pluginContext} onAuthenticated={handleAuthenticated} />;
+		return <AuthenticatePage onAuthenticated={handleAuthenticated} />;
 	}
 
-	return <AuthenticatedApp context={pluginContext} />;
+	return <AuthenticatedApp />;
 }
 
 async function runPlugin() {
 	try {
-		let pluginContext: PluginContext = await getPluginContext();
+		let pluginContext: PluginContext = await createPluginContext();
 
 		const collection = await framer.getManagedCollection();
 		const integration = integrations[pluginContext.integrationId];
@@ -254,7 +239,7 @@ async function runPlugin() {
 			return;
 		}
 
-		renderPlugin(<App context={pluginContext} />);
+		renderPlugin(<App />, pluginContext);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error(message);

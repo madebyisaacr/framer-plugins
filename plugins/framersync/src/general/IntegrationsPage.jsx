@@ -1,7 +1,14 @@
 import { updateWindowSize } from "./PageWindowSizes";
+import { usePluginContext } from "./PluginContext";
 
-export default function IntegrationsPage({ onSelectIntegration }) {
+export default function IntegrationsPage() {
+	const { pluginContext, updatePluginContext } = usePluginContext();
+
 	updateWindowSize("Integrations");
+
+	function onIntegrationClick(integrationId) {
+		updatePluginContext({ integrationId });
+	}
 
 	return (
 		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto items-center">
@@ -13,17 +20,17 @@ export default function IntegrationsPage({ onSelectIntegration }) {
 				<AppButton
 					icon={IntegrationIcons.Notion}
 					title="Notion"
-					onClick={() => onSelectIntegration("notion")}
+					onClick={() => onIntegrationClick("notion")}
 				/>
 				<AppButton
 					icon={IntegrationIcons.Airtable}
 					title="Airtable"
-					onClick={() => onSelectIntegration("airtable")}
+					onClick={() => onIntegrationClick("airtable")}
 				/>
 				<AppButton
 					icon={IntegrationIcons.GoogleSheets}
 					title="Google Sheets"
-					onClick={() => onSelectIntegration("google-sheets")}
+					onClick={() => onIntegrationClick("google-sheets")}
 				/>
 			</div>
 		</div>

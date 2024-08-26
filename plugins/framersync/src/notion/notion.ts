@@ -68,18 +68,6 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 	}
 }
 
-export function getStoredIntegrationData(integrationContext: object) {
-	const database: GetDatabaseResponse = integrationContext.database;
-
-	if (!database) {
-		return null;
-	}
-
-	return {
-		databaseId: database.id,
-	};
-}
-
 // A page in database consists of blocks.
 // We allow configuration to include this as a field in the collection.
 // This is used as an identifier to recognize that property and treat it as page content
@@ -540,7 +528,7 @@ export async function synchronizeDatabase(
 			ignoredFieldIds,
 			slugFieldId,
 			databaseName,
-			getStoredIntegrationData(pluginContext.integrationContext)
+			{ databaseId: database.id }
 		);
 
 		return {

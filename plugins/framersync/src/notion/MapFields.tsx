@@ -17,7 +17,7 @@ import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
-import { PluginContext } from "../general/PluginContext";
+import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
@@ -224,17 +224,17 @@ function getLastSyncedTime(
 }
 
 export function MapFieldsPage({
-	pluginContext,
 	onSubmit,
 	isLoading,
 	error,
 }: {
-	pluginContext: PluginContext;
 	onSubmit: () => void;
 	isLoading: boolean;
 	error: Error | null;
 }) {
 	updateWindowSize("MapFields");
+
+	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const { database } = pluginContext.integrationContext;
 
@@ -317,7 +317,14 @@ export function MapFieldsPage({
 
 		assert(slugFieldId);
 
-		onSubmit();
+		updatePluginContext(
+			{
+				collectionFields: fields,
+				slugFieldId,
+				ignoredFieldIds: Array.from(disabledFieldIds),
+			},
+			onSubmit
+		);
 	};
 
 	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {

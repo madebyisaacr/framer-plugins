@@ -2,7 +2,6 @@ import {
 	synchronizeDatabase,
 	isAuthenticated,
 	getIntegrationContext,
-	getStoredIntegrationData,
 	useSynchronizeDatabaseMutation,
 } from "./notion";
 import { SelectDatabasePage } from "./SelectDatabase";
@@ -15,7 +14,6 @@ export default {
 	synchronizeDatabase,
 	isAuthenticated,
 	getIntegrationContext,
-	getStoredIntegrationData,
 	useSynchronizeDatabaseMutation,
 
 	AuthenticatePage,

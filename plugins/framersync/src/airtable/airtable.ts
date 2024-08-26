@@ -56,19 +56,6 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 	}
 }
 
-export function getStoredIntegrationData(integrationContext: object) {
-	const { baseId, tableId } = integrationContext;
-
-	if (!baseId || !tableId) {
-		return null;
-	}
-
-	return {
-		baseId,
-		tableId,
-	};
-}
-
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 // TODO: Refresh the token when it expires

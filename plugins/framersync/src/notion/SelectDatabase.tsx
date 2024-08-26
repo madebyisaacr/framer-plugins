@@ -8,8 +8,10 @@ import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
 import { updateWindowSize } from "../general/PageWindowSizes";
+import { usePluginContext } from "../general/PluginContext";
 
-export function SelectDatabasePage({ setIntegrationContext }) {
+export function SelectDatabasePage() {
+	const { updatePluginContext } = usePluginContext();
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 
@@ -26,7 +28,7 @@ export function SelectDatabasePage({ setIntegrationContext }) {
 			return;
 		}
 
-		setIntegrationContext({ database });
+		updatePluginContext({ integrationContext: { database } });
 	};
 
 	return (

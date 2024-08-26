@@ -1,4 +1,5 @@
 import { ManagedCollection, CollectionField } from "framer-plugin";
+import { createContext, useContext, useState } from "react";
 
 export enum Integration {
 	Airtable = "airtable",
@@ -34,3 +35,32 @@ export interface PluginContextError {
 }
 
 export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
+
+const PluginContextContext = createContext(null);
+
+export function usePluginContext() {
+	return useContext(PluginContextContext);
+}
+
+export function PluginContextProvider({ children, initialContext }: { children: React.ReactNode }) {
+	const [pluginContext, setPluginContext] = useState(initialContext);
+
+	function updatePluginContext(
+		newContext: Partial<PluginContext>,
+		then: (pluginContext: PluginContext) => void
+	) {
+		let newValue =
+			newContext.type === pluginContext.type ? { ...pluginContext, ...newContext } : newContext;
+		setPluginContext(newValue);
+
+		if (then) {
+			then(newValue);
+		}
+	}
+
+	return (
+		<PluginContextContext.Provider value={{ pluginContext, updatePluginContext }}>
+			{children}
+		</PluginContextContext.Provider>
+	);
+}
