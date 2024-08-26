@@ -3,7 +3,6 @@ import { framer, CollectionField } from "framer-plugin";
 import { assert } from "../utils";
 import {
 	NotionProperty,
-	PluginContext,
 	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
@@ -13,12 +12,12 @@ import {
 } from "./notion";
 import { Fragment, useMemo, useState } from "react";
 import classNames from "classnames";
-import { IconChevron } from "./components/Icons";
+import { IconChevron } from "../components/Icons";
 import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
-import { cmsFieldIcons } from "./assets/cmsFieldIcons.jsx";
+import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
-import { plugin } from "postcss";
+import { PluginContext } from "../general/PluginContext";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =

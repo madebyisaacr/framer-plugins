@@ -22,7 +22,7 @@ function useIsDocumentVisibile() {
 }
 
 interface AuthenticationProps {
-	onAuthenticated: (context: PluginContext) => void;
+	onAuthenticated: () => void;
 	context: PluginContext;
 }
 
@@ -51,7 +51,6 @@ export function AuthenticatePage({ onAuthenticated, context }: AuthenticationPro
 		// So that Safari does not block any popups.
 
 		authorize()
-			.then(getPluginContext)
 			.then(onAuthenticated)
 			.finally(() => {
 				setIsLoading(false);

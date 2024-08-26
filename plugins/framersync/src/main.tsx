@@ -3,13 +3,12 @@ import "./App.css";
 
 import { ReactNode, StrictMode, Suspense, useState } from "react";
 import ReactDOM from "react-dom/client";
-import { App } from "./App.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner.tsx";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
-import { PluginContext, PluginContextUpdate, Integration } from "./general/PluginContext";
+import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";
@@ -160,34 +159,32 @@ interface AppProps {
 }
 
 function AuthenticatedApp({ context }: AppProps) {
-	const [databaseConfig, setDatabaseConfig] = useState(
-		context.type === "update" ? { base: context.base, table: context.table } : null
+	const [integrationContext, setIntegrationContext] = useState(
+		context.type === "update" ? context.integrationContext : null
 	);
 
 	const integration = integrations[context.integrationId];
 
 	if (!integration) {
+		// TODO: Handle this case
 		return <div>Invalid integration</div>;
 	}
 
-	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(
-		context.integrationContext,
-		{
-			onSuccess(result) {
-				logSyncResult(result);
+	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(integrationContext, {
+		onSuccess(result) {
+			logSyncResult(result);
 
-				if (result.status === "success") {
-					framer.closePlugin("Synchronization successful");
-					return;
-				}
-			},
-		}
-	);
+			if (result.status === "success") {
+				framer.closePlugin("Synchronization successful");
+				return;
+			}
+		},
+	});
 
 	const { SelectDatabasePage, MapFieldsPage } = integration;
 
-	if (!databaseConfig) {
-		return <SelectDatabasePage onDatabaseSelected={setDatabaseConfig} />;
+	if (!integrationContext) {
+		return <SelectDatabasePage onDatabaseSelected={setIntegrationContext} />;
 	}
 
 	return (
@@ -203,7 +200,8 @@ function AuthenticatedApp({ context }: AppProps) {
 function App({ context }: AppProps) {
 	const [pluginContext, setPluginContext] = useState(context);
 
-	const handleAuthenticated = (authenticatedContext: PluginContext) => {
+	const handleAuthenticated = async () => {
+		const authenticatedContext = await getPluginContext();
 		setPluginContext(authenticatedContext);
 	};
 

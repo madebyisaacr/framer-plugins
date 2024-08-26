@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { PluginContext, authorize, getOauthURL, getPluginContext } from "./notion";
-import loginIllustration from "./assets/notion-login.png";
+import { authorize, getOauthURL } from "./notion";
+import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
 import { generateRandomId } from "../utils";
 import { framer } from "framer-plugin";
+import { PluginContext } from "../general/PluginContext";
 
 function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
@@ -23,7 +24,7 @@ function useIsDocumentVisibile() {
 }
 
 interface AuthenticationProps {
-	onAuthenticated: (context: PluginContext) => void;
+	onAuthenticated: () => void;
 	context: PluginContext;
 }
 
@@ -53,7 +54,6 @@ export function AuthenticatePage({ onAuthenticated, context }: AuthenticationPro
 		window.open(getOauthURL(writeKey), "_blank");
 
 		authorize({ readKey: generateRandomId(), writeKey })
-			.then(getPluginContext)
 			.then(onAuthenticated)
 			.finally(() => {
 				setIsLoading(false);

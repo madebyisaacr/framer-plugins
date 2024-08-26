@@ -1,9 +1,9 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { richTextToPlainText, useDatabasesQuery } from "./notion";
 import { FormEvent, useEffect, useState } from "react";
-import notionConnectSrc from "./assets/notion-connect.png";
+import notionConnectSrc from "../assets/notion-connect.png";
 import { assert } from "../utils";
-import { ReloadIcon } from "./components/Icons";
+import { ReloadIcon } from "../components/Icons";
 import { framer } from "framer-plugin";
 import Button from "@shared/Button";
 import classNames from "classnames";

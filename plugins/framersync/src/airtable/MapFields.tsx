@@ -1,7 +1,6 @@
 import { framer } from "framer-plugin";
 import { assert } from "../utils.js";
 import {
-	PluginContext,
 	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
@@ -13,6 +12,7 @@ import { IconChevron } from "../components/Icons.js";
 import Button from "@shared/Button";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
+import { PluginContext } from "../general/PluginContext";
 
 const fieldConversionMessages = {};
 const propertyTypeNames = {

@@ -14,7 +14,7 @@ export interface PluginContextNew {
 
 export interface PluginContextUpdate {
 	type: "update";
-	integration: Integration;
+	integrationId: Integration;
 	integrationContext: object;
 	collection: ManagedCollection;
 	collectionFields: CollectionField[];
@@ -22,6 +22,7 @@ export interface PluginContextUpdate {
 	hasChangedFields: boolean;
 	ignoredFieldIds: string[];
 	slugFieldId: string | null;
+	databaseName: string;
 	isAuthenticated: boolean;
 }
 
