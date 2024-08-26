@@ -18,6 +18,7 @@ import { isFullDatabase } from "@notionhq/client";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { PluginContext } from "../general/PluginContext";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -233,7 +234,7 @@ export function MapFieldsPage({
 	isLoading: boolean;
 	error: Error | null;
 }) {
-	framer.showUI({ width: 750, height: 550 });
+	updateWindowSize("MapFields");
 
 	const { database } = pluginContext.integrationContext;
 

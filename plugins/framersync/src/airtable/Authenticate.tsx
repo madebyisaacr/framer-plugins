@@ -3,6 +3,7 @@ import { PluginContext, authorize, getPluginContext } from "./airtable";
 import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
 import { framer } from "framer-plugin";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
@@ -42,6 +43,8 @@ export function AuthenticatePage({ onAuthenticated, context }: AuthenticationPro
 		notifiedForContextRef.current = context;
 		framer.notify(context.message, { variant: "error" });
 	}, [context, isDocumentVisible]);
+
+	updateWindowSize("Authenticate");
 
 	const handleAuth = () => {
 		setIsLoading(true);

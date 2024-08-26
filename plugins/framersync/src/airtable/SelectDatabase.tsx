@@ -2,10 +2,10 @@ import { airtableFetch, authorize } from "./airtable";
 import { FormEvent, useEffect, useState } from "react";
 import { assert } from "../utils";
 import { ReloadIcon } from "../components/Icons";
-import { framer } from "framer-plugin";
 import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 export function SelectDatabasePage({ onDatabaseSelected }) {
 	// const { data, refetch, isRefetching, isLoading } = {} //useDatabasesQuery();
@@ -17,7 +17,7 @@ export function SelectDatabasePage({ onDatabaseSelected }) {
 	const [bases, setBases] = useState([]);
 	const [isRefetching, setIsRefetching] = useState(false);
 
-	framer.showUI({ width: 450, height: 550 });
+	updateWindowSize("SelectDatabase");
 
 	async function fetchBases() {
 		if (!isLoading) {
@@ -65,7 +65,7 @@ export function SelectDatabasePage({ onDatabaseSelected }) {
 		assert(bases);
 
 		const base = bases.find((base) => base.id === selectedBase);
-		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable)
+		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable);
 		if (!base || !table) {
 			setSelectedBase(null);
 			setSelectedTable(null);
@@ -116,7 +116,12 @@ export function SelectDatabasePage({ onDatabaseSelected }) {
 											selectedTable == table.id && "bg-secondary"
 										)}
 									>
-										<input type="checkbox" name={table.id} checked={selectedTable === table.id} readOnly />
+										<input
+											type="checkbox"
+											name={table.id}
+											checked={selectedTable === table.id}
+											readOnly
+										/>
 										{table.name}
 									</label>
 								))}

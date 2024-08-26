@@ -13,6 +13,7 @@ import Button from "@shared/Button";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { PluginContext } from "../general/PluginContext";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 const fieldConversionMessages = {};
 const propertyTypeNames = {
@@ -201,7 +202,7 @@ export function MapFieldsPage({
 	isLoading: boolean;
 	error: Error | null;
 }) {
-	framer.showUI({ width: 750, height: 550 });
+	updateWindowSize("MapFields");
 
 	const { table } = pluginContext.integrationContext;
 

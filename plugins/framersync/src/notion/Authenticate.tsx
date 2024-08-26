@@ -5,6 +5,7 @@ import Button from "@shared/Button";
 import { generateRandomId } from "../utils";
 import { framer } from "framer-plugin";
 import { PluginContext } from "../general/PluginContext";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
@@ -44,6 +45,8 @@ export function AuthenticatePage({ onAuthenticated, context }: AuthenticationPro
 		notifiedForContextRef.current = context;
 		framer.notify(context.message, { variant: "error" });
 	}, [context, isDocumentVisible]);
+
+	updateWindowSize("Authenticate");
 
 	const handleAuth = () => {
 		setIsLoading(true);

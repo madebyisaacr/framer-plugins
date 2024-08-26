@@ -9,11 +9,13 @@ import { CenteredSpinner } from "./components/CenteredSpinner.tsx";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
+import { updateWindowSize } from "./general/PageWindowSizes";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug.ts";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback.tsx";
 import { assert, stringToJSON, createObject } from "./utils.ts";
+import IntegrationsPage from "./general/IntegrationsPage.jsx";
 
 const PluginDataKey = createObject([
 	"integrationId",
@@ -55,10 +57,7 @@ function renderPlugin(context: PluginContext, app: ReactNode) {
 	const root = document.getElementById("root");
 	if (!root) throw new Error("Root element not found");
 
-	framer.showUI({
-		width: 350,
-		height: context.isAuthenticated ? 370 : 340,
-	});
+	updateWindowSize("Integrations");
 
 	ReactDOM.createRoot(root).render(
 		<StrictMode>
@@ -205,11 +204,18 @@ function App({ context }: AppProps) {
 		setPluginContext(authenticatedContext);
 	};
 
+	const onSelectIntegration = (integrationId: string) => {
+		setPluginContext({
+			...pluginContext,
+			integrationId,
+		});
+	};
+
 	if (!pluginContext.isAuthenticated) {
 		const integration = integrations[pluginContext.integrationId];
 
 		if (!integration) {
-			return null;
+			return <IntegrationsPage onSelectIntegration={onSelectIntegration} />;
 		}
 
 		const { AuthenticatePage } = integration;

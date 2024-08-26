@@ -4,10 +4,10 @@ import { FormEvent, useEffect, useState } from "react";
 import notionConnectSrc from "../assets/notion-connect.png";
 import { assert } from "../utils";
 import { ReloadIcon } from "../components/Icons";
-import { framer } from "framer-plugin";
 import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
+import { updateWindowSize } from "../general/PageWindowSizes";
 
 interface SelectDatabaseProps {
 	onDatabaseSelected: (database: GetDatabaseResponse) => void;
@@ -17,7 +17,7 @@ export function SelectDatabasePage({ onDatabaseSelected }: SelectDatabaseProps) 
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 
-	framer.showUI({ width: 750, height: 550 });
+	updateWindowSize("SelectDatabase");
 
 	const handleSubmit = (event: FormEvent) => {
 		event.preventDefault();
