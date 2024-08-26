@@ -7,7 +7,7 @@ import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
 
-export function SelectDatabase({ onDatabaseSelected }) {
+export function SelectDatabasePage({ onDatabaseSelected }) {
 	// const { data, refetch, isRefetching, isLoading } = {} //useDatabasesQuery();
 	const [selectedBase, setSelectedBase] = useState<string | null>(null);
 	const [selectedTable, setSelectedTable] = useState<string | null>(null);

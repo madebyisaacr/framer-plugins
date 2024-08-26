@@ -184,7 +184,7 @@ function getLastSyncedTime(
 	return pluginContext.lastSyncedTime;
 }
 
-export function MapDatabaseFields({
+export function MapFieldsPage({
 	base,
 	table,
 	onSubmit,

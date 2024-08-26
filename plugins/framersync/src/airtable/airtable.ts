@@ -1,11 +1,11 @@
 import pLimit from "p-limit";
 import { assert, formatDate, isDefined, isString, slugify } from "../utils";
-import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
+import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { richTextToPlainText, richTextToHTML } from "./blocksToHTML";
+import { richTextToPlainText, richTextToHTML } from "./richText";
 import { PluginContext } from "../general/PluginContext";
 
-export type FieldId = string;
+type FieldId = string;
 
 const apiBaseUrl =
 	window.location.hostname === "localhost"
@@ -29,15 +29,7 @@ const baseNameKey = "airtableBaseName";
 // TODO: Is this necessary with Airtable?
 const concurrencyLimit = 5;
 
-export const Airtable = {
-	synchronizeDatabase,
-	isAuthenticated,
-	refreshToken: refreshAirtableToken,
-	getIntegrationContext,
-	getStoredIntegrationData,
-};
-
-async function getIntegrationContext(integrationData: object) {
+export async function getIntegrationContext(integrationData: object, databaseName: string) {
 	const { baseId, tableId } = integrationData;
 
 	if (!baseId || !tableId) {
@@ -59,12 +51,12 @@ async function getIntegrationContext(integrationData: object) {
 		};
 	} catch (error) {
 		return new Error(
-			"Failed to get Airtable base information. Log in with Airtable and select the Base to sync."
+			`The Airtable base "${databaseName}" was not found. Log in with Airtable and select the Base to sync.`
 		);
 	}
 }
 
-function getStoredIntegrationData(integrationContext: object) {
+export function getStoredIntegrationData(integrationContext: object) {
 	const { baseId, tableId } = integrationContext;
 
 	if (!baseId || !tableId) {
@@ -80,12 +72,12 @@ function getStoredIntegrationData(integrationContext: object) {
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 // TODO: Refresh the token when it expires
-function isAuthenticated() {
+export function isAuthenticated() {
 	return localStorage.getItem(airtableRefreshTokenKey) !== null;
 }
 
 // TODO: Check if refresh token is expired (60 days)
-async function refreshAirtableToken() {
+export async function refreshAirtableToken() {
 	// Do not refresh if we already have an access token
 	if (airtableAccessToken) {
 		return;
@@ -469,7 +461,7 @@ async function processAllItems(
 	};
 }
 
-async function synchronizeDatabase(
+export async function synchronizeDatabase(
 	base: object,
 	table: object,
 	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions

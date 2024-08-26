@@ -13,7 +13,7 @@ interface SelectDatabaseProps {
 	onDatabaseSelected: (database: GetDatabaseResponse) => void;
 }
 
-export function SelectDatabase({ onDatabaseSelected }: SelectDatabaseProps) {
+export function SelectDatabasePage({ onDatabaseSelected }: SelectDatabaseProps) {
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 

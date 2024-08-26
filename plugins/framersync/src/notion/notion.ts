@@ -8,9 +8,13 @@ import {
 	isNotionClientError,
 } from "@notionhq/client";
 import pLimit from "p-limit";
-import { GetDatabaseResponse, PageObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+	GetDatabaseResponse,
+	PageObjectResponse,
+	RichTextItemResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 import { assert, formatDate, isDefined, isString, slugify } from "./utils";
-import { ManagedCollection, CollectionField, CollectionItem, framer } from "framer-plugin";
+import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 import { PluginContext } from "../general/PluginContext";
@@ -37,6 +41,43 @@ const databaseNameKey = "notionDatabaseName";
 const concurrencyLimit = 5;
 
 export type NotionProperty = GetDatabaseResponse["properties"][string];
+
+export async function getIntegrationContext(integrationData: object, databaseName: string) {
+	const { databaseId } = integrationData;
+
+	if (!databaseId) {
+		return null;
+	}
+
+	try {
+		assert(notion, "Notion client is not initialized");
+		const database = await notion.databases.retrieve({ database_id: databaseId });
+
+		return {
+			database,
+		};
+	} catch (error) {
+		if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
+			return Error(
+				`The database "${databaseName}" was not found. Log in with Notion and select the Database to sync.`
+			);
+		}
+
+		throw error;
+	}
+}
+
+export function getStoredIntegrationData(integrationContext: object) {
+	const database: GetDatabaseResponse = integrationContext.database;
+
+	if (!database) {
+		return null;
+	}
+
+	return {
+		databaseId: database.id,
+	};
+}
 
 // A page in database consists of blocks.
 // We allow configuration to include this as a field in the collection.
@@ -67,16 +108,22 @@ export function initNotionClient() {
 			const urlObj = new URL(url);
 
 			try {
-				const resp = await fetch(`${apiBaseUrl}/notion${urlObj.pathname}${urlObj.search}`, fetchInit);
+				const resp = await fetch(
+					`${apiBaseUrl}/notion${urlObj.pathname}${urlObj.search}`,
+					fetchInit
+				);
 
 				// If status is unauthorized, clear the token
 				// And we close the plugin (for now)
 				// TODO: Improve this flow in the plugin.
 				if (resp.status === 401) {
 					localStorage.removeItem(notionBearerStorageKey);
-					await framer.closePlugin("Notion Authorization Failed. Re-open the plugin to re-authorize.", {
-						variant: "error",
-					});
+					await framer.closePlugin(
+						"Notion Authorization Failed. Re-open the plugin to re-authorize.",
+						{
+							variant: "error",
+						}
+					);
 					return resp;
 				}
 
@@ -91,7 +138,13 @@ export function initNotionClient() {
 }
 
 // The order in which we display slug fields
-const slugFieldTypes: NotionProperty["type"][] = ["title", "rich_text", "unique_id", "formula", "rollup"];
+const slugFieldTypes: NotionProperty["type"][] = [
+	"title",
+	"rich_text",
+	"unique_id",
+	"formula",
+	"rollup",
+];
 
 /**
  * Given a Notion Database returns a list of possible fields that can be used as
@@ -106,7 +159,7 @@ export function getPossibleSlugFields(database: GetDatabaseResponse) {
 
 		if (slugFieldTypes.includes(property.type)) {
 			options.push(property);
-		};
+		}
 	}
 	function getOrderIndex(type: NotionProperty["type"]): number {
 		const index = slugFieldTypes.indexOf(type);
@@ -149,7 +202,11 @@ export async function authorize(options: { readKey: string; writeKey: string }) 
  * Given a Notion Database Properties object returns a CollectionField object
  * That maps the Notion Property to the Framer CMS collection property type
  */
-export function getCollectionFieldForProperty(property: NotionProperty, name: string, type: string): CollectionField | null {
+export function getCollectionFieldForProperty(
+	property: NotionProperty,
+	name: string,
+	type: string
+): CollectionField | null {
 	if (type == "enum") {
 		let cases: any[] = [];
 
@@ -184,7 +241,10 @@ export function richTextToPlainText(richText: RichTextItemResponse[]) {
 	return richText.map((value) => value.plain_text).join("");
 }
 
-export function getPropertyValue(property: PageObjectResponse["properties"][string], fieldType: string): unknown | undefined {
+export function getPropertyValue(
+	property: PageObjectResponse["properties"][string],
+	fieldType: string
+): unknown | undefined {
 	const value = property[property.type];
 
 	switch (property.type) {
@@ -241,7 +301,11 @@ export function getPropertyValue(property: PageObjectResponse["properties"][stri
 		case "status":
 			return fieldType == "enum" ? value?.id : value?.name;
 		case "unique_id":
-			return fieldType == "string" ? (value.prefix ? `${value.prefix}-${value.number}` : String(value.number)) : value.number;
+			return fieldType == "string"
+				? value.prefix
+					? `${value.prefix}-${value.number}`
+					: String(value.number)
+				: value.number;
 	}
 
 	return null;
@@ -302,7 +366,9 @@ async function processItem(
 
 	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
 		status.info.push({
-			message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
+			message: `Skipping. last updated: ${formatDate(
+				item.last_edited_time
+			)}, last synced: ${formatDate(lastSyncedTime!)}`,
 			url: item.url,
 		});
 		return null;
@@ -412,7 +478,9 @@ async function processAllItems(
 		warnings: [],
 	};
 	const promises = data.map((item) =>
-		limit(() => processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate))
+		limit(() =>
+			processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate)
+		)
 	);
 	const results = await Promise.all(promises);
 
@@ -447,7 +515,13 @@ export async function synchronizeDatabase(
 
 	assert(data.every(isFullPage), "Response is not a full page");
 
-	const { collectionItems, status } = await processAllItems(data, fieldsById, slugFieldId, unsyncedItemIds, lastSyncedTime);
+	const { collectionItems, status } = await processAllItems(
+		data,
+		fieldsById,
+		slugFieldId,
+		unsyncedItemIds,
+		lastSyncedTime
+	);
 
 	console.log("Submitting database");
 	console.table(collectionItems);
@@ -485,7 +559,10 @@ export async function synchronizeDatabase(
 
 export function useSynchronizeDatabaseMutation(
 	database: GetDatabaseResponse | null,
-	{ onSuccess, onError }: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
+	{
+		onSuccess,
+		onError,
+	}: { onSuccess?: (result: SynchronizeResult) => void; onError?: (error: Error) => void } = {}
 ) {
 	return useMutation({
 		onError(error) {
@@ -557,60 +634,6 @@ function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFie
 	return fields;
 }
 
-export async function getPluginContext(): Promise<PluginContext> {
-	const collection = await framer.getManagedCollection();
-	const collectionFields = await collection.getFields();
-	const databaseId = await collection.getPluginData(pluginDatabaseIdKey);
-	const hasAuthToken = isAuthenticated();
-
-	if (!databaseId || !hasAuthToken) {
-		return {
-			type: "new",
-			collection,
-			isAuthenticated: hasAuthToken,
-		};
-	}
-
-	try {
-		assert(notion, "Notion client is not initialized");
-		const database = await notion.databases.retrieve({ database_id: databaseId });
-
-		const [rawIgnoredFieldIds, lastSyncedTime, slugFieldId] = await Promise.all([
-			collection.getPluginData(ignoredFieldIdsKey),
-			collection.getPluginData(pluginLastSyncedKey),
-			collection.getPluginData(pluginSlugIdKey),
-		]);
-
-		const ignoredFieldIds = getIgnoredFieldIds(rawIgnoredFieldIds);
-
-		assert(lastSyncedTime, "Expected last synced time to be set");
-
-		return {
-			type: "update",
-			database,
-			collection,
-			collectionFields,
-			ignoredFieldIds,
-			lastSyncedTime,
-			slugFieldId,
-			hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
-			isAuthenticated: hasAuthToken,
-		};
-	} catch (error) {
-		if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
-			const databaseName = (await collection.getPluginData(databaseNameKey)) ?? "Unknown";
-
-			return {
-				type: "error",
-				message: `The database "${databaseName}" was not found. Log in with Notion and select the Database to sync.`,
-				isAuthenticated: false,
-			};
-		}
-
-		throw error;
-	}
-}
-
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	database: GetDatabaseResponse,
@@ -636,7 +659,10 @@ export function hasFieldConfigurationChanged(
 	return false;
 }
 
-export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {
+export function isUnchangedSinceLastSync(
+	lastEditedTime: string,
+	lastSyncedTime: string | null
+): boolean {
 	if (!lastSyncedTime) return false;
 
 	const lastEdited = new Date(lastEditedTime);

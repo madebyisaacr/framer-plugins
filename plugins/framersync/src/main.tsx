@@ -6,8 +6,8 @@ import { App } from "./App.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner.tsx";
-import { Airtable } from "./airtable/airtable.ts";
-import { Notion } from "./notion/notion.ts";
+import Airtable from "./airtable/AirtableIntegration";
+import Notion from "./notion/NotionIntegration";
 import { PluginContext, PluginContextUpdate, Integration } from "./general/PluginContext";
 
 import { framer } from "framer-plugin";
@@ -17,9 +17,10 @@ import { assert, isString, createObject } from "./utils.ts";
 
 const PluginDataKey = createObject([
 	"integrationId",
-	"lastSyncedTime",
+	"integrationData",
 	"ignoredFieldIds",
-	"pluginSlugId",
+	"lastSyncedTime",
+	"slugFieldId",
 	"databaseName",
 ]);
 
@@ -38,7 +39,7 @@ function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is P
 	if (pluginContext.type !== "update") return false;
 
 	if (!pluginContext.integration) return false;
-	if (!pluginContext.integrationData) return false;
+	if (!pluginContext.integrationContext) return false;
 	if (!pluginContext.slugFieldId) return false;
 	if (pluginContext.hasChangedFields) return false;
 
@@ -87,13 +88,15 @@ async function getPluginContext(): Promise<PluginContext> {
 		ignoredFieldIdsJson,
 		lastSyncedTime,
 		slugFieldId,
+		databaseName,
 	] = await Promise.all([
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
-		collection.getPluginData(PluginDataKey.pluginBaseId),
+		collection.getPluginData(PluginDataKey.integrationData),
 		collection.getPluginData(PluginDataKey.ignoredFieldIds),
 		collection.getPluginData(PluginDataKey.lastSyncedTime),
-		collection.getPluginData(PluginDataKey.pluginSlugId),
+		collection.getPluginData(PluginDataKey.slugFieldId),
+		collection.getPluginData(PluginDataKey.databaseName),
 	]);
 
 	const integration = getIntegration(integrationId);
@@ -119,7 +122,7 @@ async function getPluginContext(): Promise<PluginContext> {
 	try {
 		const ignoredFieldIds = stringToJSON(ignoredFieldIdsJson);
 		const integrationData = stringToJSON(integrationDataJson);
-		const integrationContext = await integration.getIntegrationContext(integrationData);
+		const integrationContext = await integration.getIntegrationContext(integrationData, databaseName);
 
 		if (integrationContext instanceof Error) {
 			return {
@@ -138,6 +141,7 @@ async function getPluginContext(): Promise<PluginContext> {
 			ignoredFieldIds,
 			lastSyncedTime,
 			slugFieldId,
+			databaseName,
 			// TODO: Fix hasChangedFields
 			// hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
 			isAuthenticated,
