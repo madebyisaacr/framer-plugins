@@ -28,7 +28,10 @@ export function SelectDatabasePage() {
 			return;
 		}
 
-		updatePluginContext({ integrationContext: { database } });
+		updatePluginContext({
+			integrationContext: { database },
+			databaseName: richTextToPlainText(database.title),
+		});
 	};
 
 	return (

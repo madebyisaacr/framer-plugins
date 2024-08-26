@@ -3,7 +3,6 @@ import { framer, CollectionField } from "framer-plugin";
 import { assert } from "../utils";
 import {
 	NotionProperty,
-	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
