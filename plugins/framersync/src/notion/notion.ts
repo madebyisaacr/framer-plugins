@@ -493,7 +493,8 @@ async function processAllItems(
 }
 
 export async function synchronizeDatabase(
-	pluginContext: PluginContext
+	pluginContext: PluginContext,
+	updateCollection: Function
 ): Promise<SynchronizeResult> {
 	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
@@ -503,7 +504,6 @@ export async function synchronizeDatabase(
 	assert(notion);
 
 	const collection = await framer.getManagedCollection();
-	await collection.setFields(fields);
 
 	const fieldsById = new Map<string, CollectionField>();
 	for (const field of fields) {
@@ -530,18 +530,16 @@ export async function synchronizeDatabase(
 	console.table(collectionItems);
 
 	try {
-		await collection.addItems(collectionItems);
-
 		const itemsToDelete = Array.from(unsyncedItemIds);
-		await collection.removeItems(itemsToDelete);
-
-		await Promise.all([
-			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginDatabaseIdKey, database.id),
-			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
-			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(databaseNameKey, richTextToPlainText(database.title)),
-		]);
+		const databaseName = richTextToPlainText(database.title);
+		await updateCollection(
+			fields,
+			collectionItems,
+			itemsToDelete,
+			ignoredFieldIds,
+			slugFieldId,
+			databaseName
+		);
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",
@@ -562,6 +560,7 @@ export async function synchronizeDatabase(
 
 export function useSynchronizeDatabaseMutation(
 	pluginContext: object,
+	updateCollection: Function,
 	{
 		onSuccess,
 		onError,
@@ -575,7 +574,7 @@ export function useSynchronizeDatabaseMutation(
 		},
 		onSuccess,
 		mutationFn: async (): Promise<SynchronizeResult> => {
-			return synchronizeDatabase(pluginContext);
+			return synchronizeDatabase(pluginContext, updateCollection);
 		},
 	});
 }
