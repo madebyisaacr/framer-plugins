@@ -484,7 +484,7 @@ async function processAllItems(
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
-	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
+	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
 	const { database } = integrationContext;
 
@@ -494,7 +494,7 @@ export async function synchronizeDatabase(
 	const collection = await framer.getManagedCollection();
 
 	const fieldsById = new Map<string, CollectionField>();
-	for (const field of fields) {
+	for (const field of collectionFields) {
 		fieldsById.set(field.id, field);
 	}
 
@@ -520,16 +520,9 @@ export async function synchronizeDatabase(
 	try {
 		const itemsToDelete = Array.from(unsyncedItemIds);
 		const databaseName = richTextToPlainText(database.title);
-		await updateCollection(
-			pluginContext,
-			fields,
-			collectionItems,
-			itemsToDelete,
-			ignoredFieldIds,
-			slugFieldId,
-			databaseName,
-			{ databaseId: database.id }
-		);
+		await updateCollection(pluginContext, collectionItems, itemsToDelete, {
+			databaseId: database.id,
+		});
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",

@@ -49,8 +49,7 @@ export function PluginContextProvider({ children, initialContext }: { children: 
 		newContext: Partial<PluginContext>,
 		then: (pluginContext: PluginContext) => void
 	) {
-		let newValue =
-			newContext.type === pluginContext.type ? { ...pluginContext, ...newContext } : newContext;
+		let newValue = { ...pluginContext, ...newContext };
 		setPluginContext(newValue);
 
 		if (then) {

@@ -1,4 +1,4 @@
-import { framer, CollectionField, CollectionItem } from "framer-plugin";
+import { framer, CollectionItem } from "framer-plugin";
 import { createObject } from "../utils";
 import { PluginContext } from "./PluginContext";
 
@@ -13,25 +13,32 @@ export const PluginDataKey = createObject([
 
 export async function updateCollection(
 	pluginContext: PluginContext,
-	fields: CollectionField[],
 	collectionItems: CollectionItem[],
 	itemsToDelete: string[],
-	ignoredFieldIds: string[],
-	slugFieldId: string,
-	databaseName: string,
 	integrationData: object
 ) {
+	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, databaseName } =
+		pluginContext;
 	const collection = await framer.getManagedCollection();
 
-	console.log(fields, collectionItems, itemsToDelete, ignoredFieldIds, slugFieldId, databaseName);
+	console.log(
+		collectionFields,
+		collectionItems,
+		itemsToDelete,
+		ignoredFieldIds,
+		slugFieldId,
+		databaseName
+	);
 
-	await collection.setFields(fields);
+	await collection.setFields(collectionFields);
 
 	await collection.addItems(collectionItems);
-	await collection.removeItems(itemsToDelete);
+  if (itemsToDelete.length > 0) {
+    await collection.removeItems(itemsToDelete);
+  }
 
 	await Promise.all([
-		collection.setPluginData(PluginDataKey.integrationId, pluginContext.integrationId),
+		collection.setPluginData(PluginDataKey.integrationId, integrationId),
 		collection.setPluginData(PluginDataKey.ignoredFieldIds, JSON.stringify(ignoredFieldIds)),
 		collection.setPluginData(PluginDataKey.integrationData, JSON.stringify(integrationData)),
 		collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString()),

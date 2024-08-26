@@ -2,7 +2,7 @@ import { updateWindowSize } from "./PageWindowSizes";
 import { usePluginContext } from "./PluginContext";
 
 export default function IntegrationsPage() {
-	const { pluginContext, updatePluginContext } = usePluginContext();
+	const { updatePluginContext } = usePluginContext();
 
 	updateWindowSize("Integrations");
 

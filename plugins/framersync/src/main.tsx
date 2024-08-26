@@ -1,7 +1,7 @@
 import "./globals.css";
 import "./App.css";
 
-import { ReactNode, StrictMode, Suspense, useState } from "react";
+import { ReactNode, StrictMode, Suspense, useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
