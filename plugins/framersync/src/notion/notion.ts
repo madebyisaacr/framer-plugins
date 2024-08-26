@@ -493,9 +493,12 @@ async function processAllItems(
 }
 
 export async function synchronizeDatabase(
-	database: GetDatabaseResponse,
-	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
+	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
+	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
+		pluginContext;
+	const { database } = integrationContext;
+
 	assert(isFullDatabase(database));
 	assert(notion);
 

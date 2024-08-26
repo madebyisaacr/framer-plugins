@@ -241,12 +241,7 @@ async function runPlugin() {
 		if (framer.mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
 			assert(pluginContext.slugFieldId);
 
-			const result = await integration.synchronizeDatabase(pluginContext.integrationContext, {
-				fields: pluginContext.collectionFields,
-				ignoredFieldIds: pluginContext.ignoredFieldIds,
-				lastSyncedTime: pluginContext.lastSyncedTime,
-				slugFieldId: pluginContext.slugFieldId,
-			});
+			const result = await integration.synchronizeDatabase(pluginContext.integrationContext);
 
 			logSyncResult(result);
 

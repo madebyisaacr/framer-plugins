@@ -340,7 +340,7 @@ interface SyncStatus {
 }
 
 export interface SynchronizeResult extends SyncStatus {
-	status: "success" | "completed_with_errors";
+	status: "success" | "completed_with_errors" | "error";
 }
 
 async function processItem(
@@ -462,11 +462,13 @@ async function processAllItems(
 }
 
 export async function synchronizeDatabase(
-	base: object,
-	table: object,
-	{ fields, ignoredFieldIds, lastSyncedTime, slugFieldId }: SynchronizeMutationOptions
+	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
-	if (!base || !table) {
+	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId, databaseName } =
+		pluginContext;
+	const { baseId, table } = integrationContext;
+
+	if (!baseId || !table) {
 		return {
 			status: "error",
 			errors: [],
@@ -485,12 +487,12 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await airtableFetch(`${base.id}/${table.id}`, {
+	const data = await airtableFetch(`${baseId}/${table.id}`, {
 		cellFormat: "json",
 		returnFieldsByFieldId: true,
 	});
 
-	console.log(`${base.id}/${table.id}`);
+	console.log(`${baseId}/${table.id}`);
 
 	const { collectionItems, status } = await processAllItems(
 		data.records,
@@ -512,11 +514,11 @@ export async function synchronizeDatabase(
 
 		await Promise.all([
 			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginBaseIdKey, base.id),
+			collection.setPluginData(pluginBaseIdKey, baseId),
 			collection.setPluginData(pluginTableIdKey, table.id),
 			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
 			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(baseNameKey, base.name),
+			collection.setPluginData(baseNameKey, databaseName),
 		]);
 
 		return {
