@@ -7,3 +7,7 @@
 select {
 	@apply pl-2 pr-5 cursor-pointer;
 }
+
+strong {
+	@apply text-primary;
+}

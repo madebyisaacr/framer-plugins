@@ -18,6 +18,7 @@ import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
+import CanvasPage from "./general/CanvasPage";
 
 const integrations = {
 	notion: Notion,
@@ -46,25 +47,11 @@ function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is P
 	return true;
 }
 
-function renderPlugin(app: ReactNode, initialContext: PluginContext) {
+function renderPlugin(app: ReactNode) {
 	const root = document.getElementById("root");
 	if (!root) throw new Error("Root element not found");
 
-	updateWindowSize("Integrations");
-
-	ReactDOM.createRoot(root).render(
-		<StrictMode>
-			<QueryClientProvider client={queryClient}>
-				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
-					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-						<PluginContextProvider initialContext={initialContext}>
-							<Suspense fallback={<CenteredSpinner />}>{app}</Suspense>
-						</PluginContextProvider>
-					</ErrorBoundary>
-				</div>
-			</QueryClientProvider>
-		</StrictMode>
-	);
+	ReactDOM.createRoot(root).render(<StrictMode>{app}</StrictMode>);
 }
 
 async function createPluginContext(selectedIntegrationId: string = ""): Promise<PluginContext> {
@@ -208,6 +195,18 @@ function App() {
 }
 
 async function runPlugin() {
+	if (framer.mode === "canvas") {
+		framer.showUI({
+			width: 500,
+			height: 500,
+			position: "center",
+			resizable: false,
+		});
+
+		renderPlugin(<CanvasPage />);
+		return;
+	}
+
 	try {
 		let pluginContext: PluginContext = await createPluginContext();
 
@@ -237,7 +236,19 @@ async function runPlugin() {
 			return;
 		}
 
-		renderPlugin(<App />, pluginContext);
+		updateWindowSize("Integrations");
+
+		renderPlugin(
+			<QueryClientProvider client={queryClient}>
+				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
+					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
+						<PluginContextProvider initialContext={pluginContext}>
+							<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>
+						</PluginContextProvider>
+					</ErrorBoundary>
+				</div>
+			</QueryClientProvider>
+		);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error(message);
