@@ -17,6 +17,7 @@ import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
+import { motion, AnimatePresence } from "framer-motion";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -79,6 +80,13 @@ const cmsFieldTypeNames = {
 	title: "Title",
 };
 
+const TRANSITION = {
+	type: "spring",
+	stiffness: 800,
+	damping: 60,
+	mass: 1,
+};
+
 interface CollectionFieldConfig {
 	// field: CollectionField | null;
 	property: NotionProperty;
@@ -126,7 +134,6 @@ function createFieldConfig(
 		const conversionTypes = getFieldConversionTypes(property);
 
 		regularFields.push({
-			// field: getCollectionFieldForProperty(property),
 			originalFieldName: property.name,
 			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
 			unsupported: !conversionTypes.length,
@@ -146,7 +153,7 @@ function createFieldConfig(
 			conversionTypes: ["string", "formattedText"],
 			isPageLevelField: true,
 			unsupported: false,
-		})
+		});
 	}
 
 	pageLevelFields.push({
@@ -253,6 +260,8 @@ export function MapFieldsPage({
 	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const { database } = pluginContext.integrationContext;
+	const [settingsMenuFieldConfig, setSettingsMenuFieldConfig] =
+		useState<CollectionFieldConfig | null>(null);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
 	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
@@ -272,6 +281,10 @@ export function MapFieldsPage({
 	);
 
 	assert(isFullDatabase(database));
+
+	const onSettingsButtonClick = (fieldConfig: CollectionFieldConfig) => {
+		setSettingsMenuFieldConfig(fieldConfig);
+	};
 
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
@@ -411,7 +424,7 @@ export function MapFieldsPage({
 						/>
 					</>
 				)}
-				<Button square type="button">
+				<Button square type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="18"
@@ -436,6 +449,10 @@ export function MapFieldsPage({
 		);
 	}
 
+	const closeSettingsMenu = () => {
+		setSettingsMenuFieldConfig(null);
+	};
+
 	const newFields = fieldConfigList.filter(
 		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
 	);
@@ -447,95 +464,115 @@ export function MapFieldsPage({
 	);
 
 	return (
-		<div className="flex-1 flex flex-col gap-2 px-3">
-			<form
-				onSubmit={handleSubmit}
-				className={classNames(
-					"flex flex-col gap-3 flex-1 transition-opacity relative",
-					isLoading && "opacity-50 blur-sm pointer-events-none"
-				)}
+		<div className="flex-1 flex flex-col gap-2 px-3 overflow-hidden">
+			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider z-10" />
+			<motion.div
+				className="size-full overflow-y-auto"
+				animate={{
+					opacity: settingsMenuFieldConfig ? 0.3 : 1,
+					// scale: settingsMenuFieldConfig ? 0.95 : 1,
+				}}
+				initial={false}
+				transition={TRANSITION}
 			>
-				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
-				<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
-				<div className="flex-1 flex flex-col gap-4">
-					<div
-						className="grid gap-2 w-full items-center justify-center"
-						style={{
-							gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto 16px`,
-						}}
-					>
-						<div className="col-start-2 flex flex-row justify-between px-2">
-							<span>Notion Property</span>
-							<span className="text-tertiary">Type</span>
-						</div>
-						<div></div>
-						<span className="pl-2">Collection Field Name</span>
-						<span className="col-span-3 pl-[4px]">Import As</span>
-						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<select
-							className="w-full"
-							value={slugFieldId ?? ""}
-							onChange={(e) => setSlugFieldId(e.target.value)}
-							required
+				<form
+					onSubmit={handleSubmit}
+					className={classNames(
+						"flex flex-col gap-3 flex-1 pt-4 transition-opacity relative",
+						isLoading && "opacity-50 blur-sm pointer-events-none"
+					)}
+				>
+					<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
+					<div className="flex-1 flex flex-col gap-4">
+						<div
+							className="grid gap-2 w-full items-center justify-center"
+							style={{
+								gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto 16px`,
+							}}
 						>
-							<option value="" disabled>
-								Slug Field Property
-							</option>
-							<hr />
-							{slugFields.map((field) => (
-								<option key={field.id} value={field.id}>
-									{field.name}
+							<div className="col-start-2 flex flex-row justify-between px-2">
+								<span>Notion Property</span>
+								<span className="text-tertiary">Type</span>
+							</div>
+							<div></div>
+							<span className="pl-2">Collection Field Name</span>
+							<span className="col-span-3 pl-[4px]">Import As</span>
+							<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
+							<select
+								className="w-full"
+								value={slugFieldId ?? ""}
+								onChange={(e) => setSlugFieldId(e.target.value)}
+								required
+							>
+								<option value="" disabled>
+									Slug Field Property
 								</option>
-							))}
-						</select>
-						<div className="flex items-center justify-center">
-							<IconChevron />
+								<hr />
+								{slugFields.map((field) => (
+									<option key={field.id} value={field.id}>
+										{field.name}
+									</option>
+								))}
+							</select>
+							<div className="flex items-center justify-center">
+								<IconChevron />
+							</div>
+							<StaticInput disabled>Slug</StaticInput>
+							<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
+							<div />
+							<div />
+							{pageLevelFields.map(createFieldConfigRow)}
+							{newFields.length + otherFields.length > 0 && (
+								<div className="h-[1px] bg-divider col-span-full"></div>
+							)}
+							{newFields.map(createFieldConfigRow)}
+							{otherFields.map(createFieldConfigRow)}
+							{unsupportedFields.length > 0 && (
+								<div className="h-[1px] bg-divider col-span-full"></div>
+							)}
+							{unsupportedFields.map(createFieldConfigRow)}
 						</div>
-						<StaticInput disabled>Slug</StaticInput>
-						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-						<div />
-						<div />
-						{pageLevelFields.map(createFieldConfigRow)}
-						{newFields.length + otherFields.length > 0 && (
-							<div className="h-[1px] bg-divider col-span-full"></div>
-						)}
-						{newFields.map(createFieldConfigRow)}
-						{otherFields.map(createFieldConfigRow)}
-						{unsupportedFields.length > 0 && (
-							<div className="h-[1px] bg-divider col-span-full"></div>
-						)}
-						{unsupportedFields.map(createFieldConfigRow)}
 					</div>
-				</div>
-				<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
-					<div className="inline-flex items-center min-w-0 flex-1">
-						{error ? (
-							<span className="text-[#f87171]">{error.message}</span>
-						) : (
-							<>
-								<span className="text-tertiary flex-shrink-0 whitespace-pre">Importing from </span>
-								<a
-									href={database?.url}
-									className="font-semibold text-secondary hover:text-primary truncate"
-									target="_blank"
-									tabIndex={-1}
-								>
-									{database ? richTextToPlainText(database.title) : ""}
-								</a>
-							</>
-						)}
+					<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
+						<div className="inline-flex items-center min-w-0 flex-1">
+							{error ? (
+								<span className="text-[#f87171]">{error.message}</span>
+							) : (
+								<>
+									<span className="text-tertiary flex-shrink-0 whitespace-pre">
+										Importing from{" "}
+									</span>
+									<a
+										href={database?.url}
+										className="font-semibold text-secondary hover:text-primary truncate"
+										target="_blank"
+										tabIndex={-1}
+									>
+										{database ? richTextToPlainText(database.title) : ""}
+									</a>
+								</>
+							)}
+						</div>
+						<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
+							{pluginContext.type === "update" ? "Save & Import" : "Import"}
+						</Button>
 					</div>
-					<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
-						{pluginContext.type === "update" ? "Save & Import" : "Import"}
-					</Button>
-				</div>
-			</form>
+				</form>
+			</motion.div>
 			{isLoading && (
 				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
 					<Spinner inline />
 					Importing items...
 				</div>
 			)}
+			{settingsMenuFieldConfig && (
+				<div className="absolute inset-0 cursor-pointer" onClick={closeSettingsMenu} />
+			)}
+			<AnimatePresence>
+				{settingsMenuFieldConfig && (
+					<FieldSettingsMenu fieldConfig={settingsMenuFieldConfig} onClose={closeSettingsMenu} />
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }
@@ -701,4 +738,37 @@ function getFieldConversionTypes(property: NotionProperty) {
 	};
 
 	return propertyTypeMap[property.type] || [];
+}
+
+function FieldSettingsMenu({ fieldConfig, onClose }) {
+	return (
+		<motion.div
+			className="absolute inset-y-0 right-0 w-[300px] flex flex-col gap-2 p-3 bg-primary"
+			initial={{ x: "100%" }}
+			animate={{ x: 0 }}
+			exit={{ x: "100%" }}
+			transition={TRANSITION}
+		>
+			<div className="absolute inset-y-3 left-0 w-[1px] bg-divider" />
+			<span
+				onClick={onClose}
+				className={`text-tertiary flex flex-row items-center gap-1 cursor-pointer w-max pr-1`}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+					<g transform="translate(1.5 1)">
+						<path
+							d="M 3.5 0 L 0 4 L 3.5 7.5"
+							fill="transparent"
+							strokeWidth="1.5"
+							stroke="currentColor"
+							strokeLinecap="round"
+						></path>
+					</g>
+				</svg>
+				Back
+			</span>
+			<h1 className="text-lg font-bold">{fieldConfig.property.name}</h1>
+			<p>Notion Property</p>
+		</motion.div>
+	);
 }
