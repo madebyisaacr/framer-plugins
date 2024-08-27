@@ -18,7 +18,7 @@ import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 import { motion, AnimatePresence } from "framer-motion";
-import { SegmentedControl } from "@shared/components";
+import { SegmentedControl, XIcon } from "@shared/components";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -759,14 +759,22 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 
 	return (
 		<motion.div
-			className="absolute inset-y-0 right-0 w-[300px] flex flex-col gap-2 p-3 bg-primary overflow-y-auto"
+			className="absolute inset-y-3 right-3 w-[300px] flex flex-col gap-2 rounded-lg bg-modal px-3 pb-3 overflow-y-auto"
 			initial={{ x: "100%" }}
 			animate={{ x: 0 }}
 			exit={{ x: "100%" }}
 			transition={TRANSITION}
+			style={{
+				boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
+			}}
 		>
-			<div className="absolute inset-y-3 left-0 w-[1px] bg-divider" />
-			<span
+			<div className="flex flex-col gap-1 sticky top-0 z-10 bg-modal w-full border-b border-divider pt-3 pb-2">
+				<XIcon onClick={onClose} className="absolute top-5 right-0" />
+				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
+				<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
+			</div>
+			{/* <div className="absolute inset-y-3 left-0 w-[1px] bg-divider" /> */}
+			{/* <span
 				onClick={onClose}
 				className={`text-tertiary flex flex-row items-center gap-1 cursor-pointer w-max pr-1`}
 			>
@@ -782,10 +790,8 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 					</g>
 				</svg>
 				Close
-			</span>
-			<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
-			<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
-			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
+			</span> */}
+			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -my-2">
 				Field Settings
 			</div>
 			<PropertyControl title="Import Field">
@@ -794,6 +800,7 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 					items={[true, false]}
 					itemTitles={["Yes", "No"]}
 					currentItem={true}
+					tint
 					onChange={(value) => {
 						console.log(value);
 					}}
@@ -820,7 +827,7 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 				</div>
 			)}
 			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
-				Files & media
+				{notionPropertyTypes[propertyType]}
 			</div>
 			<PropertyControl title="Multiple Fields">
 				<SegmentedControl
@@ -828,6 +835,7 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 					items={[true, false]}
 					itemTitles={["Yes", "No"]}
 					currentItem={true}
+					tint
 					onChange={(value) => {
 						console.log(value);
 					}}

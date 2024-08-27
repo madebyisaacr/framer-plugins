@@ -7,7 +7,14 @@ const inheritFont = {
 	fontWeight: "500",
 };
 
-export function SearchBar({ placeholder = "Search...", background = true, className = "", value, onChange, onSubmit = null }) {
+export function SearchBar({
+	placeholder = "Search...",
+	background = true,
+	className = "",
+	value,
+	onChange,
+	onSubmit = null,
+}) {
 	return (
 		<div
 			className={classNames(
@@ -42,7 +49,15 @@ export function SearchBar({ placeholder = "Search...", background = true, classN
 	);
 }
 
-export function SegmentedControl({ items, id, itemTitles = null, currentItem, onChange, className = "" }) {
+export function SegmentedControl({
+	items,
+	id,
+	itemTitles = null,
+	currentItem,
+	onChange,
+	className = "",
+	tint = false,
+}) {
 	const transition = { type: "spring", stiffness: "900", damping: "60" };
 
 	const currentItemIndex = items?.indexOf(currentItem) ?? 0;
@@ -66,7 +81,9 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 	}
 
 	return (
-		<div className={`relative flex flex-row items-stretch bg-secondary p-0.5 rounded min-h-6 ${className}`}>
+		<div
+			className={`relative flex flex-row items-stretch bg-secondary p-0.5 rounded min-h-6 ${className}`}
+		>
 			{currentItemIndex >= 0 && (
 				<div className="absolute inset-0.5">
 					<motion.div
@@ -85,21 +102,17 @@ export function SegmentedControl({ items, id, itemTitles = null, currentItem, on
 			)}
 			{dividers}
 			{items?.map((item, index) => (
-				<motion.div
+				<div
 					key={`${id}-${item}`}
 					onClick={() => onChange(item)}
-					animate={{
-						color: index === currentItemIndex ? "var(--framer-color-text)" : "var(--framer-color-text-tertiary)",
-					}}
-					className={[
+					className={classNames(
 						"relative flex flex-1 items-center justify-center cursor-pointer",
 						index === currentItemIndex ? "font-semibold" : "",
-					].join(" ")}
-					initial={false}
-					transition={transition}
+						index === currentItemIndex ? (tint ? "text-tint dark:text-primary" : "text-primary") : "text-tertiary"
+					)}
 				>
 					<span className="z-[1]">{itemTitles ? itemTitles[index] : item}</span>
-				</motion.div>
+				</div>
 			))}
 		</div>
 	);
@@ -148,7 +161,10 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 						key="stepper"
 						className="relative flex flex-row items-center h-full cursor-pointer bg-secondary rounded text-tertiary"
 					>
-						<div onClick={() => increment(false)} className="flex-1 flex items-center justify-center h-full">
+						<div
+							onClick={() => increment(false)}
+							className="flex-1 flex items-center justify-center h-full"
+						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
 								<path
 									d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
@@ -156,8 +172,17 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 								></path>
 							</svg>
 						</div>
-						<div onClick={() => increment(true)} className="flex-1 flex items-center justify-center h-full">
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10" className="block">
+						<div
+							onClick={() => increment(true)}
+							className="flex-1 flex items-center justify-center h-full"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 10 10"
+								width="10"
+								height="10"
+								className="block"
+							>
 								<path
 									d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
 									fill="currentColor"
@@ -236,7 +261,9 @@ export function XIcon({ onClick, className = "" }) {
 	return (
 		<div
 			onClick={onClick}
-			className={`${className.includes("absolute") ? "" : "relative"} cursor-pointer text-tertiary ${className}`}
+			className={`${
+				className.includes("absolute") ? "" : "relative"
+			} cursor-pointer text-tertiary ${className}`}
 		>
 			<div className="absolute -inset-1" />
 			<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" className="block">
@@ -254,7 +281,12 @@ export function XIcon({ onClick, className = "" }) {
 	);
 }
 
-export function RoundedClip({ columns, gap = 10, borderRadius, backgroundColor = "var(--framer-color-bg)" }) {
+export function RoundedClip({
+	columns,
+	gap = 10,
+	borderRadius,
+	backgroundColor = "var(--framer-color-bg)",
+}) {
 	const elements = [];
 	for (let i = 0; i < columns; i++) {
 		elements.push(
@@ -270,7 +302,10 @@ export function RoundedClip({ columns, gap = 10, borderRadius, backgroundColor =
 	}
 
 	return (
-		<div className="absolute inset-0 overflow-hidden pointer-events-none flex flex-row" style={{ gap }}>
+		<div
+			className="absolute inset-0 overflow-hidden pointer-events-none flex flex-row"
+			style={{ gap }}
+		>
 			{elements}
 		</div>
 	);
