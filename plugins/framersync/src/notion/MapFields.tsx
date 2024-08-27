@@ -759,96 +759,84 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 
 	return (
 		<motion.div
-			className="absolute inset-y-3 right-3 w-[300px] flex flex-col gap-2 rounded-lg bg-modal px-3 pb-3 overflow-y-auto"
-			initial={{ x: "100%" }}
-			animate={{ x: 0 }}
-			exit={{ x: "100%" }}
+			className="absolute inset-y-3 right-3 w-[300px] flex flex-col rounded-lg bg-modal"
+			initial={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
+			animate={{ x: 0, boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px" }}
+			exit={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
 			transition={TRANSITION}
-			style={{
-				boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
-			}}
 		>
-			<div className="flex flex-col gap-1 sticky top-0 z-10 bg-modal w-full border-b border-divider pt-3 pb-2">
+			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<XIcon onClick={onClose} className="absolute top-5 right-0" />
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
+				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
-			{/* <div className="absolute inset-y-3 left-0 w-[1px] bg-divider" /> */}
-			{/* <span
-				onClick={onClose}
-				className={`text-tertiary flex flex-row items-center gap-1 cursor-pointer w-max pr-1`}
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-					<g transform="translate(1.5 1)">
-						<path
-							d="M 3.5 0 L 0 4 L 3.5 7.5"
-							fill="transparent"
-							strokeWidth="1.5"
-							stroke="currentColor"
-							strokeLinecap="round"
-						></path>
-					</g>
-				</svg>
-				Close
-			</span> */}
-			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -my-2">
-				Field Settings
-			</div>
-			<PropertyControl title="Import Field">
-				<SegmentedControl
-					id={"import"}
-					items={[true, false]}
-					itemTitles={["Yes", "No"]}
-					currentItem={true}
-					tint
-					onChange={(value) => {
-						console.log(value);
-					}}
-				/>
-			</PropertyControl>
-			<PropertyControl title="Name">
-				<input
-					type="text"
-					className="w-full"
-					value={fieldNames[id]}
-					placeholder={fieldConfig.property.name}
-				/>
-			</PropertyControl>
-			<PropertyControl title="Field Type">
-				<FieldTypeSelector
-					fieldType={fieldTypes[id]}
-					availableFieldTypes={fieldConfig.conversionTypes}
-				/>
-			</PropertyControl>
-			{fieldConversionMessage && (
-				<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
-					<p className="text-primary font-semibold">{fieldConversionTitle}</p>
-					{fieldConversionMessage}
+			<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3">
+				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
+					Field Settings
 				</div>
-			)}
-			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
-				{notionPropertyTypes[propertyType]}
+				<PropertyControl title="Import Field">
+					<SegmentedControl
+						id={"import"}
+						items={[true, false]}
+						itemTitles={["Yes", "No"]}
+						currentItem={true}
+						tint
+						onChange={(value) => {
+							console.log(value);
+						}}
+					/>
+				</PropertyControl>
+				<PropertyControl title="Name">
+					<input
+						type="text"
+						className="w-full"
+						value={fieldNames[id]}
+						placeholder={fieldConfig.property.name}
+					/>
+				</PropertyControl>
+				<PropertyControl title="Field Type">
+					<FieldTypeSelector
+						fieldType={fieldTypes[id]}
+						availableFieldTypes={fieldConfig.conversionTypes}
+					/>
+				</PropertyControl>
+				{fieldConversionMessage && (
+					<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
+						<p className="text-primary font-semibold">{fieldConversionTitle}</p>
+						{fieldConversionMessage}
+					</div>
+				)}
+				<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
+					{notionPropertyTypes[propertyType]}
+				</div>
+				<PropertyControl title="Multiple Fields">
+					<SegmentedControl
+						id={"import"}
+						items={[true, false]}
+						itemTitles={["Yes", "No"]}
+						currentItem={true}
+						tint
+						onChange={(value) => {
+							console.log(value);
+						}}
+					/>
+				</PropertyControl>
+				<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
+					{/* <p className="text-primary font-semibold">{fieldConversionTitle}</p> */}
+					If any items in Notion have multiple files, they will be imported as multiple CMS fields
+					with a number ending added to each field's name.
+					<p>
+						<span className="text-primary font-semibold">Preview:</span> {fieldName} 1, {fieldName}{" "}
+						2, {fieldName} 3, ...
+					</p>
+				</div>
 			</div>
-			<PropertyControl title="Multiple Fields">
-				<SegmentedControl
-					id={"import"}
-					items={[true, false]}
-					itemTitles={["Yes", "No"]}
-					currentItem={true}
-					tint
-					onChange={(value) => {
-						console.log(value);
-					}}
-				/>
-			</PropertyControl>
-			<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
-				{/* <p className="text-primary font-semibold">{fieldConversionTitle}</p> */}
-				If multiple files are added per item in Notion, they will be imported as multiple fields in
-				the CMS with a number ending on each field's name.
-				<p>
-					<span className="text-primary font-semibold">Preview:</span> {fieldName} 1, {fieldName} 2,{" "}
-					{fieldName} 3, ...
-				</p>
+			<div className="flex flex-col w-full p-3 relative">
+				<div className="absolute inset-x-3 top-0 h-px bg-divider" />
+				<Button primary onClick={onClose}>
+					Done
+				</Button>
 			</div>
 		</motion.div>
 	);

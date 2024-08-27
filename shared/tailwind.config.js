@@ -30,6 +30,7 @@ export default {
 			tint: "var(--framer-color-tint)",
 		},
 		spacing: {
+			px: "1px",
 			0: "0",
 			0.5: "2px",
 			1: "5px",
