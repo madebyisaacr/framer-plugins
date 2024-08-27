@@ -133,7 +133,10 @@ const slugFieldTypes: NotionProperty["type"][] = [
  * Given a Notion Database returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
-export function getPossibleSlugFields(database: GetDatabaseResponse) {
+export function getPossibleSlugFields(integrationContext: object) {
+	const { database } = integrationContext;
+	assert(isFullDatabase(database));
+
 	const options: NotionProperty[] = [];
 
 	for (const key in database.properties) {

@@ -67,10 +67,10 @@ export function MapFieldsPageTemplate({
 
 	const slugFields = useMemo(() => getPossibleSlugFields(integrationContext), [integrationContext]);
 	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
-		getInitialSlugFieldId(integrationContext, slugFields)
+		getInitialSlugFieldId(pluginContext, slugFields)
 	);
 	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
-		createFieldConfig(integrationContext, pluginContext)
+		createFieldConfig(pluginContext)
 	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
@@ -386,7 +386,7 @@ export function MapFieldsPageTemplate({
 								</>
 							)}
 						</div>
-						<Button primary className="w-auto px-3" disabled={!slugFieldId}>
+						<Button primary className="w-[100px]" disabled={!slugFieldId}>
 							{pluginContext.type === "update" ? "Save & Import" : "Import"}
 						</Button>
 					</div>

@@ -86,9 +86,15 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(
-	database: GetDatabaseResponse,
 	pluginContext: PluginContext
 ): CollectionFieldConfig[] {
+	const { integrationContext } = pluginContext;
+	const { database } = integrationContext;
+
+	if (!isFullDatabase(database)) {
+		return [];
+	}
+
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
 	);
