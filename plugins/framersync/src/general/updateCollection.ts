@@ -15,10 +15,10 @@ export async function updateCollection(
 	pluginContext: PluginContext,
 	collectionItems: CollectionItem[],
 	itemsToDelete: string[],
-	integrationData: object
+	integrationData: object,
+	databaseName: string | null
 ) {
-	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, databaseName } =
-		pluginContext;
+	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId } = pluginContext;
 	const collection = await framer.getManagedCollection();
 
 	await collection.setFields(collectionFields);
@@ -34,6 +34,9 @@ export async function updateCollection(
 		collection.setPluginData(PluginDataKey.integrationData, JSON.stringify(integrationData)),
 		collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString()),
 		collection.setPluginData(PluginDataKey.slugFieldId, slugFieldId),
-		collection.setPluginData(PluginDataKey.databaseName, databaseName || null),
+		collection.setPluginData(
+			PluginDataKey.databaseName,
+			databaseName || pluginContext.databaseName || null
+		),
 	]);
 }

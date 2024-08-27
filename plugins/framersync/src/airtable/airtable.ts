@@ -4,6 +4,7 @@ import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./richText";
 import { PluginContext } from "../general/PluginContext";
+import { updateCollection } from "../general/updateCollection";
 
 type FieldId = string;
 
@@ -444,9 +445,15 @@ async function processAllItems(
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
-	const { integrationContext, fields, ignoredFieldIds, lastSyncedTime, slugFieldId, databaseName } =
-		pluginContext;
-	const { baseId, table } = integrationContext;
+	const {
+		integrationContext,
+		collectionFields,
+		ignoredFieldIds,
+		lastSyncedTime,
+		slugFieldId,
+		databaseName,
+	} = pluginContext;
+	const { baseId, tableId, table } = integrationContext;
 
 	if (!baseId || !table) {
 		return {
@@ -458,10 +465,9 @@ export async function synchronizeDatabase(
 	}
 
 	const collection = await framer.getManagedCollection();
-	await collection.setFields(fields);
 
 	const fieldsById = new Map<string, CollectionField>();
-	for (const field of fields) {
+	for (const field of collectionFields) {
 		fieldsById.set(field.id, field);
 	}
 
@@ -471,8 +477,6 @@ export async function synchronizeDatabase(
 		cellFormat: "json",
 		returnFieldsByFieldId: true,
 	});
-
-	console.log(`${baseId}/${table.id}`);
 
 	const { collectionItems, status } = await processAllItems(
 		data.records,
@@ -487,19 +491,14 @@ export async function synchronizeDatabase(
 	console.table(collectionItems);
 
 	try {
-		await collection.addItems(collectionItems);
-
 		const itemsToDelete = Array.from(unsyncedItemIds);
-		await collection.removeItems(itemsToDelete);
-
-		await Promise.all([
-			collection.setPluginData(ignoredFieldIdsKey, JSON.stringify(ignoredFieldIds)),
-			collection.setPluginData(pluginBaseIdKey, baseId),
-			collection.setPluginData(pluginTableIdKey, table.id),
-			collection.setPluginData(pluginLastSyncedKey, new Date().toISOString()),
-			collection.setPluginData(pluginSlugIdKey, slugFieldId),
-			collection.setPluginData(baseNameKey, databaseName),
-		]);
+		await updateCollection(
+			pluginContext,
+			collectionItems,
+			itemsToDelete,
+			{ baseId: baseId, tableId: tableId },
+			databaseName
+		);
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",
@@ -593,7 +592,10 @@ export function hasFieldConfigurationChanged(
 }
 
 // // DONE
-export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {
+export function isUnchangedSinceLastSync(
+	lastEditedTime: string,
+	lastSyncedTime: string | null
+): boolean {
 	if (!lastSyncedTime) return false;
 
 	const lastEdited = new Date(lastEditedTime);

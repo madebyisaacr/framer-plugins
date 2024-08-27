@@ -338,7 +338,6 @@ async function processItem(
 	lastSyncedTime: string | null
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
-	let titleValue: null | string = null;
 
 	const fieldData: Record<string, unknown> = {};
 
@@ -360,15 +359,6 @@ async function processItem(
 	for (const key in item.properties) {
 		const property = item.properties[key];
 		assert(property);
-
-		if (property.type === "title") {
-			const resolvedTitle = getPropertyValue(property, "string");
-			if (!resolvedTitle || typeof resolvedTitle !== "string") {
-				continue;
-			}
-
-			titleValue = resolvedTitle;
-		}
 
 		if (property.id === slugFieldId) {
 			const resolvedSlug = getPropertyValue(property, "string");
@@ -428,10 +418,10 @@ async function processItem(
 		}
 	}
 
-	if (!slugValue || !titleValue) {
+	if (!slugValue) {
 		status.warnings.push({
 			url: item.url,
-			message: "Slug or Title is missing. Skipping item.",
+			message: "Slug property is missing. Skipping item.",
 		});
 		return null;
 	}
@@ -440,7 +430,6 @@ async function processItem(
 		id: item.id,
 		fieldData,
 		slug: slugValue,
-		title: titleValue,
 	};
 }
 
@@ -514,9 +503,13 @@ export async function synchronizeDatabase(
 	try {
 		const itemsToDelete = Array.from(unsyncedItemIds);
 		const databaseName = richTextToPlainText(database.title);
-		await updateCollection(pluginContext, collectionItems, itemsToDelete, {
-			databaseId: database.id,
-		});
+		await updateCollection(
+			pluginContext,
+			collectionItems,
+			itemsToDelete,
+			{ databaseId: database.id },
+			databaseName
+		);
 
 		return {
 			status: status.errors.length === 0 ? "success" : "completed_with_errors",
