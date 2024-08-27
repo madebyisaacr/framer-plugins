@@ -15,7 +15,7 @@ export function SelectDatabasePage() {
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 
-	updateWindowSize("SelectDatabase");
+	updateWindowSize("SelectDatabaseWide");
 
 	const handleSubmit = (event: FormEvent) => {
 		event.preventDefault();

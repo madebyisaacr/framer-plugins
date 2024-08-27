@@ -9,8 +9,12 @@ const pageSizes = {
     width: 350,
     height: 350,
   },
-  SelectDatabase: {
+  SelectDatabaseWide: {
     width: 750,
+    height: 550,
+  },
+  SelectDatabase: {
+    width: 400,
     height: 550,
   },
   MapFields: {

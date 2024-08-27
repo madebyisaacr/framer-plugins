@@ -19,6 +19,8 @@ import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 import { motion, AnimatePresence } from "framer-motion";
 import { SegmentedControl, XIcon } from "@shared/components";
+import { MapFieldsPageTemplate } from "../general/MapFields";
+import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
@@ -60,30 +62,9 @@ const notionPropertyTypes = {
 	"page-cover": "Image",
 	"page-content": "Page Content",
 };
-const cmsFieldTypeNames = {
-	boolean: "Toggle",
-	color: "Color",
-	number: "Number",
-	string: "Text",
-	formattedText: "Formatted Text",
-	image: "Image",
-	link: "Link",
-	date: "Date",
-	enum: "Option",
-	slug: "Slug",
-	title: "Title",
-};
-
-const TRANSITION = {
-	type: "spring",
-	stiffness: 1000,
-	damping: 60,
-	mass: 1,
-};
 
 interface CollectionFieldConfig {
-	// field: CollectionField | null;
-	property: NotionProperty;
+	property: object;
 	isNewField: boolean;
 	originalFieldName: string;
 	unsupported: boolean;
@@ -195,17 +176,6 @@ function createFieldConfig(
 	return result.sort(sortField);
 }
 
-function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
-	const result: Record<string, string> = {};
-	if (pluginContext.type !== "update") return result;
-
-	for (const field of pluginContext.collectionFields) {
-		result[field.id] = field.name;
-	}
-
-	return result;
-}
-
 function getInitialSlugFieldId(
 	context: PluginContext,
 	fieldOptions: NotionProperty[]
@@ -249,504 +219,30 @@ export function MapFieldsPage({
 	isLoading: boolean;
 	error: Error | null;
 }) {
-	updateWindowSize("MapFields");
-
-	const { pluginContext, updatePluginContext } = usePluginContext();
+	const { pluginContext } = usePluginContext();
 
 	const { database } = pluginContext.integrationContext;
-	const [settingsMenuFieldConfig, setSettingsMenuFieldConfig] =
-		useState<CollectionFieldConfig | null>(null);
-
-	const slugFields = useMemo(() => getPossibleSlugFields(database), [database]);
-	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
-		getInitialSlugFieldId(pluginContext, slugFields)
-	);
-	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
-		createFieldConfig(database, pluginContext)
-	);
-	const [disabledFieldIds, setDisabledFieldIds] = useState(
-		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
-	);
-	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
-		getFieldNameOverrides(pluginContext)
-	);
-	const [fieldTypes, setFieldTypes] = useState(
-		createFieldTypesList(fieldConfigList, pluginContext)
-	);
 
 	assert(isFullDatabase(database));
 
-	const onSettingsButtonClick = (fieldConfig: CollectionFieldConfig) => {
-		setSettingsMenuFieldConfig(fieldConfig);
-	};
-
-	const handleFieldToggle = (key: string) => {
-		setDisabledFieldIds((current) => {
-			const nextSet = new Set(current);
-			if (nextSet.has(key)) {
-				nextSet.delete(key);
-			} else {
-				nextSet.add(key);
-			}
-
-			return nextSet;
-		});
-	};
-
-	const setFieldImportEnabled = (id: string, enabled: boolean) => {
-		setDisabledFieldIds((current) => {
-			const nextSet = new Set(current);
-			if (enabled) {
-				nextSet.delete(id);
-			} else {
-				nextSet.add(id);
-			}
-
-			return nextSet;
-		});
-	};
-
-	const handleFieldNameChange = (id: string, value: string) => {
-		setFieldNameOverrides((current) => ({
-			...current,
-			[id]: value,
-		}));
-	};
-
-	const handleFieldTypeChange = (id: string, value: string) => {
-		setFieldTypes((current) => ({
-			...current,
-			[id]: value,
-		}));
-	};
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-
-		if (isLoading) return;
-
-		const fields: any[] = [];
-
-		for (const fieldConfig of fieldConfigList) {
-			if (
-				!fieldConfig ||
-				!fieldConfig.property ||
-				fieldConfig.unsupported ||
-				disabledFieldIds.has(fieldConfig.property.id)
-			) {
-				continue;
-			}
-
-			fields.push(
-				getCollectionFieldForProperty(
-					fieldConfig.property,
-					fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
-					fieldTypes[fieldConfig.property.id]
-				)
-			);
-		}
-
-		assert(slugFieldId);
-
-		updatePluginContext(
-			{
-				collectionFields: fields,
-				slugFieldId,
-				ignoredFieldIds: Array.from(disabledFieldIds),
-				databaseName: richTextToPlainText(database.title),
-			},
-			onSubmit
-		);
-	};
-
-	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {
-		const id = fieldConfig.property.id;
-		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
-
-		return (
-			<Fragment key={fieldConfig.originalFieldName}>
-				<label
-					htmlFor={`${id}-checkbox`}
-					className={classNames(
-						"size-full flex items-center",
-						!fieldConfig.unsupported && "cursor-pointer"
-					)}
-				>
-					<input
-						type="checkbox"
-						id={`${id}-checkbox`}
-						disabled={!fieldConfig.property}
-						checked={!!fieldConfig.property && !isDisabled}
-						className={classNames(
-							"mx-auto",
-							!fieldConfig.property && "opacity-50",
-							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
-						)}
-						onChange={() => {
-							assert(fieldConfig.property);
-
-							handleFieldToggle(id);
-						}}
-					/>
-				</label>
-				<StaticInput
-					disabled={isDisabled}
-					leftText={notionPropertyTypes[fieldConfig.property.type]}
-				>
-					{fieldConfig.originalFieldName}
-					{fieldConfig.isNewField && !fieldConfig.unsupported && (
-						<div
-							className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
-							style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
-						>
-							New
-						</div>
-					)}
-				</StaticInput>
-				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
-					<IconChevron />
-				</div>
-				{!fieldTypes[id] ? (
-					<StaticInput disabled className="col-span-2">
-						Unsupported Field Type
-					</StaticInput>
-				) : (
-					<>
-						<input
-							type="text"
-							className={classNames("w-full", isDisabled && "opacity-50")}
-							disabled={isDisabled}
-							placeholder={fieldConfig.originalFieldName}
-							value={fieldNameOverrides[id] ?? ""}
-							onChange={(e) => {
-								assert(fieldConfig.property);
-								handleFieldNameChange(id, e.target.value);
-							}}
-						></input>
-						<FieldTypeSelector
-							fieldType={fieldTypes[id]}
-							availableFieldTypes={fieldConfig.conversionTypes}
-							disabled={isDisabled}
-							onChange={(value) => handleFieldTypeChange(id, value)}
-						/>
-					</>
-				)}
-				{fieldConfig.unsupported ? (
-					<FieldInfoTooltip
-						fieldType={fieldTypes[id]}
-						propertyType={fieldConfig.property.type}
-						unsupported={fieldConfig.unsupported}
-					/>
-				) : (
-					<Button square type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="18"
-							height="18"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
-							<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-						</svg>
-					</Button>
-				)}
-			</Fragment>
-		);
-	}
-
-	const closeSettingsMenu = () => {
-		setSettingsMenuFieldConfig(null);
-	};
-
-	useEffect(() => {
-		const handleEscapeKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				closeSettingsMenu();
-			}
-		};
-
-		document.addEventListener("keydown", handleEscapeKey);
-
-		return () => {
-			document.removeEventListener("keydown", handleEscapeKey);
-		};
-	}, []);
-
-	const newFields = fieldConfigList.filter(
-		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
-	);
-	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
-	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
-	const otherFields = fieldConfigList.filter(
-		(fieldConfig) =>
-			!fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
-	);
-
 	return (
-		<div className="flex-1 flex flex-col gap-2 px-3 overflow-hidden">
-			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-			<motion.div
-				className="size-full overflow-y-auto"
-				animate={{
-					opacity: settingsMenuFieldConfig ? 0.6 : 1,
-					filter: settingsMenuFieldConfig ? "blur(6px)" : "blur(0px)",
-					scale: settingsMenuFieldConfig ? 0.96 : 1,
-				}}
-				initial={false}
-				transition={TRANSITION}
-			>
-				<form
-					onSubmit={handleSubmit}
-					className={classNames(
-						"flex flex-col gap-3 flex-1 pt-4 transition-opacity relative",
-						isLoading && "opacity-50 blur-sm pointer-events-none"
-					)}
-				>
-					<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
-					<div className="flex-1 flex flex-col gap-4">
-						<div
-							className="grid gap-2 w-full items-center justify-center"
-							style={{
-								gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) 30px`,
-							}}
-						>
-							<div className="col-start-2 flex flex-row justify-between px-2">
-								<span>Notion Property</span>
-								<span className="text-tertiary">Type</span>
-							</div>
-							<div></div>
-							<span className="pl-2">Collection Field Name</span>
-							<span className="col-span-2 pl-[4px]">Import As</span>
-							<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-							<select
-								className="w-full"
-								value={slugFieldId ?? ""}
-								onChange={(e) => setSlugFieldId(e.target.value)}
-								required
-							>
-								<option value="" disabled>
-									Slug Field Property
-								</option>
-								<hr />
-								{slugFields.map((field) => (
-									<option key={field.id} value={field.id}>
-										{field.name}
-									</option>
-								))}
-							</select>
-							<div className="flex items-center justify-center">
-								<IconChevron />
-							</div>
-							<StaticInput disabled>Slug</StaticInput>
-							<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-							<div />
-							{pageLevelFields.map(createFieldConfigRow)}
-							{newFields.length + otherFields.length > 0 && (
-								<div className="h-px bg-divider col-span-full"></div>
-							)}
-							{newFields.map(createFieldConfigRow)}
-							{otherFields.map(createFieldConfigRow)}
-							{unsupportedFields.length > 0 && (
-								<div className="h-px bg-divider col-span-full"></div>
-							)}
-							{unsupportedFields.map(createFieldConfigRow)}
-						</div>
-					</div>
-					<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
-						<div className="inline-flex items-center min-w-0 flex-1">
-							{error ? (
-								<span className="text-[#f87171]">{error.message}</span>
-							) : (
-								<>
-									<span className="text-tertiary flex-shrink-0 whitespace-pre">
-										Importing from{" "}
-									</span>
-									<a
-										href={database?.url}
-										className="font-semibold text-secondary hover:text-primary truncate"
-										target="_blank"
-										tabIndex={-1}
-									>
-										{database ? richTextToPlainText(database.title) : ""}
-									</a>
-								</>
-							)}
-						</div>
-						<Button primary className="w-auto px-3" disabled={!slugFieldId || !database}>
-							{pluginContext.type === "update" ? "Save & Import" : "Import"}
-						</Button>
-					</div>
-				</form>
-			</motion.div>
-			{isLoading && (
-				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-					<Spinner inline />
-					Importing items...
-				</div>
-			)}
-			{settingsMenuFieldConfig && (
-				<div className="absolute inset-0 cursor-pointer" onClick={closeSettingsMenu} />
-			)}
-			<AnimatePresence>
-				{settingsMenuFieldConfig && (
-					<FieldSettingsMenu
-						fieldConfig={settingsMenuFieldConfig}
-						fieldTypes={fieldTypes}
-						fieldNames={fieldNameOverrides}
-						disabledFieldIds={disabledFieldIds}
-						setFieldImportEnabled={setFieldImportEnabled}
-						handleFieldNameChange={handleFieldNameChange}
-						handleFieldTypeChange={handleFieldTypeChange}
-						onClose={closeSettingsMenu}
-					/>
-				)}
-			</AnimatePresence>
-		</div>
+		<MapFieldsPageTemplate
+			onSubmit={onSubmit}
+			isLoading={isLoading}
+			error={error}
+			getPossibleSlugFields={getPossibleSlugFields}
+			getInitialSlugFieldId={getInitialSlugFieldId}
+			createFieldConfig={createFieldConfig}
+			propertyHeaderText="Notion Property"
+			slugFieldTitleText="Slug Field Property"
+			databaseName={richTextToPlainText(database.title)}
+			databaseUrl={database.url}
+			getFieldConversionMessage={getFieldConversionMessage}
+			getPropertyTypeName={getPropertyTypeName}
+			allFieldSettings={allFieldSettings}
+			getCollectionFieldForProperty={getCollectionFieldForProperty}
+		/>
 	);
-}
-
-function FieldInfoTooltip({ fieldType, propertyType, unsupported }) {
-	const text =
-		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
-	const title = unsupported
-		? `${notionPropertyTypes[propertyType]} is not supported`
-		: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${
-				cmsFieldTypeNames[fieldType]
-		  }`;
-
-	const [hover, setHover] = useState(false);
-
-	return (
-		<div
-			className="size-full flex items-center justify-center text-tertiary relative"
-			onMouseEnter={() => setHover(true)}
-			onMouseLeave={() => setHover(false)}
-		>
-			{text && (
-				<>
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
-						<path
-							d="M6 0a6 6 0 1 1 0 12A6 6 0 0 1 6 0Zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 9a1 1 0 0 0 2 0V6a1 1 0 0 0-2 0Z"
-							fill="currentColor"
-						></path>
-					</svg>
-					<div
-						className={classNames(
-							"flex flex-col gap-1.5 rounded-lg p-3 w-[280px] z-10 text-secondary bg-modal pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
-							hover ? "opacity-100" : "opacity-0"
-						)}
-						style={{
-							boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
-						}}
-					>
-						<p className="text-primary font-semibold">{title}</p>
-						{text}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="28"
-							height="8"
-							className="rotate-90 text-[var(--color-bg-modal)] absolute right-[-18px] top-[50%] translate-y-[-50%]"
-						>
-							<path
-								d="M 12.833 1.333 C 13.451 0.627 14.549 0.627 15.167 1.333 L 18.012 4.585 C 19.911 6.755 22.654 8 25.538 8 L 28 8 L 0 8 L 2.462 8 C 5.346 8 8.089 6.755 9.988 4.585 Z"
-								fill="currentColor"
-							></path>
-						</svg>
-					</div>
-				</>
-			)}
-		</div>
-	);
-}
-
-function FieldTypeSelector({
-	fieldType,
-	availableFieldTypes,
-	disabled = false,
-	onChange = (value) => {},
-}) {
-	return (
-		<div className="relative">
-			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
-				{cmsFieldIcons[fieldType]}
-			</div>
-			{availableFieldTypes?.length > 1 ? (
-				<select
-					disabled={disabled}
-					value={fieldType}
-					onChange={(e) => onChange(e.target.value)}
-					className="pl-[34px] w-full"
-				>
-					{availableFieldTypes?.map((type) => (
-						<option key={type} value={type}>
-							{cmsFieldTypeNames[type]}
-						</option>
-					))}
-				</select>
-			) : (
-				<StaticInput disabled={disabled} className="pl-[34px]">
-					{cmsFieldTypeNames[fieldType]}
-				</StaticInput>
-			)}
-		</div>
-	);
-}
-
-function StaticInput({ children, disabled = false, className = "", leftText = "" }) {
-	return (
-		<div
-			className={classNames(
-				"w-full h-6 flex items-center bg-secondary rounded gap-1.5",
-				disabled && "opacity-50",
-				leftText ? "px-2" : "pl-2 pr-5",
-				className
-			)}
-		>
-			{children}
-			{leftText && (
-				<span
-					className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}
-				>
-					{leftText}
-				</span>
-			)}
-		</div>
-	);
-}
-
-function createFieldTypesList(
-	fieldConfigList: CollectionFieldConfig[],
-	pluginContext: PluginContext
-) {
-	const result: Record<string, string> = {};
-
-	for (const fieldConfig of fieldConfigList) {
-		const conversionTypes = fieldConfig.conversionTypes;
-		if (!fieldConfig.property || !conversionTypes?.length) {
-			continue;
-		}
-
-		if (pluginContext.type !== "update") {
-			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
-		} else {
-			const field = pluginContext.collectionFields.find(
-				(field) => field.id === fieldConfig.property.id
-			);
-
-			if (field && conversionTypes.includes(field.type)) {
-				result[fieldConfig.property.id] = field.type;
-			} else {
-				result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
-			}
-		}
-	}
-
-	return result;
 }
 
 function getFieldConversionTypes(property: NotionProperty) {
@@ -773,191 +269,24 @@ function getFieldConversionTypes(property: NotionProperty) {
 	return propertyTypeMap[property.type] || [];
 }
 
-function FieldSettingsMenu({
-	fieldConfig,
-	fieldTypes,
-	fieldNames,
-	onClose,
-	disabledFieldIds,
-	setFieldImportEnabled,
-	handleFieldNameChange,
-	handleFieldTypeChange,
-}) {
-	const id = fieldConfig.property.id;
-	const propertyType = fieldConfig.property.type;
-	const fieldType = fieldTypes[id];
-	const fieldName = fieldNames[id] || fieldConfig.property.name;
-	const disabled = disabledFieldIds.has(id);
+function getFieldConversionMessage(fieldType: string, propertyType: string, unsupported: boolean) {
+	const text =
+		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
 
-	const fieldConversionTitle = `${
-		propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]
-	} → ${cmsFieldTypeNames[fieldType]}`;
-	const fieldConversionMessage = fieldConversionMessages[`${propertyType} - ${fieldType}`];
-
-	const getApplicableSettings = () => {
-		return allFieldSettings.filter((setting) => {
-			if (setting.propertyType === propertyType) {
-				if (setting.fieldType) {
-					return setting.fieldType === fieldType;
-				}
-				return true;
-			}
-			return false;
-		});
-	};
-
-	const [fieldSettings, setFieldSettings] = useState({});
-
-	useEffect(() => {
-		const applicableSettings = getApplicableSettings();
-		const newFieldSettings = {};
-
-		applicableSettings.forEach((setting) => {
-			if (setting.multipleFields) {
-				newFieldSettings.multipleFields = true;
-			}
-			if (setting.time) {
-				newFieldSettings.time = true;
-			}
-			// Add more settings here as needed
-		});
-
-		setFieldSettings(newFieldSettings);
-	}, [propertyType, fieldType]);
-
-	return (
-		<motion.div
-			className="absolute inset-y-3 right-3 w-[300px] flex flex-col rounded-lg bg-modal"
-			initial={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
-			animate={{ x: 0, boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px" }}
-			exit={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
-			transition={TRANSITION}
-		>
-			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
-				<XIcon onClick={onClose} className="absolute top-5 right-3" />
-				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
-				<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
-				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
-			</div>
-			<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
-				<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
-					Field Settings
-				</div>
-				<PropertyControl title="Import Field">
-					<SegmentedControl
-						id={"import"}
-						items={[true, false]}
-						itemTitles={["Yes", "No"]}
-						currentItem={!disabled}
-						tint
-						onChange={(value) => {
-							setFieldImportEnabled(id, value);
-						}}
-					/>
-				</PropertyControl>
-				<PropertyControl title="Name" disabled={disabled}>
-					<input
-						type="text"
-						className="w-full"
-						value={fieldNames[id]}
-						placeholder={fieldConfig.property.name}
-						onChange={(e) => handleFieldNameChange(id, e.target.value)}
-					/>
-				</PropertyControl>
-				<PropertyControl title="Field Type" disabled={disabled}>
-					<FieldTypeSelector
-						fieldType={fieldTypes[id]}
-						availableFieldTypes={fieldConfig.conversionTypes}
-						onChange={(value) => handleFieldTypeChange(id, value)}
-					/>
-				</PropertyControl>
-				{fieldConversionMessage && (
-					<div
-						className={classNames(
-							"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
-							disabled && "opacity-50"
-						)}
-					>
-						<p className="text-primary font-semibold">{fieldConversionTitle}</p>
-						{fieldConversionMessage}
-					</div>
-				)}
-				{fieldSettings.hasOwnProperty("multipleFields") && (
-					<>
-						<PropertyControl title="Multiple Fields" disabled={disabled}>
-							<SegmentedControl
-								id={"multipleFields"}
-								items={[true, false]}
-								itemTitles={["Yes", "No"]}
-								currentItem={fieldSettings.multipleFields}
-								tint
-								onChange={(value) => {
-									setFieldSettings({ ...fieldSettings, multipleFields: value });
-								}}
-							/>
-						</PropertyControl>
-						<div
-							className={classNames(
-								"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
-								disabled && "opacity-50"
-							)}
-						>
-							{
-								allFieldSettings.find(
-									(setting) => setting.propertyType === fieldConfig.property.type
-								)?.multipleFields?.[fieldSettings.multipleFields ? "true" : "false"]
-							}
-							{fieldSettings.multipleFields && (
-								<p>
-									<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
-									{fieldName} 2, {fieldName} 3, ...
-								</p>
-							)}
-						</div>
-					</>
-				)}
-				{fieldSettings.hasOwnProperty("time") && (
-					<>
-						<PropertyControl title="Include Time" disabled={disabled}>
-							<SegmentedControl
-								id={"timeOption"}
-								items={[true, false]}
-								itemTitles={["Yes", "No"]}
-								currentItem={fieldSettings.time}
-								tint
-								onChange={(value) => {
-									setFieldSettings({ ...fieldSettings, time: value });
-								}}
-							/>
-						</PropertyControl>
-					</>
-				)}
-			</div>
-			<div className="flex flex-col w-full p-3 relative">
-				<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-				<Button primary onClick={onClose}>
-					Done
-				</Button>
-			</div>
-		</motion.div>
-	);
+	return text
+		? {
+				text,
+				title: unsupported
+					? `${notionPropertyTypes[propertyType]} is not supported`
+					: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${
+							cmsFieldTypeNames[fieldType]
+					  }`,
+		  }
+		: null;
 }
 
-function PropertyControl({ title, children, disabled = false }) {
-	return (
-		<div
-			className={classNames(
-				"grid gap-2 w-full items-center transition-opacity",
-				disabled && "opacity-50 pointer-events-none"
-			)}
-			style={{
-				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
-			}}
-		>
-			<span className="text-secondary pl-2">{title}</span>
-			<div className="col-span-2">{children}</div>
-		</div>
-	);
+function getPropertyTypeName(propertyType: string) {
+	return notionPropertyTypes[propertyType];
 }
 
 const allFieldSettings = [
