@@ -18,6 +18,7 @@ import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 import { motion, AnimatePresence } from "framer-motion";
+import { SegmentedControl } from "@shared/components";
 
 const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
@@ -83,7 +84,7 @@ const cmsFieldTypeNames = {
 const TRANSITION = {
 	type: "spring",
 	stiffness: 800,
-	damping: 60,
+	damping: 50,
 	mass: 1,
 };
 
@@ -570,7 +571,12 @@ export function MapFieldsPage({
 			)}
 			<AnimatePresence>
 				{settingsMenuFieldConfig && (
-					<FieldSettingsMenu fieldConfig={settingsMenuFieldConfig} onClose={closeSettingsMenu} />
+					<FieldSettingsMenu
+						fieldConfig={settingsMenuFieldConfig}
+						fieldTypes={fieldTypes}
+						fieldNames={fieldNameOverrides}
+						onClose={closeSettingsMenu}
+					/>
 				)}
 			</AnimatePresence>
 		</div>
@@ -740,10 +746,20 @@ function getFieldConversionTypes(property: NotionProperty) {
 	return propertyTypeMap[property.type] || [];
 }
 
-function FieldSettingsMenu({ fieldConfig, onClose }) {
+function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
+	const id = fieldConfig.property.id;
+	const propertyType = fieldConfig.property.type;
+	const fieldType = fieldTypes[id];
+	const fieldName = fieldNames[id] || fieldConfig.property.name;
+
+	const fieldConversionTitle = `${
+		propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]
+	} → ${cmsFieldTypeNames[fieldType]}`;
+	const fieldConversionMessage = fieldConversionMessages[`${propertyType} - ${fieldType}`];
+
 	return (
 		<motion.div
-			className="absolute inset-y-0 right-0 w-[300px] flex flex-col gap-2 p-3 bg-primary"
+			className="absolute inset-y-0 right-0 w-[300px] flex flex-col gap-2 p-3 bg-primary overflow-y-auto"
 			initial={{ x: "100%" }}
 			animate={{ x: 0 }}
 			exit={{ x: "100%" }}
@@ -765,10 +781,81 @@ function FieldSettingsMenu({ fieldConfig, onClose }) {
 						></path>
 					</g>
 				</svg>
-				Back
+				Close
 			</span>
-			<h1 className="text-lg font-bold">{fieldConfig.property.name}</h1>
-			<p>Notion Property</p>
+			<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
+			<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
+			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
+				Field Settings
+			</div>
+			<PropertyControl title="Import Field">
+				<SegmentedControl
+					id={"import"}
+					items={[true, false]}
+					itemTitles={["Yes", "No"]}
+					currentItem={true}
+					onChange={(value) => {
+						console.log(value);
+					}}
+				/>
+			</PropertyControl>
+			<PropertyControl title="Name">
+				<input
+					type="text"
+					className="w-full"
+					value={fieldNames[id]}
+					placeholder={fieldConfig.property.name}
+				/>
+			</PropertyControl>
+			<PropertyControl title="Field Type">
+				<FieldTypeSelector
+					fieldType={fieldTypes[id]}
+					availableFieldTypes={fieldConfig.conversionTypes}
+				/>
+			</PropertyControl>
+			{fieldConversionMessage && (
+				<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
+					<p className="text-primary font-semibold">{fieldConversionTitle}</p>
+					{fieldConversionMessage}
+				</div>
+			)}
+			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
+				Files & media
+			</div>
+			<PropertyControl title="Multiple Fields">
+				<SegmentedControl
+					id={"import"}
+					items={[true, false]}
+					itemTitles={["Yes", "No"]}
+					currentItem={true}
+					onChange={(value) => {
+						console.log(value);
+					}}
+				/>
+			</PropertyControl>
+			<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
+				{/* <p className="text-primary font-semibold">{fieldConversionTitle}</p> */}
+				If multiple files are added per item in Notion, they will be imported as multiple fields in
+				the CMS with a number ending on each field's name.
+				<p>
+					<span className="text-primary font-semibold">Preview:</span> {fieldName} 1, {fieldName} 2,{" "}
+					{fieldName} 3, ...
+				</p>
+			</div>
 		</motion.div>
+	);
+}
+
+function PropertyControl({ title, children }) {
+	return (
+		<div
+			className="grid gap-2 w-full items-center"
+			style={{
+				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
+			}}
+		>
+			<span className="text-secondary pl-2">{title}</span>
+			<div className="col-span-2">{children}</div>
+		</div>
 	);
 }
