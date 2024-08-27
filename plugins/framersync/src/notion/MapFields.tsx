@@ -1,5 +1,4 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
-import { framer, CollectionField } from "framer-plugin";
 import { assert } from "../utils";
 import {
 	NotionProperty,

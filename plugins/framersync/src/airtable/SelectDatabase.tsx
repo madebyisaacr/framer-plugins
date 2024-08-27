@@ -6,9 +6,11 @@ import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
 import { updateWindowSize } from "../general/PageWindowSizes";
+import { usePluginContext } from "../general/PluginContext";
 
-export function SelectDatabasePage({ onDatabaseSelected }) {
-	// const { data, refetch, isRefetching, isLoading } = {} //useDatabasesQuery();
+export function SelectDatabasePage() {
+	const { updatePluginContext } = usePluginContext();
+
 	const [selectedBase, setSelectedBase] = useState<string | null>(null);
 	const [selectedTable, setSelectedTable] = useState<string | null>(null);
 	const [baseTables, setBaseTables] = useState({});
@@ -72,7 +74,9 @@ export function SelectDatabasePage({ onDatabaseSelected }) {
 			return;
 		}
 
-		onDatabaseSelected({ base, table });
+		updatePluginContext({
+			integrationContext: { baseId: base.id, tableId: table.id, baseSchema: base, table },
+		});
 	};
 
 	return (

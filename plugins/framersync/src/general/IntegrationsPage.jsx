@@ -13,8 +13,8 @@ export default function IntegrationsPage() {
 	return (
 		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto items-center">
 			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
-				<h1 className="text-xl font-bold">Welcome to FramerSync</h1>
-				<p>Select an app to get started</p>
+				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
+				<p>Select an app to connect to your website.</p>
 			</div>
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton

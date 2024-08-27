@@ -2,7 +2,7 @@ import { framer } from "framer-plugin";
 
 const pageSizes = {
   Integrations: {
-    width: 450,
+    width: 500,
     height: 350,
   },
   Authenticate: {

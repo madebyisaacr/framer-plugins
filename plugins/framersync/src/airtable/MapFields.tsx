@@ -1,4 +1,3 @@
-import { framer } from "framer-plugin";
 import { assert } from "../utils.js";
 import {
 	SynchronizeMutationOptions,
@@ -12,7 +11,7 @@ import { IconChevron } from "../components/Icons.js";
 import Button from "@shared/Button";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
-import { PluginContext } from "../general/PluginContext";
+import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 
 const fieldConversionMessages = {};
@@ -192,17 +191,17 @@ function getLastSyncedTime(
 }
 
 export function MapFieldsPage({
-	pluginContext,
 	onSubmit,
 	isLoading,
 	error,
 }: {
-	pluginContext: PluginContext;
 	onSubmit: (options: SynchronizeMutationOptions) => void;
 	isLoading: boolean;
 	error: Error | null;
 }) {
 	updateWindowSize("MapFields");
+
+	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const { table } = pluginContext.integrationContext;
 
@@ -278,12 +277,16 @@ export function MapFieldsPage({
 
 		assert(slugFieldId);
 
-		onSubmit({
-			fields,
-			ignoredFieldIds: Array.from(disabledFieldIds),
-			slugFieldId,
-			lastSyncedTime: getLastSyncedTime(pluginContext, table, slugFieldId, disabledFieldIds),
-		});
+		updatePluginContext(
+			{
+				collectionFields: fields,
+				slugFieldId,
+				ignoredFieldIds: Array.from(disabledFieldIds),
+				lastSyncedTime: getLastSyncedTime(pluginContext, table, slugFieldId, disabledFieldIds),
+				// databaseName: ,
+			},
+			onSubmit
+		);
 	};
 
 	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {

@@ -1,6 +1,5 @@
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { richTextToPlainText, useDatabasesQuery } from "./notion";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import notionConnectSrc from "../assets/notion-connect.png";
 import { assert } from "../utils";
 import { ReloadIcon } from "../components/Icons";
@@ -12,6 +11,7 @@ import { usePluginContext } from "../general/PluginContext";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
+
 	const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
 	const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null);
 

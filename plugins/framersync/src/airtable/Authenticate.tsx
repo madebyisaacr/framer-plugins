@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { PluginContext, authorize, getPluginContext } from "./airtable";
+import { authorize } from "./airtable";
 import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
 import { framer } from "framer-plugin";
+import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";
 
 function useIsDocumentVisibile() {
@@ -24,10 +25,11 @@ function useIsDocumentVisibile() {
 
 interface AuthenticationProps {
 	onAuthenticated: () => void;
-	context: PluginContext;
 }
 
-export function AuthenticatePage({ onAuthenticated, context }: AuthenticationProps) {
+export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
+	const { pluginContext } = usePluginContext();
+
 	const [isLoading, setIsLoading] = useState(false);
 	const isDocumentVisible = useIsDocumentVisibile();
 	const notifiedForContextRef = useRef<PluginContext | null>(null);
@@ -37,18 +39,17 @@ export function AuthenticatePage({ onAuthenticated, context }: AuthenticationPro
 		// So the toast is only displayed upon document being visible
 		if (!isDocumentVisible) return;
 		// Only notify once per context
-		if (notifiedForContextRef.current === context) return;
-		if (context.type !== "error") return;
+		if (notifiedForContextRef.current === pluginContext) return;
+		if (pluginContext.type !== "error") return;
 
-		notifiedForContextRef.current = context;
-		framer.notify(context.message, { variant: "error" });
-	}, [context, isDocumentVisible]);
+		notifiedForContextRef.current = pluginContext;
+		framer.notify(pluginContext.message, { variant: "error" });
+	}, [pluginContext, isDocumentVisible]);
 
 	updateWindowSize("Authenticate");
 
 	const handleAuth = () => {
 		setIsLoading(true);
-		// const writeKey = generateRandomId();
 
 		// It is important to call `window.open` directly in the event handler
 		// So that Safari does not block any popups.

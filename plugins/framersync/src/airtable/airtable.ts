@@ -17,13 +17,6 @@ let airtableAccessToken: string | null = null;
 // Storage for the Airtable API key refresh token.
 const airtableRefreshTokenKey = "airtableRefreshToken";
 
-const pluginBaseIdKey = "airtablePluginBaseId";
-const pluginTableIdKey = "airtablePluginTableId";
-const pluginLastSyncedKey = "airtablePluginLastSynced";
-const ignoredFieldIdsKey = "airtablePluginIgnoredFieldIds";
-const pluginSlugIdKey = "airtablePluginSlugId";
-const baseNameKey = "airtableBaseName";
-
 // Maximum number of concurrent requests to Airtable API
 // This is to prevent rate limiting.
 // TODO: Is this necessary with Airtable?
@@ -526,7 +519,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	integrationContext: object,
+	pluginContext: PluginContext,
 	{
 		onSuccess,
 		onError,
@@ -539,9 +532,8 @@ export function useSynchronizeDatabaseMutation(
 			onError?.(error);
 		},
 		onSuccess,
-		mutationFn: async (options: SynchronizeMutationOptions): Promise<SynchronizeResult> => {
-			const { base, table } = integrationContext;
-			return synchronizeDatabase(base, table, options);
+		mutationFn: async (): Promise<SynchronizeResult> => {
+			return synchronizeDatabase(pluginContext);
 		},
 	});
 }
@@ -575,69 +567,6 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 	return properties;
 }
 
-export async function getPluginContext(): Promise<PluginContext> {
-	const collection = await framer.getManagedCollection();
-	const collectionFields = await collection.getFields();
-	const baseId = await collection.getPluginData(pluginBaseIdKey);
-	const tableId = await collection.getPluginData(pluginTableIdKey);
-	const hasAuthToken = isAuthenticated();
-
-	if (!baseId || !tableId || !hasAuthToken) {
-		return {
-			type: "new",
-			collection,
-			isAuthenticated: hasAuthToken,
-		};
-	}
-
-	try {
-		// assert(notion, "Notion client is not initialized");
-		// const database = await notion.databases.retrieve({ database_id: databaseId });
-
-		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
-		console.log(baseSchema);
-
-		const table = baseSchema.tables.find((t) => t.id === tableId);
-		console.log(table);
-
-		const [rawIgnoredFieldIds, lastSyncedTime, slugFieldId] = await Promise.all([
-			collection.getPluginData(ignoredFieldIdsKey),
-			collection.getPluginData(pluginLastSyncedKey),
-			collection.getPluginData(pluginSlugIdKey),
-		]);
-
-		const ignoredFieldIds = getIgnoredFieldIds(rawIgnoredFieldIds);
-
-		assert(lastSyncedTime, "Expected last synced time to be set");
-
-		return {
-			type: "update",
-			base: {
-				id: baseId,
-				name: "Base Name", // TODO: Get base name
-			},
-			table,
-			collection,
-			collectionFields,
-			ignoredFieldIds,
-			lastSyncedTime,
-			slugFieldId,
-			// hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
-			isAuthenticated: hasAuthToken,
-		};
-	} catch (error) {
-		const databaseName = (await collection.getPluginData(baseNameKey)) ?? "Unknown";
-
-		return {
-			type: "error",
-			message: `The base "${databaseName}" was not found. Log in with Airtable and select the Base to sync.`,
-			isAuthenticated: false,
-		};
-
-		throw error;
-	}
-}
-
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	table: object,
@@ -664,17 +593,17 @@ export function hasFieldConfigurationChanged(
 }
 
 // // DONE
-// export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {
-// 	if (!lastSyncedTime) return false;
+export function isUnchangedSinceLastSync(lastEditedTime: string, lastSyncedTime: string | null): boolean {
+	if (!lastSyncedTime) return false;
 
-// 	const lastEdited = new Date(lastEditedTime);
-// 	const lastSynced = new Date(lastSyncedTime);
-// 	// Last edited time is rounded to the nearest minute.
-// 	// So we should round lastSyncedTime to the nearest minute as well.
-// 	lastSynced.setSeconds(0, 0);
+	const lastEdited = new Date(lastEditedTime);
+	const lastSynced = new Date(lastSyncedTime);
+	// Last edited time is rounded to the nearest minute.
+	// So we should round lastSyncedTime to the nearest minute as well.
+	lastSynced.setSeconds(0, 0);
 
-// 	return lastSynced > lastEdited;
-// }
+	return lastSynced > lastEdited;
+}
 
 function objectToUrlParams(obj) {
 	if (!obj || !Object.keys(obj).length) {
