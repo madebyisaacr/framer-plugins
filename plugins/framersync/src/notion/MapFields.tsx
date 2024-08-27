@@ -293,6 +293,19 @@ export function MapFieldsPage({
 		});
 	};
 
+	const setFieldImportEnabled = (id: string, enabled: boolean) => {
+		setDisabledFieldIds((current) => {
+			const nextSet = new Set(current);
+			if (enabled) {
+				nextSet.delete(id);
+			} else {
+				nextSet.add(id);
+			}
+
+			return nextSet;
+		});
+	};
+
 	const handleFieldNameChange = (id: string, value: string) => {
 		setFieldNameOverrides((current) => ({
 			...current,
@@ -452,15 +465,15 @@ export function MapFieldsPage({
 
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
+			if (event.key === "Escape") {
 				closeSettingsMenu();
 			}
 		};
 
-		document.addEventListener('keydown', handleEscapeKey);
+		document.addEventListener("keydown", handleEscapeKey);
 
 		return () => {
-			document.removeEventListener('keydown', handleEscapeKey);
+			document.removeEventListener("keydown", handleEscapeKey);
 		};
 	}, []);
 
@@ -585,6 +598,10 @@ export function MapFieldsPage({
 						fieldConfig={settingsMenuFieldConfig}
 						fieldTypes={fieldTypes}
 						fieldNames={fieldNameOverrides}
+						disabledFieldIds={disabledFieldIds}
+						setFieldImportEnabled={setFieldImportEnabled}
+						handleFieldNameChange={handleFieldNameChange}
+						handleFieldTypeChange={handleFieldTypeChange}
 						onClose={closeSettingsMenu}
 					/>
 				)}
@@ -756,11 +773,21 @@ function getFieldConversionTypes(property: NotionProperty) {
 	return propertyTypeMap[property.type] || [];
 }
 
-function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
+function FieldSettingsMenu({
+	fieldConfig,
+	fieldTypes,
+	fieldNames,
+	onClose,
+	disabledFieldIds,
+	setFieldImportEnabled,
+	handleFieldNameChange,
+	handleFieldTypeChange,
+}) {
 	const id = fieldConfig.property.id;
 	const propertyType = fieldConfig.property.type;
 	const fieldType = fieldTypes[id];
 	const fieldName = fieldNames[id] || fieldConfig.property.name;
+	const disabled = disabledFieldIds.has(id);
 
 	const fieldConversionTitle = `${
 		propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]
@@ -779,20 +806,24 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 		});
 	};
 
-	const applicableSettings = getApplicableSettings();
+	const [fieldSettings, setFieldSettings] = useState({});
 
-	const multipleFieldsSetting = applicableSettings.find((setting) => setting.multipleFields);
-	const timeSetting = applicableSettings.find((setting) => setting.time);
+	useEffect(() => {
+		const applicableSettings = getApplicableSettings();
+		const newFieldSettings = {};
 
-	const fieldSettingsDefault = {};
-	if (multipleFieldsSetting) {
-		fieldSettingsDefault.multipleFields = true;
-	}
-	if (timeSetting) {
-		fieldSettingsDefault.time = true;
-	}
+		applicableSettings.forEach((setting) => {
+			if (setting.multipleFields) {
+				newFieldSettings.multipleFields = true;
+			}
+			if (setting.time) {
+				newFieldSettings.time = true;
+			}
+			// Add more settings here as needed
+		});
 
-	const [fieldSettings, setFieldSettings] = useState(fieldSettingsDefault);
+		setFieldSettings(newFieldSettings);
+	}, [propertyType, fieldType]);
 
 	return (
 		<motion.div
@@ -817,36 +848,43 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 						id={"import"}
 						items={[true, false]}
 						itemTitles={["Yes", "No"]}
-						currentItem={true}
+						currentItem={!disabled}
 						tint
 						onChange={(value) => {
-							console.log(value);
+							setFieldImportEnabled(id, value);
 						}}
 					/>
 				</PropertyControl>
-				<PropertyControl title="Name">
+				<PropertyControl title="Name" disabled={disabled}>
 					<input
 						type="text"
 						className="w-full"
 						value={fieldNames[id]}
 						placeholder={fieldConfig.property.name}
+						onChange={(e) => handleFieldNameChange(id, e.target.value)}
 					/>
 				</PropertyControl>
-				<PropertyControl title="Field Type">
+				<PropertyControl title="Field Type" disabled={disabled}>
 					<FieldTypeSelector
 						fieldType={fieldTypes[id]}
 						availableFieldTypes={fieldConfig.conversionTypes}
+						onChange={(value) => handleFieldTypeChange(id, value)}
 					/>
 				</PropertyControl>
 				{fieldConversionMessage && (
-					<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
+					<div
+						className={classNames(
+							"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
+							disabled && "opacity-50"
+						)}
+					>
 						<p className="text-primary font-semibold">{fieldConversionTitle}</p>
 						{fieldConversionMessage}
 					</div>
 				)}
-				{multipleFieldsSetting && (
+				{fieldSettings.hasOwnProperty("multipleFields") && (
 					<>
-						<PropertyControl title="Multiple Fields">
+						<PropertyControl title="Multiple Fields" disabled={disabled}>
 							<SegmentedControl
 								id={"multipleFields"}
 								items={[true, false]}
@@ -858,8 +896,17 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 								}}
 							/>
 						</PropertyControl>
-						<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5">
-							{multipleFieldsSetting.multipleFields[fieldSettings.multipleFields]}
+						<div
+							className={classNames(
+								"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
+								disabled && "opacity-50"
+							)}
+						>
+							{
+								allFieldSettings.find(
+									(setting) => setting.propertyType === fieldConfig.property.type
+								)?.multipleFields?.[fieldSettings.multipleFields ? "true" : "false"]
+							}
 							{fieldSettings.multipleFields && (
 								<p>
 									<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
@@ -869,9 +916,9 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 						</div>
 					</>
 				)}
-				{timeSetting && (
+				{fieldSettings.hasOwnProperty("time") && (
 					<>
-						<PropertyControl title="Include Time">
+						<PropertyControl title="Include Time" disabled={disabled}>
 							<SegmentedControl
 								id={"timeOption"}
 								items={[true, false]}
@@ -896,10 +943,13 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 	);
 }
 
-function PropertyControl({ title, children }) {
+function PropertyControl({ title, children, disabled = false }) {
 	return (
 		<div
-			className="grid gap-2 w-full items-center"
+			className={classNames(
+				"grid gap-2 w-full items-center transition-opacity",
+				disabled && "opacity-50 pointer-events-none"
+			)}
 			style={{
 				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
 			}}
