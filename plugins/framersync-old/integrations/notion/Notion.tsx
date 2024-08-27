@@ -397,7 +397,7 @@ function FieldConfigurationMenu() {
 	return (
 		<div className="flex-1 flex flex-col gap-2">
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2 flex-1">
-				<div className="h-[1px] border-b border-divider mb-2 sticky top-0" />
+				<div className="h-px border-b border-divider mb-2 sticky top-0" />
 				<h1 className="text-lg font-bold px-[26px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
 					<div
@@ -432,11 +432,11 @@ function FieldConfigurationMenu() {
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
 						<div />
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField).map(createFieldConfigRow)}
-						<div className="h-[1px] bg-divider col-span-full"></div>
+						<div className="h-px bg-divider col-span-full"></div>
 						{fieldConfigList
 							.filter((fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported)
 							.map(createFieldConfigRow)}
-						<div className="h-[1px] bg-divider col-span-full"></div>
+						<div className="h-px bg-divider col-span-full"></div>
 						{fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported).map(createFieldConfigRow)}
 					</div>
 				</div>

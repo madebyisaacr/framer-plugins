@@ -386,7 +386,7 @@ export function MapFieldsPage({
 					isLoading && "opacity-50 blur-sm pointer-events-none"
 				)}
 			>
-				<div className="h-[1px] border-b border-divider mb-1 sticky top-0" />
+				<div className="h-px border-b border-divider mb-1 sticky top-0" />
 				<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
 				<div className="flex-1 flex flex-col gap-4">
 					<div
@@ -426,12 +426,12 @@ export function MapFieldsPage({
 						<div />
 						{pageLevelFields.map(createFieldConfigRow)}
 						{newFields.length + otherFields.length > 0 && (
-							<div className="h-[1px] bg-divider col-span-full"></div>
+							<div className="h-px bg-divider col-span-full"></div>
 						)}
 						{newFields.map(createFieldConfigRow)}
 						{otherFields.map(createFieldConfigRow)}
 						{unsupportedFields.length > 0 && (
-							<div className="h-[1px] bg-divider col-span-full"></div>
+							<div className="h-px bg-divider col-span-full"></div>
 						)}
 						{unsupportedFields.map(createFieldConfigRow)}
 					</div>

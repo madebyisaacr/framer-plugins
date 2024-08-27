@@ -57,7 +57,7 @@ export function SelectDatabase({ onDatabaseSelected }) {
 
 	return (
 		<div className="flex flex-row gap-3 size-full p-3">
-			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
+			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
 			<div className="flex flex-col gap-2 flex-1 justify-between">
 				<div className="flex items-center justify-between">
 					<span className="text-secondary">Select a Google Sheet to sync</span>

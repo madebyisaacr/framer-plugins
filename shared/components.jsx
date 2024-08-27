@@ -70,7 +70,7 @@ export function SegmentedControl({
 				animate={{
 					opacity: i === currentItemIndex || i + 1 === currentItemIndex ? 0 : 1,
 				}}
-				className="absolute w-[1px] h-[16px] top-[7px] bg-divider-secondary"
+				className="absolute w-px h-[16px] top-[7px] bg-divider-secondary"
 				style={{
 					left: `${(i + 1) * (100 / items?.length)}%`,
 				}}
@@ -134,7 +134,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 					min={propertyControl.min}
 					max={propertyControl.max}
 					step={1 / multiplier}
-					className="bg-secondary text-primary rounded pl-[7px] pb-[1px] border-none h-full"
+					className="bg-secondary text-primary rounded pl-[7px] pb-px border-none h-full"
 					style={inheritFont}
 				/>
 			);
@@ -190,7 +190,7 @@ export function PropertyControl({ propertyControl, value, onChange, label, label
 							</svg>
 						</div>
 						<div
-							className="absolute w-[1px] h-[14px] bg-divider-secondary pointer-events-none"
+							className="absolute w-px h-[14px] bg-divider-secondary pointer-events-none"
 							style={{
 								left: "calc(50% - 0.5px)",
 								top: "calc(50% - 7px)",

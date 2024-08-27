@@ -35,7 +35,7 @@ export function SelectDatabasePage() {
 
 	return (
 		<div className="flex flex-row gap-3 size-full p-3">
-			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider"></div>
+			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
 			<div className="flex flex-col gap-3 w-[280px]">
 				<img src={notionConnectSrc} className="rounded" />
 				<p>
@@ -43,7 +43,7 @@ export function SelectDatabasePage() {
 					corner of the page, then pick Connections → Connect to → Framer.
 				</p>
 			</div>
-			<div className="w-[1px] bg-divider" />
+			<div className="w-px bg-divider" />
 			<div className="flex flex-col gap-2 flex-1 justify-between">
 				<div className="flex items-center justify-between">
 					<span>Select a Notion database to sync</span>

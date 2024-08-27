@@ -466,7 +466,7 @@ export function MapFieldsPage({
 
 	return (
 		<div className="flex-1 flex flex-col gap-2 px-3 overflow-hidden">
-			<div className="absolute top-0 inset-x-3 h-[1px] bg-divider z-10" />
+			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
 			<motion.div
 				className="size-full overflow-y-auto"
 				animate={{
@@ -524,12 +524,12 @@ export function MapFieldsPage({
 							<div />
 							{pageLevelFields.map(createFieldConfigRow)}
 							{newFields.length + otherFields.length > 0 && (
-								<div className="h-[1px] bg-divider col-span-full"></div>
+								<div className="h-px bg-divider col-span-full"></div>
 							)}
 							{newFields.map(createFieldConfigRow)}
 							{otherFields.map(createFieldConfigRow)}
 							{unsupportedFields.length > 0 && (
-								<div className="h-[1px] bg-divider col-span-full"></div>
+								<div className="h-px bg-divider col-span-full"></div>
 							)}
 							{unsupportedFields.map(createFieldConfigRow)}
 						</div>

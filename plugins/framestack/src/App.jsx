@@ -159,7 +159,7 @@ export function App() {
 											/>
 											{icons[tag]}
 										</div>
-										<span className="relative flex-1 pt-[1px] pointer-events-none">{tag}</span>
+										<span className="relative flex-1 pt-px pointer-events-none">{tag}</span>
 										<motion.svg
 											xmlns="http://www.w3.org/2000/svg"
 											width="10"

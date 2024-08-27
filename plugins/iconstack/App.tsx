@@ -333,7 +333,7 @@ function HomePage() {
 						value={searchText}
 						onChange={setSearchText}
 					/>
-					<div className="absolute h-[1px] inset-x-3 bottom-0 bg-divider"></div>
+					<div className="absolute h-px inset-x-3 bottom-0 bg-divider"></div>
 				</div>
 				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto p-3 pt-0 flex-1">
 					<div
