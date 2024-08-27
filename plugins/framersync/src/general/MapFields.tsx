@@ -18,7 +18,7 @@ const TRANSITION = {
 	mass: 1,
 };
 
-interface CollectionFieldConfig {
+export interface CollectionFieldConfig {
 	property: object;
 	isNewField: boolean;
 	originalFieldName: string;
@@ -322,7 +322,7 @@ export function MapFieldsPageTemplate({
 							</div>
 							<div></div>
 							<span className="pl-2">Collection Field Name</span>
-							<span className="col-span-2 pl-[4px]">Import As</span>
+							<span className="col-span-2 pl-[4px]">Field Type</span>
 							<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 							<select
 								className="w-full"
@@ -378,7 +378,7 @@ export function MapFieldsPageTemplate({
 								</>
 							)}
 						</div>
-						<Button primary className="w-[100px]" disabled={!slugFieldId}>
+						<Button primary className="w-auto px-4 min-w-[100px]" disabled={!slugFieldId}>
 							{pluginContext.type === "update" ? "Save & Import" : "Import"}
 						</Button>
 					</div>

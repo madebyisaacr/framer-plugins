@@ -105,7 +105,10 @@ const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText
  * a slug. And a suggested field id to use as a slug.
  */
 // DONE
-export function getPossibleSlugFields(table: object) {
+export function getPossibleSlugFields(integrationContext: object) {
+	const { table } = integrationContext;
+	assert(table);
+
 	if (!table?.fields) {
 		return [];
 	}

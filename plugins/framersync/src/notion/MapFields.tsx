@@ -8,18 +8,9 @@ import {
 	pageContentField,
 	richTextToPlainText,
 } from "./notion";
-import { Fragment, useMemo, useState, useEffect } from "react";
-import classNames from "classnames";
-import { IconChevron } from "../components/Icons";
-import Button from "@shared/Button";
 import { isFullDatabase } from "@notionhq/client";
-import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
-import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
-import { updateWindowSize } from "../general/PageWindowSizes";
-import { motion, AnimatePresence } from "framer-motion";
-import { SegmentedControl, XIcon } from "@shared/components";
-import { MapFieldsPageTemplate } from "../general/MapFields";
+import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFields";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 
 const peopleMessage =
@@ -27,9 +18,9 @@ const peopleMessage =
 const fieldConversionMessages = {
 	"files - image": "The files must be images, otherwise importing will fail.",
 	"page-icon - string":
-		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the import type to "Image"',
+		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the field type to "Image"',
 	"page-icon - image":
-		'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the import type to "Text"',
+		'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the field type to "Text"',
 	button: "Button fields cannot be imported.",
 	people: peopleMessage,
 	last_edited_by: peopleMessage,
@@ -63,15 +54,6 @@ const notionPropertyTypes = {
 	"page-content": "Page Content",
 };
 
-interface CollectionFieldConfig {
-	property: object;
-	isNewField: boolean;
-	originalFieldName: string;
-	unsupported: boolean;
-	conversionTypes: string[];
-	isPageLevelField: boolean;
-}
-
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
 	if (!fieldA.field && !fieldB.field) {
@@ -85,9 +67,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(
-	pluginContext: PluginContext
-): CollectionFieldConfig[] {
+function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
 	const { integrationContext } = pluginContext;
 	const { database } = integrationContext;
 
