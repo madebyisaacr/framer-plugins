@@ -97,6 +97,10 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 		};
 	}
 
+	if (isAuthenticated && typeof integration.refreshToken === "function") {
+		await integration.refreshToken();
+	}
+
 	try {
 		const ignoredFieldIds = jsonStringToArray(ignoredFieldIdsJson);
 		const integrationData = JSON.parse(integrationDataJson);
@@ -219,10 +223,6 @@ async function runPlugin() {
 				collection,
 				isAuthenticated: false,
 			};
-		}
-
-		if (pluginContext.isAuthenticated && typeof integration.refreshToken === "function") {
-			await integration.refreshToken();
 		}
 
 		if (framer.mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
