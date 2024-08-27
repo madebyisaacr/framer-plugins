@@ -31,7 +31,7 @@ const Button = forwardRef(function Button(
 			className={classNames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
-				primary ? "framer-button-primary" : "bg-secondary text-primary hover:bg-tertiary",
+				primary ? "framer-button-primary" : "bg-secondary text-primary hover:bg-tertiary active:!bg-tertiary",
 				disabled ? "opacity-60" : "cursor-pointer",
 				className
 			)}
