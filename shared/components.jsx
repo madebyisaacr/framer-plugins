@@ -106,7 +106,7 @@ export function SegmentedControl({
 					key={`${id}-${item}`}
 					onClick={() => onChange(item)}
 					className={classNames(
-						"relative flex flex-1 items-center justify-center cursor-pointer",
+						"relative flex flex-1 items-center justify-center cursor-pointer transition-colors",
 						index === currentItemIndex ? "font-semibold" : "",
 						index === currentItemIndex ? (tint ? "text-tint dark:text-primary" : "text-primary") : "text-tertiary"
 					)}

@@ -8,7 +8,7 @@ import {
 	pageContentField,
 	richTextToPlainText,
 } from "./notion";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useState, useEffect } from "react";
 import classNames from "classnames";
 import { IconChevron } from "../components/Icons";
 import Button from "@shared/Button";
@@ -20,17 +20,10 @@ import { updateWindowSize } from "../general/PageWindowSizes";
 import { motion, AnimatePresence } from "framer-motion";
 import { SegmentedControl, XIcon } from "@shared/components";
 
-const timeMessage = "Time is not supported, so only the date will be imported.";
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
 const fieldConversionMessages = {
-	"date - date": timeMessage,
-	"created_time - date": timeMessage,
-	"last_edited_time - date": timeMessage,
-	"multi_select - string": "Values are imported as a comma-separated list of option names.",
-	"files - link": "Only the first file's URL will be included.",
-	"files - image":
-		"Only the first image will be included. The file must be an image, otherwise importing will fail.",
+	"files - image": "The files must be images, otherwise importing will fail.",
 	"page-icon - string":
 		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the import type to "Image"',
 	"page-icon - image":
@@ -83,8 +76,8 @@ const cmsFieldTypeNames = {
 
 const TRANSITION = {
 	type: "spring",
-	stiffness: 800,
-	damping: 50,
+	stiffness: 1000,
+	damping: 60,
 	mass: 1,
 };
 
@@ -425,27 +418,30 @@ export function MapFieldsPage({
 						/>
 					</>
 				)}
-				<Button square type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="18"
-						height="18"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="2"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
-						<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-					</svg>
-				</Button>
-				<FieldInfoTooltip
-					fieldType={fieldTypes[id]}
-					propertyType={fieldConfig.property.type}
-					unsupported={fieldConfig.unsupported}
-				/>
+				{fieldConfig.unsupported ? (
+					<FieldInfoTooltip
+						fieldType={fieldTypes[id]}
+						propertyType={fieldConfig.property.type}
+						unsupported={fieldConfig.unsupported}
+					/>
+				) : (
+					<Button square type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
+							<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+						</svg>
+					</Button>
+				)}
 			</Fragment>
 		);
 	}
@@ -453,6 +449,20 @@ export function MapFieldsPage({
 	const closeSettingsMenu = () => {
 		setSettingsMenuFieldConfig(null);
 	};
+
+	useEffect(() => {
+		const handleEscapeKey = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				closeSettingsMenu();
+			}
+		};
+
+		document.addEventListener('keydown', handleEscapeKey);
+
+		return () => {
+			document.removeEventListener('keydown', handleEscapeKey);
+		};
+	}, []);
 
 	const newFields = fieldConfigList.filter(
 		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
@@ -470,8 +480,9 @@ export function MapFieldsPage({
 			<motion.div
 				className="size-full overflow-y-auto"
 				animate={{
-					opacity: settingsMenuFieldConfig ? 0.3 : 1,
-					// scale: settingsMenuFieldConfig ? 0.95 : 1,
+					opacity: settingsMenuFieldConfig ? 0.6 : 1,
+					filter: settingsMenuFieldConfig ? "blur(6px)" : "blur(0px)",
+					scale: settingsMenuFieldConfig ? 0.96 : 1,
 				}}
 				initial={false}
 				transition={TRANSITION}
@@ -488,7 +499,7 @@ export function MapFieldsPage({
 						<div
 							className="grid gap-2 w-full items-center justify-center"
 							style={{
-								gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto 16px`,
+								gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) 30px`,
 							}}
 						>
 							<div className="col-start-2 flex flex-row justify-between px-2">
@@ -497,7 +508,7 @@ export function MapFieldsPage({
 							</div>
 							<div></div>
 							<span className="pl-2">Collection Field Name</span>
-							<span className="col-span-3 pl-[4px]">Import As</span>
+							<span className="col-span-2 pl-[4px]">Import As</span>
 							<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 							<select
 								className="w-full"
@@ -520,7 +531,6 @@ export function MapFieldsPage({
 							</div>
 							<StaticInput disabled>Slug</StaticInput>
 							<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-							<div />
 							<div />
 							{pageLevelFields.map(createFieldConfigRow)}
 							{newFields.length + otherFields.length > 0 && (
@@ -757,6 +767,33 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 	} → ${cmsFieldTypeNames[fieldType]}`;
 	const fieldConversionMessage = fieldConversionMessages[`${propertyType} - ${fieldType}`];
 
+	const getApplicableSettings = () => {
+		return allFieldSettings.filter((setting) => {
+			if (setting.propertyType === propertyType) {
+				if (setting.fieldType) {
+					return setting.fieldType === fieldType;
+				}
+				return true;
+			}
+			return false;
+		});
+	};
+
+	const applicableSettings = getApplicableSettings();
+
+	const multipleFieldsSetting = applicableSettings.find((setting) => setting.multipleFields);
+	const timeSetting = applicableSettings.find((setting) => setting.time);
+
+	const fieldSettingsDefault = {};
+	if (multipleFieldsSetting) {
+		fieldSettingsDefault.multipleFields = true;
+	}
+	if (timeSetting) {
+		fieldSettingsDefault.time = true;
+	}
+
+	const [fieldSettings, setFieldSettings] = useState(fieldSettingsDefault);
+
 	return (
 		<motion.div
 			className="absolute inset-y-3 right-3 w-[300px] flex flex-col rounded-lg bg-modal"
@@ -766,13 +803,13 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 			transition={TRANSITION}
 		>
 			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
-				<XIcon onClick={onClose} className="absolute top-5 right-0" />
+				<XIcon onClick={onClose} className="absolute top-5 right-3" />
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{notionPropertyTypes[fieldConfig.property.type]}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
-			<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3">
-				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
+			<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
+				<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
 					Field Settings
 				</div>
 				<PropertyControl title="Import Field">
@@ -807,30 +844,47 @@ function FieldSettingsMenu({ fieldConfig, fieldTypes, fieldNames, onClose }) {
 						{fieldConversionMessage}
 					</div>
 				)}
-				<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 border-t border-divider">
-					{notionPropertyTypes[propertyType]}
-				</div>
-				<PropertyControl title="Multiple Fields">
-					<SegmentedControl
-						id={"import"}
-						items={[true, false]}
-						itemTitles={["Yes", "No"]}
-						currentItem={true}
-						tint
-						onChange={(value) => {
-							console.log(value);
-						}}
-					/>
-				</PropertyControl>
-				<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1">
-					{/* <p className="text-primary font-semibold">{fieldConversionTitle}</p> */}
-					If any items in Notion have multiple files, they will be imported as multiple CMS fields
-					with a number ending added to each field's name.
-					<p>
-						<span className="text-primary font-semibold">Preview:</span> {fieldName} 1, {fieldName}{" "}
-						2, {fieldName} 3, ...
-					</p>
-				</div>
+				{multipleFieldsSetting && (
+					<>
+						<PropertyControl title="Multiple Fields">
+							<SegmentedControl
+								id={"multipleFields"}
+								items={[true, false]}
+								itemTitles={["Yes", "No"]}
+								currentItem={fieldSettings.multipleFields}
+								tint
+								onChange={(value) => {
+									setFieldSettings({ ...fieldSettings, multipleFields: value });
+								}}
+							/>
+						</PropertyControl>
+						<div className="p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5">
+							{multipleFieldsSetting.multipleFields[fieldSettings.multipleFields]}
+							{fieldSettings.multipleFields && (
+								<p>
+									<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
+									{fieldName} 2, {fieldName} 3, ...
+								</p>
+							)}
+						</div>
+					</>
+				)}
+				{timeSetting && (
+					<>
+						<PropertyControl title="Include Time">
+							<SegmentedControl
+								id={"timeOption"}
+								items={[true, false]}
+								itemTitles={["Yes", "No"]}
+								currentItem={fieldSettings.time}
+								tint
+								onChange={(value) => {
+									setFieldSettings({ ...fieldSettings, time: value });
+								}}
+							/>
+						</PropertyControl>
+					</>
+				)}
 			</div>
 			<div className="flex flex-col w-full p-3 relative">
 				<div className="absolute inset-x-3 top-0 h-px bg-divider" />
@@ -855,3 +909,42 @@ function PropertyControl({ title, children }) {
 		</div>
 	);
 }
+
+const allFieldSettings = [
+	{
+		propertyType: "multi_select",
+		multipleFields: {
+			true: "The multi-select options will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first option will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+	{
+		propertyType: "files",
+		multipleFields: {
+			true: "If any items in Notion have multiple files, they will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first file will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+	{
+		propertyType: "created_time",
+		time: true,
+	},
+	{
+		propertyType: "date",
+		time: true,
+	},
+	{
+		propertyType: "last_edited_time",
+		time: true,
+	},
+	{
+		propertyType: "formula",
+		fieldType: "date",
+		time: true,
+	},
+	{
+		propertyType: "rollup",
+		fieldType: "date",
+		time: true,
+	},
+];
