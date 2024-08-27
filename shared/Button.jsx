@@ -14,7 +14,8 @@ const Button = forwardRef(function Button(
 		onClick = null,
 		loading = false,
 		disabled = false,
-		shadowColor = ""
+		shadowColor = "",
+		...otherProps
 	},
 	ref
 ) {
@@ -36,6 +37,7 @@ const Button = forwardRef(function Button(
 			)}
 			disabled={disabled}
 			{...elementProps}
+			{...otherProps}
 		>
 			{shadowColor && (
 				<div

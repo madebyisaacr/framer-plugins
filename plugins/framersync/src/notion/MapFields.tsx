@@ -106,27 +106,64 @@ function createFieldConfig(
 	database: GetDatabaseResponse,
 	pluginContext: PluginContext
 ): CollectionFieldConfig[] {
-	const result: CollectionFieldConfig[] = [];
-
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
 	);
 
-	result.push(
-		{
-			// field: pageContentField,
-			property: {
-				id: "page-content",
-				name: "Content",
-				type: "page-content",
-				unsupported: false,
-			},
-			originalFieldName: pageContentField.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
-			unsupported: false,
-			conversionTypes: ["formattedText"],
+	const regularFields: CollectionFieldConfig[] = [];
+	let titleProperty: NotionProperty | null = null;
+
+	for (const key in database.properties) {
+		const property = database.properties[key];
+		assert(property);
+
+		// Title is grouped with other page level properties.
+		if (property.type === "title") {
+			titleProperty = property;
+			continue;
+		}
+
+		const conversionTypes = getFieldConversionTypes(property);
+
+		regularFields.push({
+			// field: getCollectionFieldForProperty(property),
+			originalFieldName: property.name,
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+			unsupported: !conversionTypes.length,
+			property,
+			conversionTypes,
+			isPageLevelField: false,
+		});
+	}
+
+	const pageLevelFields: CollectionFieldConfig[] = [];
+
+	if (titleProperty) {
+		pageLevelFields.push({
+			property: titleProperty,
+			originalFieldName: titleProperty.name,
+			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("title"),
+			conversionTypes: ["string", "formattedText"],
 			isPageLevelField: true,
+			unsupported: false,
+		})
+	}
+
+	pageLevelFields.push({
+		property: {
+			id: "page-content",
+			name: "Content",
+			type: "page-content",
+			unsupported: false,
 		},
+		originalFieldName: pageContentField.name,
+		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
+		unsupported: false,
+		conversionTypes: ["formattedText"],
+		isPageLevelField: true,
+	});
+
+	pageLevelFields.push(
 		{
 			property: {
 				id: "page-cover",
@@ -153,26 +190,7 @@ function createFieldConfig(
 		}
 	);
 
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
-
-		// Title is always required in CMS API.
-		if (property.type === "title") continue;
-
-		const conversionTypes = getFieldConversionTypes(property);
-
-		result.push({
-			// field: getCollectionFieldForProperty(property),
-			originalFieldName: property.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
-			unsupported: !conversionTypes.length,
-			property,
-			conversionTypes,
-			isPageLevelField: false,
-		});
-	}
-
+	const result = [...pageLevelFields, ...regularFields];
 	return result.sort(sortField);
 }
 
@@ -252,11 +270,6 @@ export function MapFieldsPage({
 	const [fieldTypes, setFieldTypes] = useState(
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
-
-	const titleField =
-		(database?.properties &&
-			Object.values(database?.properties).find((property) => property.type === "title")) ||
-		null;
 
 	assert(isFullDatabase(database));
 
@@ -398,6 +411,22 @@ export function MapFieldsPage({
 						/>
 					</>
 				)}
+				<Button square type="button">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
+						<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+					</svg>
+				</Button>
 				<FieldInfoTooltip
 					fieldType={fieldTypes[id]}
 					propertyType={fieldConfig.property.type}
@@ -432,7 +461,7 @@ export function MapFieldsPage({
 					<div
 						className="grid gap-2 w-full items-center justify-center"
 						style={{
-							gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) 16px`,
+							gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto 16px`,
 						}}
 					>
 						<div className="col-start-2 flex flex-row justify-between px-2">
@@ -441,17 +470,7 @@ export function MapFieldsPage({
 						</div>
 						<div></div>
 						<span className="pl-2">Collection Field Name</span>
-						<span className="col-span-2 pl-[4px]">Import As</span>
-						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-						<StaticInput disabled leftText="Title">
-							{titleField?.name ?? "Title"}
-						</StaticInput>
-						<div className="flex items-center justify-center">
-							<IconChevron />
-						</div>
-						<StaticInput disabled>Title</StaticInput>
-						<FieldTypeSelector fieldType="title" availableFieldTypes={["title"]} />
-						<div />
+						<span className="col-span-3 pl-[4px]">Import As</span>
 						<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 						<select
 							className="w-full"
@@ -474,6 +493,7 @@ export function MapFieldsPage({
 						</div>
 						<StaticInput disabled>Slug</StaticInput>
 						<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
+						<div />
 						<div />
 						{pageLevelFields.map(createFieldConfigRow)}
 						{newFields.length + otherFields.length > 0 && (
