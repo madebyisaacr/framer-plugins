@@ -213,9 +213,9 @@ export function MapFieldsPageTemplate({
 					<IconChevron />
 				</div>
 				{!fieldTypes[id] ? (
-					<StaticInput disabled className="col-span-2">
-						Unsupported Field Type
-					</StaticInput>
+					<UnsupportedFieldBlock
+						{...getFieldConversionMessage(fieldTypes[id], fieldConfig.property.type, true)}
+					/>
 				) : (
 					<>
 						<input
@@ -237,15 +237,7 @@ export function MapFieldsPageTemplate({
 						/>
 					</>
 				)}
-				{fieldConfig.unsupported ? (
-					<FieldInfoTooltip
-						{...getFieldConversionMessage(
-							fieldTypes[id],
-							fieldConfig.property.type,
-							fieldConfig.unsupported
-						)}
-					/>
-				) : (
+				{!fieldConfig.unsupported && (
 					<Button type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -422,47 +414,31 @@ export function MapFieldsPageTemplate({
 	);
 }
 
-function FieldInfoTooltip({ title, text }) {
+function UnsupportedFieldBlock({ title, text }) {
 	const [hover, setHover] = useState(false);
 
 	return (
 		<div
-			className="size-full flex items-center justify-center text-tertiary relative"
+			className="col-span-3 w-full h-6 relative"
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
 		>
+			<div className="size-full flex items-center bg-secondary rounded opacity-50 px-2">
+				Unsupported Field Type
+			</div>
 			{text && (
-				<>
-					<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12">
-						<path
-							d="M6 0a6 6 0 1 1 0 12A6 6 0 0 1 6 0Zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM5 9a1 1 0 0 0 2 0V6a1 1 0 0 0-2 0Z"
-							fill="currentColor"
-						></path>
-					</svg>
-					<div
-						className={classNames(
-							"flex flex-col gap-1.5 rounded-lg p-3 w-[280px] z-10 text-secondary bg-modal pointer-events-none absolute -left-2 -translate-x-[100%] transition-opacity",
-							hover ? "opacity-100" : "opacity-0"
-						)}
-						style={{
-							boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
-						}}
-					>
-						<p className="text-primary font-semibold">{title}</p>
-						{text}
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="28"
-							height="8"
-							className="rotate-90 text-[var(--color-bg-modal)] absolute right-[-18px] top-[50%] translate-y-[-50%]"
-						>
-							<path
-								d="M 12.833 1.333 C 13.451 0.627 14.549 0.627 15.167 1.333 L 18.012 4.585 C 19.911 6.755 22.654 8 25.538 8 L 28 8 L 0 8 L 2.462 8 C 5.346 8 8.089 6.755 9.988 4.585 Z"
-								fill="currentColor"
-							></path>
-						</svg>
-					</div>
-				</>
+				<div
+					className={classNames(
+						"flex flex-col gap-1.5 rounded-lg p-3 w-[320px] z-10 text-secondary bg-modal pointer-events-none absolute -top-1 -translate-y-[100%] transition-opacity",
+						hover ? "opacity-100" : "opacity-0"
+					)}
+					style={{
+						boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
+					}}
+				>
+					<p className="text-primary font-semibold">{title}</p>
+					{text}
+				</div>
 			)}
 		</div>
 	);
