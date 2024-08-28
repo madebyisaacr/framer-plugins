@@ -13,6 +13,7 @@ enum Command {
 	Poll = 'poll',
 	Refresh = 'refresh',
 	Redirect = 'redirect',
+	API = 'api',
 	OpenGooglePicker = 'open-picker',
 	PollGooglePicker = 'poll-picker',
 	GooglePickerCallback = 'picker-callback',
@@ -39,6 +40,22 @@ async function handleRequest(request: Request, env: Env) {
 		let authorizeUrl;
 
 		switch (platform) {
+			case Platform.Notion:
+				writeKey = generateRandomId(16);
+
+				const notionAuthorizeParams = new URLSearchParams();
+				notionAuthorizeParams.append('client_id', env.NOTION_CLIENT_ID);
+				notionAuthorizeParams.append('redirect_uri', redirectURI);
+				notionAuthorizeParams.append('response_type', 'code');
+				notionAuthorizeParams.append('state', writeKey);
+				notionAuthorizeParams.append('owner', 'user');
+
+				const notionAuthorizeUrl = new URL('https://api.notion.com/v1/oauth/authorize');
+				notionAuthorizeUrl.search = notionAuthorizeParams.toString();
+				authorizeUrl = notionAuthorizeUrl.toString();
+
+				keyValueStoreData = JSON.stringify({ readKey });
+				break;
 			case Platform.Airtable:
 				const challengeParams = await generateAirtableChallengeParams();
 				writeKey = challengeParams.state;
@@ -159,6 +176,9 @@ async function handleRequest(request: Request, env: Env) {
 		let tokenResponse;
 
 		switch (platform) {
+			case Platform.Notion:
+				
+				break;
 			case Platform.Airtable:
 				const { challengeVerifier } = JSON.parse(storedValue);
 
@@ -319,6 +339,34 @@ async function handleRequest(request: Request, env: Env) {
 
 		return new Response(JSON.stringify(tokens), {
 			headers: {
+				...accessControlOrigin,
+			},
+		});
+	}
+
+	if (command === Command.API && platform === Platform.Notion) {
+		// Forward the request to the Notion API
+		const url = requestUrl.searchParams.get('url');
+
+		if (!url) {
+			return new Response('Missing URL URL param', {
+				status: 400,
+			});
+		}
+
+		const notionResponse = await fetch(url, {
+			method: request.method,
+			headers: {
+				Authorization: `Bearer ${env.NOTION_TOKEN}`,
+				'Notion-Version': '2022-06-28',
+				'Content-Type': 'application/json',
+			},
+			body: request.body,
+		});
+
+		return new Response(notionResponse.body, {
+			headers: {
+				'Content-Type': 'application/json',
 				...accessControlOrigin,
 			},
 		});

@@ -22,8 +22,10 @@ import { updateCollection } from "../general/updateCollection";
 
 export type FieldId = string;
 
-const apiBaseUrl = "https://notion-plugin-api.niekkruse70.workers.dev";
-const oauthRedirectUrl = encodeURIComponent(`${apiBaseUrl}/auth/authorize/callback`);
+const apiBaseUrl =
+	window.location.hostname === "localhost"
+		? "http://localhost:8787/notion"
+		: "https://framersync-workers.isaac-b49.workers.dev/notion";
 
 export const getOauthURL = (writeKey: string) =>
 	`https://api.notion.com/v1/oauth/authorize?client_id=3504c5a7-9f75-4f87-aa1b-b735f8480432&response_type=code&owner=user&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
@@ -88,13 +90,10 @@ export function initNotionClient() {
 
 	notion = new Client({
 		fetch: async (url, fetchInit) => {
-			const urlObj = new URL(url);
+			console.log("Fetching", url);
 
 			try {
-				const resp = await fetch(
-					`${apiBaseUrl}/notion${urlObj.pathname}${urlObj.search}`,
-					fetchInit
-				);
+				const resp = await fetch(`${apiBaseUrl}/api/?url=${url}`, fetchInit);
 
 				// If status is unauthorized, clear the token
 				// And we close the plugin (for now)
@@ -158,28 +157,38 @@ export function getPossibleSlugFields(integrationContext: object) {
 }
 
 // Authorize the plugin with Notion.
-export async function authorize(options: { readKey: string; writeKey: string }) {
-	await fetch(`${apiBaseUrl}/auth/authorize`, {
+export async function authorize() {
+	const response = await fetch(`${apiBaseUrl}/authorize`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(options),
 	});
+
+	const { readKey, url } = await response.json();
+
+	window.open(url, "_blank");
 
 	return new Promise<void>((resolve) => {
 		// Poll for the authorization status
 		const interval = setInterval(async () => {
-			const resp = await fetch(`${apiBaseUrl}/auth/authorize/${options.readKey}`);
+			const resp = await fetch(`${apiBaseUrl}/poll/?readKey=${readKey}`, {
+				method: "POST",
+			});
 
-			const { token } = await resp.json();
+			if (resp.status === 200) {
+				const { token } = await resp.json();
 
-			if (resp.status === 200 && token) {
-				clearInterval(interval);
-				localStorage.setItem(notionBearerStorageKey, token);
-				initNotionClient();
-				resolve();
+				if (token) {
+					clearInterval(interval);
+					localStorage.setItem(notionBearerStorageKey, token);
+					console.log("Set refresh token to:", token);
+					initNotionClient();
+					resolve();
+				}
 			}
+
+			resolve();
 		}, 2500);
 	});
 }

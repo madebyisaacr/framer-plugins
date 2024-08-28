@@ -51,13 +51,8 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 
 	const handleAuth = () => {
 		setIsLoading(true);
-		const writeKey = generateRandomId();
 
-		// It is important to call `window.open` directly in the event handler
-		// So that Safari does not block any popups.
-		window.open(getOauthURL(writeKey), "_blank");
-
-		authorize({ readKey: generateRandomId(), writeKey })
+		authorize()
 			.then(onAuthenticated)
 			.finally(() => {
 				setIsLoading(false);
