@@ -226,32 +226,16 @@ export function MapFieldsPageTemplate({
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
-						<FieldTypeSelector
+						{/* <FieldTypeSelector
 							fieldType={fieldTypes[id]}
 							availableFieldTypes={fieldConfig.conversionTypes}
 							disabled={isDisabled}
 							onChange={(value) => handleFieldTypeChange(id, value)}
-						/>
+						/> */}
 					</>
 				)}
 				{!fieldConfig.unsupported && (
-					<Button type="button" onClick={() => onSettingsButtonClick(fieldConfig)}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="16"
-							height="16"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="2"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-						>
-							<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
-							<path d="M13.5 6.5l4 4" />
-						</svg>
-						Edit
-					</Button>
+					<EditButton onClick={() => onSettingsButtonClick(fieldConfig)} />
 				)}
 			</Fragment>
 		);
@@ -293,7 +277,7 @@ export function MapFieldsPageTemplate({
 					<div className="flex flex-col flex-1">
 						<div
 							className={classNames(
-								"flex flex-col flex-1 px-3 pb-3 pt-4 transition-opacity relative overflow-y-auto",
+								"flex flex-col flex-1 px-3 pb-3 pt-4 gap-3 transition-opacity relative overflow-y-auto",
 								isLoading && "opacity-50 blur-sm pointer-events-none"
 							)}
 						>
@@ -302,7 +286,7 @@ export function MapFieldsPageTemplate({
 								<div
 									className="grid gap-2 w-full items-center justify-center"
 									style={{
-										gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto`,
+										gridTemplateColumns: `16px 1.25fr 8px 1fr auto`,
 									}}
 								>
 									<div className="col-start-2 flex flex-row justify-between px-2">
@@ -311,7 +295,8 @@ export function MapFieldsPageTemplate({
 									</div>
 									<div></div>
 									<span className="pl-2">Collection Field Name</span>
-									<span className="col-span-2 pl-[4px]">Field Type</span>
+									<div />
+									{/* <span className="col-span-2 pl-[4px]">Field Type</span> */}
 									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 									<select
 										className="w-full"
@@ -333,8 +318,8 @@ export function MapFieldsPageTemplate({
 										<IconChevron />
 									</div>
 									<StaticInput disabled>Slug</StaticInput>
-									<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-									<div />
+									{/* <FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} /> */}
+									<StaticInput disabled></StaticInput>
 									{pageLevelFields.map(createFieldConfigRow)}
 									{newFields.length + otherFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
@@ -434,7 +419,7 @@ function UnsupportedFieldBlock({ title, text }) {
 
 	return (
 		<div
-			className="col-span-3 w-full h-6 relative"
+			className="col-span-2 w-full h-6 relative"
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
 		>
@@ -444,7 +429,7 @@ function UnsupportedFieldBlock({ title, text }) {
 			{text && (
 				<div
 					className={classNames(
-						"flex flex-col gap-1.5 rounded-lg p-3 w-[320px] z-10 text-secondary bg-modal pointer-events-none absolute -top-1 -translate-y-[100%] transition-opacity",
+						"flex flex-col gap-1.5 rounded-lg p-3 w-full z-10 text-secondary bg-modal pointer-events-none absolute -top-2 -translate-y-[100%] transition-opacity",
 						hover ? "opacity-100" : "opacity-0"
 					)}
 					style={{
@@ -602,7 +587,6 @@ function FieldSettingsMenu({
 	return (
 		<div className="size-full flex flex-col">
 			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
-				{/* <XIcon onClick={onClose} className="absolute top-5 right-3" /> */}
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{getPropertyTypeName(fieldConfig.property.type)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
@@ -719,5 +703,27 @@ function PropertyControl({ title, children, disabled = false }) {
 			<span className="text-secondary pl-2">{title}</span>
 			<div className="col-span-2">{children}</div>
 		</div>
+	);
+}
+
+function EditButton({ onClick }) {
+	return (
+		<Button type="button" onClick={onClick}>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			>
+				<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+				<path d="M13.5 6.5l4 4" />
+			</svg>
+			Edit
+		</Button>
 	);
 }
