@@ -62,7 +62,8 @@ export function MapFieldsPageTemplate({
 	const { pluginContext, updatePluginContext } = usePluginContext();
 	const { integrationContext } = pluginContext;
 
-	const [settingsMenuFieldConfig, setSettingsMenuFieldConfig] = useState(null);
+	// Field config object or "slug"
+	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
 
 	const slugFields = useMemo(() => getPossibleSlugFields(integrationContext), [integrationContext]);
 	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
@@ -80,10 +81,6 @@ export function MapFieldsPageTemplate({
 	const [fieldTypes, setFieldTypes] = useState(
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
-
-	const onSettingsButtonClick = (fieldConfig: CollectionFieldConfig) => {
-		setSettingsMenuFieldConfig(fieldConfig);
-	};
 
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
@@ -235,14 +232,14 @@ export function MapFieldsPageTemplate({
 					</>
 				)}
 				{!fieldConfig.unsupported && (
-					<EditButton onClick={() => onSettingsButtonClick(fieldConfig)} />
+					<EditButton onClick={() => setEditMenuFieldConfig(fieldConfig)} />
 				)}
 			</Fragment>
 		);
 	}
 
 	const closeSettingsMenu = () => {
-		setSettingsMenuFieldConfig(null);
+		setEditMenuFieldConfig(null);
 	};
 
 	useEffect(() => {
@@ -327,7 +324,7 @@ export function MapFieldsPageTemplate({
 									</div>
 									<StaticInput disabled>Slug</StaticInput>
 									<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-									<EditButton onClick={() => {}} />
+									<EditButton onClick={() => setEditMenuFieldConfig("slug")} />
 									{pageLevelFields.map(createFieldConfigRow)}
 									{newFields.length + otherFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
@@ -344,9 +341,43 @@ export function MapFieldsPageTemplate({
 					</div>
 					<div className="w-[285px] h-full relative">
 						<div className="absolute left-0 inset-y-3 w-px bg-divider z-10" />
-						{settingsMenuFieldConfig ? (
+						{editMenuFieldConfig == "slug" ? (
+							<div className="size-full flex flex-col">
+								<div className="relative flex flex-col gap-1 w-full p-3">
+									<h1 className="text-lg font-bold -mb-1">Slug</h1>
+									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
+								</div>
+								<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
+									<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
+										Slug Field
+									</div>
+									<div className="flex flex-col gap-0.5">
+										{slugFields.map((field) => (
+											<label
+												key={field.id}
+												className={classNames(
+													"items-center flex flex-row gap-2 rounded px-2 h-6 cursor-pointer",
+													slugFieldId === field.id && "bg-secondary"
+												)}
+											>
+												<input
+													type="checkbox"
+													name="slugField"
+													value={field.id}
+													checked={slugFieldId === field.id}
+													onChange={(e) => setSlugFieldId(e.target.value)}
+													className="size-2.5"
+												/>
+												<span className="flex-1">{field.name}</span>
+												<span className="text-tertiary">{getPropertyTypeName(field.type)}</span>
+											</label>
+										))}
+									</div>
+								</div>
+							</div>
+						) : editMenuFieldConfig ? (
 							<FieldSettingsMenu
-								fieldConfig={settingsMenuFieldConfig}
+								fieldConfig={editMenuFieldConfig}
 								fieldTypes={fieldTypes}
 								fieldNames={fieldNameOverrides}
 								disabledFieldIds={disabledFieldIds}
