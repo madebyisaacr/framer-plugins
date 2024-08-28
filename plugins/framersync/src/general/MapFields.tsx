@@ -348,8 +348,11 @@ export function MapFieldsPageTemplate({
 									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 								</div>
 								<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
-									<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
-									{slugFieldTitleText}
+									<div className="min-h-10 flex flex-row items-center justify-between -mb-2">
+										<span className="text-primary font-semibold">
+											{slugFieldTitleText}
+										</span>
+										<span className="text-tertiary pr-2">Type</span>
 									</div>
 									<div className="flex flex-col gap-0.5 flex-1">
 										{slugFields.map((field) => (
@@ -376,8 +379,8 @@ export function MapFieldsPageTemplate({
 									<div className="flex flex-col gap-1 p-3 bg-secondary rounded text-secondary">
 										<p className="text-primary font-semibold">What is a slug field?</p>
 										<p>
-											The slug field is a unique ID for each item in the collection. If the
-											CMS collection has a detail page, it is used to create a URL for each item.
+											The slug field is a unique ID for each item in the collection. If the CMS
+											collection has a detail page, it is used to create a URL for each item.
 										</p>
 										<p>The selected {propertyLabelText} will be used to generate the slug field.</p>
 									</div>
