@@ -27,9 +27,6 @@ const apiBaseUrl =
 		? "http://localhost:8787/notion"
 		: "https://framersync-workers.isaac-b49.workers.dev/notion";
 
-export const getOauthURL = (writeKey: string) =>
-	`https://api.notion.com/v1/oauth/authorize?client_id=3504c5a7-9f75-4f87-aa1b-b735f8480432&response_type=code&owner=user&redirect_uri=${oauthRedirectUrl}&state=${writeKey}`;
-
 // Storage for the notion API key.
 const notionBearerStorageKey = "notionBearerToken";
 
@@ -93,7 +90,10 @@ export function initNotionClient() {
 			console.log("Fetching", url);
 
 			try {
-				const resp = await fetch(`${apiBaseUrl}/api/?url=${url}`, fetchInit);
+				const searchParams = new URLSearchParams();
+				searchParams.set("url", url);
+				searchParams.set("access_token", token);
+				const resp = await fetch(`${apiBaseUrl}/api/?${searchParams.toString()}`, fetchInit);
 
 				// If status is unauthorized, clear the token
 				// And we close the plugin (for now)
@@ -167,6 +167,8 @@ export async function authorize() {
 
 	const { readKey, url } = await response.json();
 
+	console.log(url, readKey);
+
 	window.open(url, "_blank");
 
 	return new Promise<void>((resolve) => {
@@ -177,18 +179,18 @@ export async function authorize() {
 			});
 
 			if (resp.status === 200) {
-				const { token } = await resp.json();
+				const tokenInfo = await resp.json();
 
-				if (token) {
+				if (tokenInfo) {
+					const { access_token } = tokenInfo;
+
 					clearInterval(interval);
-					localStorage.setItem(notionBearerStorageKey, token);
-					console.log("Set refresh token to:", token);
+					localStorage.setItem(notionBearerStorageKey, access_token);
 					initNotionClient();
-					resolve();
 				}
-			}
 
-			resolve();
+				resolve();
+			}
 		}, 2500);
 	});
 }

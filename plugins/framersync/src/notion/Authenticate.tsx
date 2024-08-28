@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { authorize, getOauthURL } from "./notion";
+import { authorize } from "./notion";
 import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
-import { generateRandomId } from "../utils";
 import { framer } from "framer-plugin";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { updateWindowSize } from "../general/PageWindowSizes";

@@ -177,7 +177,21 @@ async function handleRequest(request: Request, env: Env) {
 
 		switch (platform) {
 			case Platform.Notion:
-				
+				const notionTokenParams = {
+					code: authorizationCode,
+					grant_type: "authorization_code",
+					redirect_uri: redirectURI
+				};
+
+				tokenResponse = await fetch("https://api.notion.com/v1/oauth/token", {
+					method: "POST",
+					headers: {
+						'Authorization': `Basic ${btoa(`${env.NOTION_CLIENT_ID}:${env.NOTION_SECRET}`)}`,
+						'Content-Type': 'application/json',
+						'Notion-Version': '2022-06-28'
+					},
+					body: JSON.stringify(notionTokenParams),
+				})
 				break;
 			case Platform.Airtable:
 				const { challengeVerifier } = JSON.parse(storedValue);
@@ -344,9 +358,10 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
-	if (command === Command.API && platform === Platform.Notion) {
+	if ((request.method === 'GET' || request.method === 'POST') && command === Command.API && platform === Platform.Notion) {
 		// Forward the request to the Notion API
 		const url = requestUrl.searchParams.get('url');
+		const accessToken = requestUrl.searchParams.get('access_token');
 
 		if (!url) {
 			return new Response('Missing URL URL param', {
@@ -357,7 +372,7 @@ async function handleRequest(request: Request, env: Env) {
 		const notionResponse = await fetch(url, {
 			method: request.method,
 			headers: {
-				Authorization: `Bearer ${env.NOTION_TOKEN}`,
+				Authorization: `Bearer ${accessToken}`,
 				'Notion-Version': '2022-06-28',
 				'Content-Type': 'application/json',
 			},
@@ -415,7 +430,7 @@ async function handleRequest(request: Request, env: Env) {
 			headers: {
 				...accessControlOrigin,
 				'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-				'Access-Control-Allow-Headers': 'Content-Type',
+				'Access-Control-Allow-Headers': 'Content-Type, Notion-Version, Authorization',
 			},
 		});
 	}
