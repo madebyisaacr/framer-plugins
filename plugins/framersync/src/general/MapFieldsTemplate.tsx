@@ -8,8 +8,8 @@ import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext.js";
 import { updateWindowSize } from "./PageWindowSizes.js";
 import { SegmentedControl, XIcon } from "@shared/components";
-import { cmsFieldTypeNames } from "./CMSFieldTypes";
-import BackButton from "../components/BackButton";
+import { cmsFieldTypeNames } from "./CMSFieldTypes.js";
+import BackButton from "../components/BackButton.jsx";
 
 export interface CollectionFieldConfig {
 	property: object;

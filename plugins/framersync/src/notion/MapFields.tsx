@@ -11,7 +11,7 @@ import {
 } from "./notion";
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
-import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFields";
+import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 
 const peopleMessage =

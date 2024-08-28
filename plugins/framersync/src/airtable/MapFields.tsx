@@ -8,7 +8,7 @@ import {
 } from "./airtable.js";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
-import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFields";
+import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate.js";
 
 const propertyTypeNames = {
 	aiText: "AI Text",
