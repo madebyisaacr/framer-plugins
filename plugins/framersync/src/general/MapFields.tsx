@@ -1,5 +1,5 @@
 import { assert } from "../utils.js";
-import { Fragment, useMemo, useState, useEffect } from "react";
+import { Fragment, useMemo, useState, useEffect, forwardRef } from "react";
 import classNames from "classnames";
 import { IconChevron } from "../components/Icons.js";
 import Button from "@shared/Button";
@@ -83,6 +83,8 @@ export function MapFieldsPageTemplate({
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
 
+	const [fieldElementRefs, setFieldElementRefs] = useState<Record<string, HTMLDivElement>>({});
+
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
 			const nextSet = new Set(current);
@@ -160,7 +162,7 @@ export function MapFieldsPageTemplate({
 		);
 	};
 
-	function createFieldConfigRow(fieldConfig: CollectionFieldConfig) {
+	function FieldConfigRow({ fieldConfig }: { fieldConfig: CollectionFieldConfig }) {
 		const id = fieldConfig.property.id;
 		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
@@ -191,6 +193,7 @@ export function MapFieldsPageTemplate({
 					/>
 				</label>
 				<StaticInput
+					ref={(el) => (fieldElementRefs[id] = el)}
 					disabled={isDisabled}
 					leftText={getPropertyTypeName(fieldConfig.property.type)}
 				>
@@ -239,16 +242,20 @@ export function MapFieldsPageTemplate({
 		);
 	}
 
+	const createFieldConfigRow = (fieldConfig: CollectionFieldConfig) => {
+		return <FieldConfigRow key={fieldConfig.property.id} fieldConfig={fieldConfig} />;
+	};
+
 	const onBackButtonClick = () => {
 		updatePluginContext({
 			integrationContext: null,
-		})
+		});
 	};
 
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
-				setEditMenuFieldConfig(null)
+				setEditMenuFieldConfig(null);
 			}
 		};
 
@@ -285,7 +292,29 @@ export function MapFieldsPageTemplate({
 								<BackButton onClick={onBackButtonClick} />
 								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
 							</div>
-							<div className="flex-1 flex flex-col gap-4">
+							<div className="relative flex-1 flex flex-col gap-4">
+								{editMenuFieldConfig && (
+									<div
+										className="absolute inset-x-0 w-full h-6 pointer-events-none"
+										style={{
+											top: fieldElementRefs[
+												editMenuFieldConfig == "slug" ? "slug" : editMenuFieldConfig.property.id
+											]?.offsetTop,
+										}}
+									>
+										<div
+											className="absolute -inset-0.5 rounded-lg"
+											style={{ boxShadow: "0 0 0 2px var(--framer-color-tint)" }}
+										>
+											<div
+												className="absolute inset-0 rounded-[inherit] opacity-30 pointer-events-none"
+												style={{
+													boxShadow: `0px 4px 8px 0px var(--framer-color-tint)`,
+												}}
+											/>
+										</div>
+									</div>
+								)}
 								<div
 									className="grid gap-2 w-full items-center justify-center"
 									style={{
@@ -310,6 +339,7 @@ export function MapFieldsPageTemplate({
 									<div />
 									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 									<select
+										ref={(el) => (fieldElementRefs["slug"] = el)}
 										className="w-full"
 										value={slugFieldId ?? ""}
 										onChange={(e) => setSlugFieldId(e.target.value)}
@@ -510,30 +540,33 @@ function FieldTypeSelector({
 	);
 }
 
-function StaticInput({ children, disabled = false, className = "", leftText = "" }) {
-	return (
-		<div
-			className={classNames(
-				"w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
-				disabled && "opacity-50",
-				className
-			)}
-		>
-			<span className="shrink-0 flex flex-row items-center gap-1.5">{children}</span>
-			{leftText && (
-				<span
-					className={classNames(
-						"text-right text-ellipsis text-nowrap overflow-hidden shrink",
-						disabled ? "text-secondary" : "text-tertiary"
-					)}
-					title={leftText}
-				>
-					{leftText}
-				</span>
-			)}
-		</div>
-	);
-}
+const StaticInput = forwardRef(
+	({ children, disabled = false, className = "", leftText = "" }, ref) => {
+		return (
+			<div
+				ref={ref}
+				className={classNames(
+					"w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
+					disabled && "opacity-50",
+					className
+				)}
+			>
+				<span className="shrink-0 flex flex-row items-center gap-1.5">{children}</span>
+				{leftText && (
+					<span
+						className={classNames(
+							"text-right text-ellipsis text-nowrap overflow-hidden shrink",
+							disabled ? "text-secondary" : "text-tertiary"
+						)}
+						title={leftText}
+					>
+						{leftText}
+					</span>
+				)}
+			</div>
+		);
+	}
+);
 
 function createFieldTypesList(
 	fieldConfigList: CollectionFieldConfig[],
