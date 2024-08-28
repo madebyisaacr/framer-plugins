@@ -290,12 +290,20 @@ export function MapFieldsPageTemplate({
 									}}
 								>
 									<div className="col-start-2 flex flex-row justify-between px-2">
-										<span>{propertyHeaderText}</span>
-										<span className="text-tertiary">Type</span>
+										<span className="text-ellipsis text-nowrap overflow-hidden">
+											{propertyHeaderText}
+										</span>
+										<span className="text-tertiary text-ellipsis text-nowrap overflow-hidden">
+											Type
+										</span>
 									</div>
 									<div></div>
-									<span className="pl-2">Collection Field Name</span>
-									<span className="pl-[4px]">Field Type</span>
+									<span className="text-ellipsis text-nowrap overflow-hidden pl-2">
+										Collection Field Name
+									</span>
+									<span className="text-ellipsis text-nowrap overflow-hidden pl-[4px]">
+										Field Type
+									</span>
 									<div />
 									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 									<select
@@ -481,15 +489,18 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 	return (
 		<div
 			className={classNames(
-				"w-full h-6 flex items-center bg-secondary rounded gap-1.5 px-2",
+				"w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
 				disabled && "opacity-50",
 				className
 			)}
 		>
-			{children}
+			<span className="shrink-0">{children}</span>
 			{leftText && (
 				<span
-					className={classNames("flex-1 text-right", disabled ? "text-secondary" : "text-tertiary")}
+					className={classNames(
+						"text-right text-ellipsis text-nowrap overflow-hidden shrink",
+						disabled ? "text-secondary" : "text-tertiary"
+					)}
 				>
 					{leftText}
 				</span>
