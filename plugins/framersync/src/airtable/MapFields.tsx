@@ -4,6 +4,7 @@ import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
+	propertyConversionTypes,
 } from "./airtable.js";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
@@ -43,41 +44,6 @@ const propertyTypeNames = {
 	singleSelect: "Single select",
 	externalSyncSource: "Sync source",
 	url: "URL",
-};
-const propertyConversionTypes: Record<string, string[]> = {
-	aiText: ["string"],
-	multipleAttachments: ["link", "image"],
-	autoNumber: ["number"],
-	barcode: ["string"],
-	button: ["link"],
-	checkbox: ["boolean"],
-	singleCollaborator: ["string"],
-	count: ["number"],
-	createdBy: ["string"],
-	createdTime: ["date"],
-	currency: ["number", "string"],
-	date: ["date"],
-	dateTime: ["date"],
-	duration: ["string"],
-	email: ["string"],
-	formula: ["string", "number", "boolean", "date", "link", "image"],
-	lastModifiedBy: [],
-	lastModifiedTime: ["date"],
-	multipleRecordLinks: [],
-	multilineText: ["string"],
-	multipleLookupValues: [],
-	multipleCollaborators: [],
-	multipleSelects: [],
-	number: ["number"],
-	percent: ["number"],
-	phoneNumber: ["string"],
-	rating: ["number"],
-	richText: ["formattedText", "string"],
-	rollup: [],
-	singleLineText: ["string"],
-	singleSelect: ["enum", "string"],
-	externalSyncSource: ["string"],
-	url: ["link", "string"],
 };
 const fieldConversionMessages = {};
 const allFieldSettings = [];

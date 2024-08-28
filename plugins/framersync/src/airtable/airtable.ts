@@ -23,6 +23,42 @@ const airtableRefreshTokenKey = "airtableRefreshToken";
 // TODO: Is this necessary with Airtable?
 const concurrencyLimit = 5;
 
+export const propertyConversionTypes: Record<string, string[]> = {
+	aiText: ["string"],
+	multipleAttachments: ["link", "image"],
+	autoNumber: ["number"],
+	barcode: ["string"],
+	button: ["link"],
+	checkbox: ["boolean"],
+	singleCollaborator: ["string"],
+	count: ["number"],
+	createdBy: ["string"],
+	createdTime: ["date"],
+	currency: ["number", "string"],
+	date: ["date"],
+	dateTime: ["date"],
+	duration: ["string"],
+	email: ["string"],
+	formula: ["string", "number", "boolean", "date", "link", "image"],
+	lastModifiedBy: [],
+	lastModifiedTime: ["date"],
+	multipleRecordLinks: [],
+	multilineText: ["string"],
+	multipleLookupValues: [],
+	multipleCollaborators: [],
+	multipleSelects: [],
+	number: ["number"],
+	percent: ["number"],
+	phoneNumber: ["string"],
+	rating: ["number"],
+	richText: ["formattedText", "string"],
+	rollup: [],
+	singleLineText: ["string"],
+	singleSelect: ["enum", "string"],
+	externalSyncSource: ["string"],
+	url: ["link", "string"],
+};
+
 export async function getIntegrationContext(integrationData: object, databaseName: string) {
 	const { baseId, tableId } = integrationData;
 
@@ -32,10 +68,7 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 
 	try {
 		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
-		console.log(baseSchema);
-
 		const table = baseSchema.tables.find((t) => t.id === tableId);
-		console.log(table);
 
 		return {
 			baseId,
@@ -580,21 +613,26 @@ export function hasFieldConfigurationChanged(
 ): boolean {
 	const { table } = integrationContext;
 
+	const fields = currentConfig;
+
 	const currentFieldsById = new Map<string, CollectionField>();
-	for (const field of currentConfig) {
+	for (const field of fields) {
 		currentFieldsById.set(field.id, field);
 	}
 
-	const suggestedFields = getSuggestedFieldsForTable(table, ignoredFieldIds);
-	if (suggestedFields.length !== currentConfig.length) return true;
+	const properties = Object.values(table.fields).filter(
+		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type].length > 0
+	);
 
-	const includedFields = suggestedFields.filter((field) => currentFieldsById.has(field.id));
+	if (properties.length !== fields.length) return true;
 
-	for (const field of includedFields) {
-		const currentField = currentFieldsById.get(field.id);
+	const includedProperties = properties.filter((property) => currentFieldsById.has(property.id));
 
+	for (const property of includedProperties) {
+		const currentField = currentFieldsById.get(property.id);
 		if (!currentField) return true;
-		if (currentField.type !== field.type) return true;
+
+		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
 	}
 
 	return false;
