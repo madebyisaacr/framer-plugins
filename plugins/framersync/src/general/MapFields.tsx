@@ -7,7 +7,6 @@ import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext.js";
 import { updateWindowSize } from "./PageWindowSizes.js";
-import { motion, AnimatePresence } from "framer-motion";
 import { SegmentedControl, XIcon } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes";
 
@@ -126,9 +125,7 @@ export function MapFieldsPageTemplate({
 		}));
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-
+	const handleSubmit = () => {
 		if (isLoading) return;
 
 		const fields: any[] = [];
@@ -289,111 +286,129 @@ export function MapFieldsPageTemplate({
 	);
 
 	return (
-		<div className="flex-1 flex flex-col gap-2 px-3 overflow-hidden">
+		<div className="flex-1 flex flex-col gap-3 overflow-hidden">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-			<motion.div
-				className="size-full overflow-y-auto flex flex-col"
-				animate={{
-					opacity: settingsMenuFieldConfig ? 0.6 : 1,
-					// filter: settingsMenuFieldConfig ? "blur(6px)" : "blur(0px)",
-					// scale: settingsMenuFieldConfig ? 0.96 : 1,
-				}}
-				initial={false}
-				transition={TRANSITION}
-			>
-				<form
-					onSubmit={handleSubmit}
-					className={classNames(
-						"flex flex-col gap-3 flex-1 pt-4 transition-opacity relative",
-						isLoading && "opacity-50 blur-sm pointer-events-none"
-					)}
-				>
-					<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
-					<div className="flex-1 flex flex-col gap-4">
+			<div className="h-full flex-1 overflow-hidden flex flex-col">
+				<div className="flex flex-row flex-1 w-full overflow-hidden">
+					<div className="flex flex-col flex-1">
 						<div
-							className="grid gap-2 w-full items-center justify-center"
-							style={{
-								gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto`,
-							}}
+							className={classNames(
+								"flex flex-col flex-1 px-3 pb-3 pt-4 transition-opacity relative overflow-y-auto",
+								isLoading && "opacity-50 blur-sm pointer-events-none"
+							)}
 						>
-							<div className="col-start-2 flex flex-row justify-between px-2">
-								<span>{propertyHeaderText}</span>
-								<span className="text-tertiary">Type</span>
-							</div>
-							<div></div>
-							<span className="pl-2">Collection Field Name</span>
-							<span className="col-span-2 pl-[4px]">Field Type</span>
-							<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-							<select
-								className="w-full"
-								value={slugFieldId ?? ""}
-								onChange={(e) => setSlugFieldId(e.target.value)}
-								required
-							>
-								<option value="" disabled>
-									{slugFieldTitleText}
-								</option>
-								<hr />
-								{slugFields.map((field) => (
-									<option key={field.id} value={field.id}>
-										{field.name}
-									</option>
-								))}
-							</select>
-							<div className="flex items-center justify-center">
-								<IconChevron />
-							</div>
-							<StaticInput disabled>Slug</StaticInput>
-							<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-							<div />
-							{pageLevelFields.map(createFieldConfigRow)}
-							{newFields.length + otherFields.length > 0 && (
-								<div className="h-px bg-divider col-span-full"></div>
-							)}
-							{newFields.map(createFieldConfigRow)}
-							{otherFields.map(createFieldConfigRow)}
-							{unsupportedFields.length > 0 && (
-								<div className="h-px bg-divider col-span-full"></div>
-							)}
-							{unsupportedFields.map(createFieldConfigRow)}
-						</div>
-					</div>
-					<div className="left-0 bottom-0 w-full flex flex-row items-center justify-between gap-3 sticky bg-primary py-3 border-t border-divider border-opacity-20 max-w-full overflow-hidden">
-						<div className="inline-flex items-center min-w-0 flex-1">
-							{error ? (
-								<span className="text-[#f87171]">{error.message}</span>
-							) : (
-								<>
-									<span className="text-tertiary flex-shrink-0 whitespace-pre">
-										Importing from{" "}
-									</span>
-									<a
-										href={databaseUrl}
-										className="font-semibold text-secondary hover:text-primary truncate"
-										target="_blank"
-										tabIndex={-1}
+							<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
+							<div className="flex-1 flex flex-col gap-4">
+								<div
+									className="grid gap-2 w-full items-center justify-center"
+									style={{
+										gridTemplateColumns: `16px 1.25fr 8px 1fr minmax(100px, auto) auto`,
+									}}
+								>
+									<div className="col-start-2 flex flex-row justify-between px-2">
+										<span>{propertyHeaderText}</span>
+										<span className="text-tertiary">Type</span>
+									</div>
+									<div></div>
+									<span className="pl-2">Collection Field Name</span>
+									<span className="col-span-2 pl-[4px]">Field Type</span>
+									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
+									<select
+										className="w-full"
+										value={slugFieldId ?? ""}
+										onChange={(e) => setSlugFieldId(e.target.value)}
+										required
 									>
-										{databaseName}
-									</a>
-								</>
-							)}
+										<option value="" disabled>
+											{slugFieldTitleText}
+										</option>
+										<hr />
+										{slugFields.map((field) => (
+											<option key={field.id} value={field.id}>
+												{field.name}
+											</option>
+										))}
+									</select>
+									<div className="flex items-center justify-center">
+										<IconChevron />
+									</div>
+									<StaticInput disabled>Slug</StaticInput>
+									<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
+									<div />
+									{pageLevelFields.map(createFieldConfigRow)}
+									{newFields.length + otherFields.length > 0 && (
+										<div className="h-px bg-divider col-span-full"></div>
+									)}
+									{newFields.map(createFieldConfigRow)}
+									{otherFields.map(createFieldConfigRow)}
+									{unsupportedFields.length > 0 && (
+										<div className="h-px bg-divider col-span-full"></div>
+									)}
+									{unsupportedFields.map(createFieldConfigRow)}
+								</div>
+							</div>
 						</div>
-						<Button primary className="w-auto px-4 min-w-[100px]" disabled={!slugFieldId}>
-							{pluginContext.type === "update" ? "Save & Import" : "Import"}
-						</Button>
 					</div>
-				</form>
-			</motion.div>
+					<div className="w-[285px] h-full relative">
+						<div className="absolute left-0 inset-y-3 w-px bg-divider z-10" />
+						{settingsMenuFieldConfig ? (
+							<FieldSettingsMenu
+								fieldConfig={settingsMenuFieldConfig}
+								fieldTypes={fieldTypes}
+								fieldNames={fieldNameOverrides}
+								disabledFieldIds={disabledFieldIds}
+								setFieldImportEnabled={setFieldImportEnabled}
+								handleFieldNameChange={handleFieldNameChange}
+								handleFieldTypeChange={handleFieldTypeChange}
+								getFieldConversionMessage={getFieldConversionMessage}
+								allFieldSettings={allFieldSettings}
+								getPropertyTypeName={getPropertyTypeName}
+								onClose={closeSettingsMenu}
+							/>
+						) : (
+							<div />
+						)}
+					</div>
+				</div>
+				<div className="relative w-full flex flex-row items-center justify-between gap-3 p-3 overflow-hidden">
+					<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
+					<div className="inline-flex items-center min-w-0 flex-1">
+						{error ? (
+							<span className="text-[#f87171]">{error.message}</span>
+						) : (
+							<>
+								<span className="text-tertiary flex-shrink-0 whitespace-pre">Importing from </span>
+								<a
+									href={databaseUrl}
+									className="font-semibold text-secondary hover:text-primary truncate"
+									target="_blank"
+									tabIndex={-1}
+								>
+									{databaseName}
+								</a>
+							</>
+						)}
+					</div>
+					<Button
+						primary
+						onClick={handleSubmit}
+						className="w-auto px-4 min-w-[100px]"
+						disabled={!slugFieldId}
+					>
+						{pluginContext.type === "update" ? "Save & Import" : "Import"}
+					</Button>
+				</div>
+			</div>
 			{isLoading && (
 				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
 					<Spinner inline />
 					Importing items...
 				</div>
 			)}
-			{settingsMenuFieldConfig && (
+			{/* {settingsMenuFieldConfig && (
 				<div className="absolute inset-0 cursor-pointer" onClick={closeSettingsMenu} />
-			)}
-			<AnimatePresence>
+			)} */}
+			{/* <AnimatePresence>
 				{settingsMenuFieldConfig && (
 					<FieldSettingsMenu
 						fieldConfig={settingsMenuFieldConfig}
@@ -409,7 +424,7 @@ export function MapFieldsPageTemplate({
 						onClose={closeSettingsMenu}
 					/>
 				)}
-			</AnimatePresence>
+			</AnimatePresence> */}
 		</div>
 	);
 }
@@ -481,9 +496,8 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 	return (
 		<div
 			className={classNames(
-				"w-full h-6 flex items-center bg-secondary rounded gap-1.5",
+				"w-full h-6 flex items-center bg-secondary rounded gap-1.5 px-2",
 				disabled && "opacity-50",
-				leftText ? "px-2" : "pl-2 pr-5",
 				className
 			)}
 		>
@@ -586,15 +600,9 @@ function FieldSettingsMenu({
 	}, [propertyType, fieldType]);
 
 	return (
-		<motion.div
-			className="absolute inset-y-3 right-3 w-[300px] flex flex-col rounded-lg bg-modal"
-			initial={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
-			animate={{ x: 0, boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px" }}
-			exit={{ x: 315, boxShadow: "rgba(0, 0, 0, 0) 0px 10px 30px 0px" }}
-			transition={TRANSITION}
-		>
+		<div className="size-full flex flex-col">
 			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
-				<XIcon onClick={onClose} className="absolute top-5 right-3" />
+				{/* <XIcon onClick={onClose} className="absolute top-5 right-3" /> */}
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{getPropertyTypeName(fieldConfig.property.type)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
@@ -693,13 +701,7 @@ function FieldSettingsMenu({
 					</>
 				)}
 			</div>
-			<div className="flex flex-col w-full p-3 relative">
-				{/* <div className="absolute inset-x-3 top-0 h-px bg-divider" /> */}
-				<Button primary onClick={onClose}>
-					Done
-				</Button>
-			</div>
-		</motion.div>
+		</div>
 	);
 }
 
