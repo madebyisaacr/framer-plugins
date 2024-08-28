@@ -1,3 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500..700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 [data-framer-theme="light"] {
 	--color-bg-secondary: var(--framer-color-bg-tertiary);
 	--color-bg-tertiary: var(--framer-color-bg-secondary);

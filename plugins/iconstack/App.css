@@ -1,9 +1,5 @@
 @import url("@shared/shared.css");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .icon-img {
 	@apply size-[24px] relative object-center top-[14px] left-[14px] pointer-events-none;
 }
