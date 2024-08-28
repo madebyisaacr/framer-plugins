@@ -241,24 +241,6 @@ export function MapFieldsPageTemplate({
 		);
 	}
 
-	const closeSettingsMenu = () => {
-		setSettingsMenuFieldConfig(null);
-	};
-
-	useEffect(() => {
-		const handleEscapeKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				closeSettingsMenu();
-			}
-		};
-
-		document.addEventListener("keydown", handleEscapeKey);
-
-		return () => {
-			document.removeEventListener("keydown", handleEscapeKey);
-		};
-	}, []);
-
 	const newFields = fieldConfigList.filter(
 		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
 	);
@@ -356,7 +338,6 @@ export function MapFieldsPageTemplate({
 								getFieldConversionMessage={getFieldConversionMessage}
 								allFieldSettings={allFieldSettings}
 								getPropertyTypeName={getPropertyTypeName}
-								onClose={closeSettingsMenu}
 							/>
 						) : (
 							<div />
@@ -398,26 +379,6 @@ export function MapFieldsPageTemplate({
 					Importing items...
 				</div>
 			)}
-			{/* {settingsMenuFieldConfig && (
-				<div className="absolute inset-0 cursor-pointer" onClick={closeSettingsMenu} />
-			)} */}
-			{/* <AnimatePresence>
-				{settingsMenuFieldConfig && (
-					<FieldSettingsMenu
-						fieldConfig={settingsMenuFieldConfig}
-						fieldTypes={fieldTypes}
-						fieldNames={fieldNameOverrides}
-						disabledFieldIds={disabledFieldIds}
-						setFieldImportEnabled={setFieldImportEnabled}
-						handleFieldNameChange={handleFieldNameChange}
-						handleFieldTypeChange={handleFieldTypeChange}
-						getFieldConversionMessage={getFieldConversionMessage}
-						allFieldSettings={allFieldSettings}
-						getPropertyTypeName={getPropertyTypeName}
-						onClose={closeSettingsMenu}
-					/>
-				)}
-			</AnimatePresence> */}
 		</div>
 	);
 }
@@ -543,7 +504,6 @@ function FieldSettingsMenu({
 	fieldConfig,
 	fieldTypes,
 	fieldNames,
-	onClose,
 	disabledFieldIds,
 	setFieldImportEnabled,
 	handleFieldNameChange,
