@@ -57,6 +57,7 @@ export function SelectDatabasePage() {
 			isRefetching={isRefetching}
 			onSubmit={onSubmit}
 			title="Select a Notion database to sync"
+			showDatabaseIcons
 			instructions={
 				<>
 					<img src={notionConnectSrc} alt="Notion connect" className="w-full rounded" />

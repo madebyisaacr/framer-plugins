@@ -1,7 +1,7 @@
 import "./globals.css";
 import "./App.css";
 
-import { ReactNode, StrictMode, Suspense, useState, useEffect } from "react";
+import { ReactNode, StrictMode, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
@@ -149,10 +149,8 @@ function AuthenticatedApp() {
 	const { pluginContext } = usePluginContext();
 
 	const integration = integrations[pluginContext.integrationId];
-
 	if (!integration) {
-		// TODO: Handle this case
-		return <div>Invalid integration</div>;
+		return null;
 	}
 
 	const synchronizeMutation = integration.useSynchronizeDatabaseMutation(pluginContext, {
@@ -189,13 +187,11 @@ function App() {
 		updatePluginContext(authenticatedContext);
 	};
 
-	if (!pluginContext.isAuthenticated) {
-		const integration = integrations[pluginContext.integrationId];
+	const integration = integrations[pluginContext.integrationId];
 
-		if (!integration) {
-			return <IntegrationsPage />;
-		}
-
+	if (!integration) {
+		return <IntegrationsPage />;
+	} else if (!pluginContext.isAuthenticated) {
 		const { AuthenticatePage } = integration;
 		return <AuthenticatePage onAuthenticated={handleAuthenticated} />;
 	}

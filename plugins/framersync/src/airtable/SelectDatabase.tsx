@@ -1,25 +1,15 @@
-import { airtableFetch, authorize } from "./airtable";
-import { FormEvent, useEffect, useState } from "react";
+import { airtableFetch } from "./airtable";
+import { useEffect, useState } from "react";
 import { assert } from "../utils";
-import { ReloadIcon } from "../components/Icons";
-import Button from "@shared/Button";
-import classNames from "classnames";
-import { Spinner } from "@shared/spinner/Spinner";
-import { updateWindowSize } from "../general/PageWindowSizes";
 import { usePluginContext } from "../general/PluginContext";
+import SelectDatabasePageTemplate from "../general/SelectDatabaseTemplate";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
 
-	const [selectedBase, setSelectedBase] = useState<string | null>(null);
-	const [selectedTable, setSelectedTable] = useState<string | null>(null);
-	const [baseTables, setBaseTables] = useState({});
-
 	const [isLoading, setIsLoading] = useState(true);
 	const [bases, setBases] = useState([]);
 	const [isRefetching, setIsRefetching] = useState(false);
-
-	updateWindowSize("SelectDatabase");
 
 	async function fetchBases() {
 		if (!isLoading) {
@@ -37,13 +27,6 @@ export function SelectDatabasePage() {
 		}
 
 		if (!data.bases) return;
-
-		for (const base of data.bases) {
-			const baseSchema = await airtableFetch(`meta/bases/${base.id}/tables`);
-			if (baseSchema?.tables) {
-				setBaseTables((prev) => ({ ...prev, [base.id]: baseSchema.tables }));
-			}
-		}
 	}
 
 	// TODO: Implement global cache for bases and tables to prevent refetching twice on first load
@@ -51,26 +34,11 @@ export function SelectDatabasePage() {
 		fetchBases();
 	}, []);
 
-	const onTableClick = (base, table) => {
-		if (selectedTable == table.id) {
-			setSelectedBase(null);
-			setSelectedTable(null);
-		} else {
-			setSelectedBase(base.id);
-			setSelectedTable(table.id);
-		}
-	};
-
-	const handleSubmit = (event: FormEvent) => {
-		event.preventDefault();
-
+	const onSubmit = (baseId: string, table: object) => {
 		assert(bases);
 
-		const base = bases.find((base) => base.id === selectedBase);
-		const table = baseTables[selectedBase]?.find((table) => table.id === selectedTable);
+		const base = bases.find((base) => base.id === baseId);
 		if (!base || !table) {
-			setSelectedBase(null);
-			setSelectedTable(null);
 			return;
 		}
 
@@ -79,65 +47,26 @@ export function SelectDatabasePage() {
 		});
 	};
 
+	const getSubdatabases = async (baseId: string) => {
+		const baseSchema = await airtableFetch(`meta/bases/${baseId}/tables`);
+		return baseSchema.tables || null;
+	};
+
+	const databases = bases.map((base) => ({
+		id: base.id,
+		title: base.name,
+	}));
+
 	return (
-		<div className="flex flex-row gap-3 size-full p-3">
-			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
-			<div className="flex flex-col gap-2 flex-1 justify-between">
-				<div className="flex items-center justify-between">
-					<span className="text-secondary">Select a table from an Airtable base to sync</span>
-					<button
-						className="w-[32px] bg-transparent flex items-center justify-center text-secondary"
-						type="button"
-						onClick={fetchBases}
-					>
-						<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
-					</button>
-				</div>
-				{isLoading ? (
-					<div className="flex flex-col items-center justify-center flex-1 gap-4">
-						<Spinner inline />
-						Loading bases...
-					</div>
-				) : (
-					<div className="flex-1 flex flex-col gap-2 divide-y divide-divider">
-						{bases?.map((base) => (
-							<div key={base.id} className="flex flex-col pt-1">
-								<div
-									className={classNames(
-										"flex flex-row items-center h-7 font-semibold transition-colors",
-										selectedBase == base.id ? "text-primary" : "text-secondary"
-									)}
-								>
-									{base.name}
-								</div>
-								{baseTables[base.id]?.map((table) => (
-									<label
-										htmlFor={table.id}
-										key={table.id}
-										onClick={() => onTableClick(base, table)}
-										className={classNames(
-											"flex flex-row gap-1.5 items-center cursor-pointer px-2 py-1.5 rounded transition-colors",
-											selectedTable == table.id && "bg-secondary"
-										)}
-									>
-										<input
-											type="checkbox"
-											name={table.id}
-											checked={selectedTable === table.id}
-											readOnly
-										/>
-										{table.name}
-									</label>
-								))}
-							</div>
-						))}
-					</div>
-				)}
-				<Button onClick={authorize}>Connect Another Base</Button>
-				<Button primary disabled={!selectedBase} onClick={handleSubmit}>
-					Next: Configure Collection Fields
-				</Button>
-			</div>
-		</div>
+		<SelectDatabasePageTemplate
+			databases={databases}
+			refetch={fetchBases}
+			isLoading={isLoading}
+			isRefetching={isRefetching}
+			onSubmit={onSubmit}
+			title="Select an Airtable base to sync"
+			subdatabases
+			getSubdatabases={getSubdatabases}
+		/>
 	);
 }
