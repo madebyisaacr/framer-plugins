@@ -241,6 +241,24 @@ export function MapFieldsPageTemplate({
 		);
 	}
 
+	const closeSettingsMenu = () => {
+		setSettingsMenuFieldConfig(null);
+	};
+
+	useEffect(() => {
+		const handleEscapeKey = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				closeSettingsMenu();
+			}
+		};
+
+		document.addEventListener("keydown", handleEscapeKey);
+
+		return () => {
+			document.removeEventListener("keydown", handleEscapeKey);
+		};
+	}, []);
+
 	const newFields = fieldConfigList.filter(
 		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
 	);
