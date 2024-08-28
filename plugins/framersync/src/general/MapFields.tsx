@@ -226,12 +226,12 @@ export function MapFieldsPageTemplate({
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
-						{/* <FieldTypeSelector
+						<FieldTypeSelector
 							fieldType={fieldTypes[id]}
 							availableFieldTypes={fieldConfig.conversionTypes}
 							disabled={isDisabled}
 							onChange={(value) => handleFieldTypeChange(id, value)}
-						/> */}
+						/>
 					</>
 				)}
 				{!fieldConfig.unsupported && (
@@ -286,7 +286,7 @@ export function MapFieldsPageTemplate({
 								<div
 									className="grid gap-2 w-full items-center justify-center"
 									style={{
-										gridTemplateColumns: `16px 1.25fr 8px 1fr auto`,
+										gridTemplateColumns: `16px 1.5fr 8px 1fr 150px auto`,
 									}}
 								>
 									<div className="col-start-2 flex flex-row justify-between px-2">
@@ -295,8 +295,8 @@ export function MapFieldsPageTemplate({
 									</div>
 									<div></div>
 									<span className="pl-2">Collection Field Name</span>
+									<span className="pl-[4px]">Field Type</span>
 									<div />
-									{/* <span className="col-span-2 pl-[4px]">Field Type</span> */}
 									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
 									<select
 										className="w-full"
@@ -318,8 +318,8 @@ export function MapFieldsPageTemplate({
 										<IconChevron />
 									</div>
 									<StaticInput disabled>Slug</StaticInput>
-									{/* <FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} /> */}
-									<StaticInput disabled></StaticInput>
+									<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
+									<EditButton onClick={() => {}} />
 									{pageLevelFields.map(createFieldConfigRow)}
 									{newFields.length + otherFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
@@ -419,7 +419,7 @@ function UnsupportedFieldBlock({ title, text }) {
 
 	return (
 		<div
-			className="col-span-2 w-full h-6 relative"
+			className="col-span-3 w-full h-6 relative"
 			onMouseEnter={() => setHover(true)}
 			onMouseLeave={() => setHover(false)}
 		>
@@ -719,6 +719,7 @@ function EditButton({ onClick }) {
 				strokeWidth="2"
 				strokeLinecap="round"
 				strokeLinejoin="round"
+				className="-mr-0.5"
 			>
 				<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
 				<path d="M13.5 6.5l4 4" />

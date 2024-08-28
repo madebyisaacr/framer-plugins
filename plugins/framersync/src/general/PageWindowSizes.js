@@ -18,8 +18,8 @@ const pageSizes = {
     height: 550,
   },
   MapFields: {
-    width: 900,
-    height: 600,
+    width: 1000,
+    height: 650,
   },
 };
 
