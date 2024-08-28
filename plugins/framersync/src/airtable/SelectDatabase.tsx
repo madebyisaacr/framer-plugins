@@ -67,6 +67,8 @@ export function SelectDatabasePage() {
 			title="Select an Airtable base to sync"
 			subdatabases
 			getSubdatabases={getSubdatabases}
+			databasesLabel="Bases"
+			subdatabasesLabel="Tables"
 		/>
 	);
 }

@@ -26,6 +26,8 @@ export default function SelectDatabasePageTemplate({
 	showDatabaseIcons = false,
 	subdatabases = false,
 	getSubdatabases = null,
+	databasesLabel = "",
+	subdatabasesLabel = "",
 }) {
 	const { updatePluginContext } = usePluginContext();
 
@@ -84,7 +86,7 @@ export default function SelectDatabasePageTemplate({
 				{isLoading ? (
 					<div className="flex flex-col items-center justify-center flex-1 gap-4">
 						<Spinner inline />
-						Loading Databases...
+						Loading {databasesLabel}...
 					</div>
 				) : (
 					<div className="flex-1 flex flex-col">
@@ -101,6 +103,7 @@ export default function SelectDatabasePageTemplate({
 								getSubdatabases={getSubdatabases}
 								selectedSubdatabase={selectedSubdatabase}
 								setSelectedSubdatabase={setSelectedSubdatabase}
+								subdatabasesLabel={subdatabasesLabel}
 								onClick={() => {
 									setSelectedDatabaseId(selectedDatabaseId === database.id ? null : database.id);
 									setSelectedSubdatabase(null);
@@ -129,12 +132,13 @@ function DatabaseButton({
 	getSubdatabases,
 	selectedSubdatabase,
 	setSelectedSubdatabase,
+	subdatabasesLabel,
 }) {
 	const [subdatabases, setSubdatabases] = useState(null);
+	const [isLoadingSubdatabases, setIsLoadingSubdatabases] = useState(true);
 
 	useEffect(() => {
 		if (hasSubdatabases && getSubdatabases && selected) {
-
 			if (!subdatabases) {
 				const fetchSubdatabases = async () => {
 					const result = await getSubdatabases(databaseId);
@@ -142,6 +146,7 @@ function DatabaseButton({
 					if (result.length) {
 						setSelectedSubdatabase(result[0]);
 					}
+					setIsLoadingSubdatabases(false);
 				};
 				fetchSubdatabases();
 			} else {
@@ -188,24 +193,33 @@ function DatabaseButton({
 			{selected && hasSubdatabases && (
 				<div className="flex flex-col px-1 pb-1 pt-1.5 relative">
 					<div className="absolute top-0 inset-x-2 h-px bg-divider-secondary" />
-					{subdatabases?.map((subdatabase) => (
-						<div
-							key={subdatabase.id}
-							className={classNames(
-								"rounded h-6 flex flex-row items-center px-1",
-								selectedSubdatabase === subdatabase ? "bg-primary text-tint font-semibold" : "text-secondary font-medium"
-							)}
-							style={{
-								boxShadow:
-									selectedSubdatabase === subdatabase ? "0 2px 4px 0 rgba(0,0,0,0.15)" : null,
-							}}
-							onClick={() => {
-								setSelectedSubdatabase(selectedSubdatabase === subdatabase ? null : subdatabase);
-							}}
-						>
-							{subdatabase.name}
+					{isLoadingSubdatabases ? (
+						<div className="flex flex-row items-center justify-center flex-1 gap-2 min-h-7 text-secondary">
+							<Spinner inline />
+							Loading {subdatabasesLabel}...
 						</div>
-					))}
+					) : (
+						subdatabases?.map((subdatabase) => (
+							<div
+								key={subdatabase.id}
+								className={classNames(
+									"rounded h-6 flex flex-row items-center px-1",
+									selectedSubdatabase === subdatabase
+										? "bg-primary text-tint font-semibold"
+										: "text-secondary font-medium"
+								)}
+								style={{
+									boxShadow:
+										selectedSubdatabase === subdatabase ? "0 2px 4px 0 rgba(0,0,0,0.15)" : null,
+								}}
+								onClick={() => {
+									setSelectedSubdatabase(subdatabase);
+								}}
+							>
+								{subdatabase.name}
+							</div>
+						))
+					)}
 				</div>
 			)}
 		</div>
