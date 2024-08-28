@@ -9,6 +9,7 @@ import { usePluginContext, PluginContext } from "./PluginContext.js";
 import { updateWindowSize } from "./PageWindowSizes.js";
 import { SegmentedControl, XIcon } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes";
+import BackButton from "../components/BackButton";
 
 const TRANSITION = {
 	type: "spring",
@@ -238,14 +239,16 @@ export function MapFieldsPageTemplate({
 		);
 	}
 
-	const closeSettingsMenu = () => {
-		setEditMenuFieldConfig(null);
+	const onBackButtonClick = () => {
+		updatePluginContext({
+			integrationContext: null,
+		})
 	};
 
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
-				closeSettingsMenu();
+				setEditMenuFieldConfig(null)
 			}
 		};
 
@@ -274,11 +277,14 @@ export function MapFieldsPageTemplate({
 					<div className="flex flex-col flex-1">
 						<div
 							className={classNames(
-								"flex flex-col flex-1 px-3 pb-3 pt-4 gap-3 transition-opacity relative overflow-y-auto",
+								"flex flex-col flex-1 p-3 gap-3 transition-opacity relative overflow-y-auto",
 								isLoading && "opacity-50 blur-sm pointer-events-none"
 							)}
 						>
-							<h1 className="text-lg font-bold px-[36px] mb-2">Configure Collection Fields</h1>
+							<div className="flex flex-col gap-2 px-[26px] mb-2">
+								<BackButton onClick={onBackButtonClick} />
+								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
+							</div>
 							<div className="flex-1 flex flex-col gap-4">
 								<div
 									className="grid gap-2 w-full items-center justify-center"
@@ -286,8 +292,8 @@ export function MapFieldsPageTemplate({
 										gridTemplateColumns: `16px 1.5fr 8px 1fr 150px auto`,
 									}}
 								>
-									<div className="col-start-2 flex flex-row justify-between px-2">
-										<span className="text-ellipsis text-nowrap overflow-hidden capitalize">
+									<div className="col-start-2 flex flex-row justify-between">
+										<span className="text-ellipsis text-nowrap overflow-hidden capitalize font-semibold">
 											{propertyLabelText}
 										</span>
 										<span className="text-tertiary text-ellipsis text-nowrap overflow-hidden">
@@ -295,10 +301,10 @@ export function MapFieldsPageTemplate({
 										</span>
 									</div>
 									<div></div>
-									<span className="text-ellipsis text-nowrap overflow-hidden pl-2">
+									<span className="text-ellipsis text-nowrap overflow-hidden font-semibold">
 										Collection Field Name
 									</span>
-									<span className="text-ellipsis text-nowrap overflow-hidden pl-[4px]">
+									<span className="text-ellipsis text-nowrap overflow-hidden font-semibold">
 										Field Type
 									</span>
 									<div />
@@ -349,9 +355,7 @@ export function MapFieldsPageTemplate({
 								</div>
 								<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
 									<div className="min-h-10 flex flex-row items-center justify-between -mb-2">
-										<span className="text-primary font-semibold">
-											{slugFieldTitleText}
-										</span>
+										<span className="text-primary font-semibold">{slugFieldTitleText}</span>
 										<span className="text-tertiary pr-2">Type</span>
 									</div>
 									<div className="flex flex-col gap-0.5 flex-1">
