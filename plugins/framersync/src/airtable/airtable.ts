@@ -40,13 +40,13 @@ export const propertyConversionTypes: Record<string, string[]> = {
 	duration: ["string"],
 	email: ["string"],
 	formula: ["string", "number", "boolean", "date", "link", "image"],
-	lastModifiedBy: [],
+	lastModifiedBy: ["string"],
 	lastModifiedTime: ["date"],
 	multipleRecordLinks: [],
 	multilineText: ["string"],
 	multipleLookupValues: [],
 	multipleCollaborators: [],
-	multipleSelects: [],
+	multipleSelects: ["enum", "string"],
 	number: ["number"],
 	percent: ["number"],
 	phoneNumber: ["string"],
@@ -266,6 +266,7 @@ export function getPropertyValue(
 		case "aiText":
 			return value.value;
 		case "multipleAttachments":
+			return null;
 		case "multipleRecordLinks":
 			return null;
 		case "barcode":

@@ -46,7 +46,40 @@ const propertyTypeNames = {
 	url: "URL",
 };
 const fieldConversionMessages = {};
-const allFieldSettings = [];
+const allFieldSettings = [
+	{ propertyType: "createdTime", time: true },
+	{ propertyType: "dateTime", time: true },
+	{ propertyType: "lastModifiedTime", time: true },
+	{ propertyType: "formula", fieldType: "date", time: true },
+	{
+		propertyType: "multipleAttachments",
+		multipleFields: {
+			true: "The attachments options will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first attachment will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+	{
+		propertyType: "multipleLookupValues",
+		multipleFields: {
+			true: "The lookup values will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first lookup value will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+	{
+		propertyType: "multipleCollaborators",
+		multipleFields: {
+			true: "The collaborators' names will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first collaborator's name will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+	{
+		propertyType: "multipleSelects",
+		multipleFields: {
+			true: "The multi-select options will be imported as multiple CMS fields with a number ending added to each field's name.",
+			false: "Only the first option will be imported as a CMS field, and the rest will be ignored.",
+		},
+	},
+];
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom

@@ -515,13 +515,14 @@ function StaticInput({ children, disabled = false, className = "", leftText = ""
 				className
 			)}
 		>
-			<span className="shrink-0">{children}</span>
+			<span className="shrink-0 flex flex-row items-center gap-1.5">{children}</span>
 			{leftText && (
 				<span
 					className={classNames(
 						"text-right text-ellipsis text-nowrap overflow-hidden shrink",
 						disabled ? "text-secondary" : "text-tertiary"
 					)}
+					title={leftText}
 				>
 					{leftText}
 				</span>
