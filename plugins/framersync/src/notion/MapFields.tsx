@@ -220,7 +220,7 @@ export function MapFieldsPage({
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}
-			propertyHeaderText="Notion Property"
+			propertyLabelText="Notion property"
 			slugFieldTitleText="Slug Field Property"
 			databaseName={richTextToPlainText(database.title)}
 			databaseUrl={database.url}

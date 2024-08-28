@@ -44,7 +44,7 @@ export function MapFieldsPageTemplate({
 	getPossibleSlugFields,
 	getInitialSlugFieldId,
 	createFieldConfig,
-	propertyHeaderText,
+	propertyLabelText,
 	slugFieldTitleText,
 	databaseName,
 	databaseUrl,
@@ -287,8 +287,8 @@ export function MapFieldsPageTemplate({
 									}}
 								>
 									<div className="col-start-2 flex flex-row justify-between px-2">
-										<span className="text-ellipsis text-nowrap overflow-hidden">
-											{propertyHeaderText}
+										<span className="text-ellipsis text-nowrap overflow-hidden capitalize">
+											{propertyLabelText}
 										</span>
 										<span className="text-tertiary text-ellipsis text-nowrap overflow-hidden">
 											Type
@@ -344,14 +344,14 @@ export function MapFieldsPageTemplate({
 						{editMenuFieldConfig == "slug" ? (
 							<div className="size-full flex flex-col">
 								<div className="relative flex flex-col gap-1 w-full p-3">
-									<h1 className="text-lg font-bold -mb-1">Slug</h1>
+									<h1 className="text-lg font-bold -mb-1 mt-1">Slug</h1>
 									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 								</div>
 								<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
 									<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
-										Slug Field
+									{slugFieldTitleText}
 									</div>
-									<div className="flex flex-col gap-0.5">
+									<div className="flex flex-col gap-0.5 flex-1">
 										{slugFields.map((field) => (
 											<label
 												key={field.id}
@@ -372,6 +372,14 @@ export function MapFieldsPageTemplate({
 												<span className="text-tertiary">{getPropertyTypeName(field.type)}</span>
 											</label>
 										))}
+									</div>
+									<div className="flex flex-col gap-1 p-3 bg-secondary rounded text-secondary">
+										<p className="text-primary font-semibold">What is a slug field?</p>
+										<p>
+											The slug field is a unique ID for each item in the collection. If the
+											CMS collection has a detail page, it is used to create a URL for each item.
+										</p>
+										<p>The selected {propertyLabelText} will be used to generate the slug field.</p>
 									</div>
 								</div>
 							</div>
@@ -607,7 +615,7 @@ function FieldSettingsMenu({
 	return (
 		<div className="size-full flex flex-col">
 			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
-				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
+				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{getPropertyTypeName(fieldConfig.property.type)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
