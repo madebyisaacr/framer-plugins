@@ -11,13 +11,6 @@ import { SegmentedControl, XIcon } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes";
 import BackButton from "../components/BackButton";
 
-const TRANSITION = {
-	type: "spring",
-	stiffness: 1000,
-	damping: 60,
-	mass: 1,
-};
-
 export interface CollectionFieldConfig {
 	property: object;
 	isNewField: boolean;
