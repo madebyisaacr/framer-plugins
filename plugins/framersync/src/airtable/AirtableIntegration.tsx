@@ -4,6 +4,7 @@ import {
 	refreshAirtableToken,
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
+	hasFieldConfigurationChanged
 } from "./airtable";
 import { SelectDatabasePage } from "./SelectDatabase";
 import { MapFieldsPage } from "./MapFields";
@@ -17,6 +18,7 @@ export default {
 	refreshToken: refreshAirtableToken,
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
+	hasFieldConfigurationChanged,
 
 	AuthenticatePage,
 	SelectDatabasePage,

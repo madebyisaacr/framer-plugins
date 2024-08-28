@@ -7,6 +7,7 @@ import {
 	hasFieldConfigurationChanged,
 	pageContentField,
 	richTextToPlainText,
+	getFieldConversionTypes,
 } from "./notion";
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
@@ -229,30 +230,6 @@ export function MapFieldsPage({
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
 		/>
 	);
-}
-
-function getFieldConversionTypes(property: NotionProperty) {
-	const propertyTypeMap = {
-		checkbox: ["boolean"],
-		title: ["string"],
-		multi_select: ["string"],
-		phone_number: ["string"],
-		email: ["string"],
-		created_time: ["date"],
-		date: ["date"],
-		last_edited_time: ["date"],
-		files: ["link", "image"],
-		number: ["number"],
-		rich_text: ["formattedText", "string"],
-		select: ["enum", "string"],
-		status: ["enum", "string"],
-		url: ["link", "string"],
-		unique_id: ["string", "number"],
-		formula: ["string", "number", "boolean", "date", "link", "image"],
-		rollup: ["string", "number", "boolean", "date", "link", "image"],
-	};
-
-	return propertyTypeMap[property.type] || [];
 }
 
 function getFieldConversionMessage(fieldType: string, propertyType: string, unsupported: boolean) {

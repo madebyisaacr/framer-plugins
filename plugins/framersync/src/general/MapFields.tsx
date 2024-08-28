@@ -295,8 +295,8 @@ export function MapFieldsPageTemplate({
 				className="size-full overflow-y-auto flex flex-col"
 				animate={{
 					opacity: settingsMenuFieldConfig ? 0.6 : 1,
-					filter: settingsMenuFieldConfig ? "blur(6px)" : "blur(0px)",
-					scale: settingsMenuFieldConfig ? 0.96 : 1,
+					// filter: settingsMenuFieldConfig ? "blur(6px)" : "blur(0px)",
+					// scale: settingsMenuFieldConfig ? 0.96 : 1,
 				}}
 				initial={false}
 				transition={TRANSITION}

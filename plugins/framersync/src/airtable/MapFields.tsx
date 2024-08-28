@@ -175,7 +175,7 @@ export function MapFieldsPage({
 }) {
 	const { pluginContext } = usePluginContext();
 
-	const { table } = pluginContext.integrationContext;
+	const { table, tableId, baseId } = pluginContext.integrationContext;
 
 	assert(table);
 
@@ -190,7 +190,7 @@ export function MapFieldsPage({
 			propertyHeaderText="Airtable Field"
 			slugFieldTitleText="Slug Field Column"
 			databaseName={table.name}
-			databaseUrl={table.url}
+			databaseUrl={`https://airtable.com/${baseId}/${tableId}`}
 			getFieldConversionMessage={getFieldConversionMessage}
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}

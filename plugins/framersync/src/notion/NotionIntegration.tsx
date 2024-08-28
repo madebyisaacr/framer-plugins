@@ -3,6 +3,7 @@ import {
 	isAuthenticated,
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
+	hasFieldConfigurationChanged,
 } from "./notion";
 import { SelectDatabasePage } from "./SelectDatabase";
 import { MapFieldsPage } from "./MapFields";
@@ -15,6 +16,7 @@ export default {
 	isAuthenticated,
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
+	hasFieldConfigurationChanged,
 
 	AuthenticatePage,
 	SelectDatabasePage,

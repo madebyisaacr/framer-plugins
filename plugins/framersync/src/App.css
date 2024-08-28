@@ -11,3 +11,7 @@ select {
 strong {
 	@apply text-primary;
 }
+
+input {
+	@apply bg-secondary;
+}

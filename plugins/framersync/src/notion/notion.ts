@@ -30,6 +30,26 @@ const apiBaseUrl =
 // Storage for the notion API key.
 const notionBearerStorageKey = "notionBearerToken";
 
+const propertyConversionTypes = {
+	checkbox: ["boolean"],
+	title: ["string"],
+	multi_select: ["string"],
+	phone_number: ["string"],
+	email: ["string"],
+	created_time: ["date"],
+	date: ["date"],
+	last_edited_time: ["date"],
+	files: ["link", "image"],
+	number: ["number"],
+	rich_text: ["formattedText", "string"],
+	select: ["enum", "string"],
+	status: ["enum", "string"],
+	url: ["link", "string"],
+	unique_id: ["string", "number"],
+	formula: ["string", "number", "boolean", "date", "link", "image"],
+	rollup: ["string", "number", "boolean", "date", "link", "image"],
+};
+
 // Maximum number of concurrent requests to Notion API
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
@@ -593,11 +613,7 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 }
 
 function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFieldIds: FieldId[]) {
-	const fields: CollectionField[] = [];
-
-	if (!ignoredFieldIds.includes(pageContentField.id)) {
-		fields.push(pageContentField);
-	}
+	const fields: object[] = [];
 
 	for (const key in database.properties) {
 		const property = database.properties[key];
@@ -608,7 +624,6 @@ function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFie
 
 		if (property.type === "title") continue;
 
-		const field = getCollectionFieldForProperty(property);
 		if (field) {
 			fields.push(field);
 		}
@@ -617,26 +632,38 @@ function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFie
 	return fields;
 }
 
+function isPageLevelField(fieldId: string) {
+	return fieldId === "page-icon" || fieldId === "page-cover" || fieldId === "page-content";
+}
+
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
-	database: GetDatabaseResponse,
+	integrationContext: object,
 	ignoredFieldIds: string[]
 ): boolean {
+	const { database } = integrationContext;
+	assert(isFullDatabase(database));
+
+	const fields = currentConfig.filter((field) => !isPageLevelField(field.id));
+
 	const currentFieldsById = new Map<string, CollectionField>();
-	for (const field of currentConfig) {
+	for (const field of fields) {
 		currentFieldsById.set(field.id, field);
 	}
 
-	const suggestedFields = getSuggestedFieldsForDatabase(database, ignoredFieldIds);
-	if (suggestedFields.length !== currentConfig.length) return true;
+	const properties = Object.values(database.properties).filter(
+		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]
+	);
 
-	const includedFields = suggestedFields.filter((field) => currentFieldsById.has(field.id));
+	if (properties.length !== fields.length) return true;
 
-	for (const field of includedFields) {
-		const currentField = currentFieldsById.get(field.id);
+	const includedProperties = properties.filter((property) => currentFieldsById.has(property.id));
 
+	for (const property of includedProperties) {
+		const currentField = currentFieldsById.get(property.id);
 		if (!currentField) return true;
-		if (currentField.type !== field.type) return true;
+
+		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
 	}
 
 	return false;
@@ -655,4 +682,8 @@ export function isUnchangedSinceLastSync(
 	lastSynced.setSeconds(0, 0);
 
 	return lastSynced > lastEdited;
+}
+
+export function getFieldConversionTypes(property: NotionProperty) {
+	return propertyConversionTypes[property.type] || [];
 }

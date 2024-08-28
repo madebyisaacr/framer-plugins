@@ -39,7 +39,7 @@ const queryClient = new QueryClient({
 function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
 	if (pluginContext.type !== "update") return false;
 
-	if (!pluginContext.integration) return false;
+	if (!pluginContext.integrationId) return false;
 	if (!pluginContext.integrationContext) return false;
 	if (!pluginContext.slugFieldId) return false;
 	if (pluginContext.hasChangedFields) return false;
@@ -117,6 +117,12 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			};
 		}
 
+		const hasChangedFields = integration.hasFieldConfigurationChanged(
+			collectionFields,
+			integrationContext,
+			ignoredFieldIds
+		);
+
 		return {
 			type: "update",
 			integrationId,
@@ -127,8 +133,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			lastSyncedTime,
 			slugFieldId,
 			databaseName,
-			// TODO: Fix hasChangedFields
-			// hasChangedFields: hasFieldConfigurationChanged(collectionFields, database, ignoredFieldIds),
+			hasChangedFields,
 			isAuthenticated,
 		};
 	} catch (error) {
@@ -228,7 +233,7 @@ async function runPlugin() {
 		if (framer.mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
 			assert(pluginContext.slugFieldId);
 
-			const result = await integration.synchronizeDatabase(pluginContext.integrationContext);
+			const result = await integration.synchronizeDatabase(pluginContext);
 
 			logSyncResult(result);
 

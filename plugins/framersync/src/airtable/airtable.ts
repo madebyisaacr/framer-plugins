@@ -554,6 +554,10 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 }
 
 function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
+	if (!table) {
+		return [];
+	}
+
 	const properties: object[] = [];
 
 	for (const property of table.fields) {
@@ -571,9 +575,11 @@ function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
 
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
-	table: object,
+	integrationContext: object,
 	ignoredFieldIds: string[]
 ): boolean {
+	const { table } = integrationContext;
+
 	const currentFieldsById = new Map<string, CollectionField>();
 	for (const field of currentConfig) {
 		currentFieldsById.set(field.id, field);
