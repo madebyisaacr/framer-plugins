@@ -241,7 +241,7 @@ async function runPlugin() {
 
 		renderPlugin(
 			<QueryClientProvider client={queryClient}>
-				<div className="w-full flex flex-col overflow-auto flex-1 select-none">
+				<div className="w-full flex flex-col items-center justify-center overflow-auto flex-1 select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
 						<PluginContextProvider initialContext={pluginContext}>
 							<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>
