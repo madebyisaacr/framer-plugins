@@ -1,8 +1,9 @@
 import { framer } from "framer-plugin";
-import React, { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import "./App.css";
 import { iconPacks } from "./IconstackData.jsx";
-import { SearchBar, Button, XIcon, SegmentedControl } from "@shared/components.jsx";
+import { SearchBar, XIcon, SegmentedControl } from "@shared/components.jsx";
+import Button from "@shared/Button.jsx";
 import { PageStack, PageStackContext, BackButton } from "@shared/PageStack.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
@@ -244,9 +245,9 @@ function HomePage() {
 	}
 
 	return (
-		<div className="flex flex-row overflow-hidden flex-1">
+		<div className="flex flex-row overflow-hidden flex-1 max-h-full">
 			<div className="relative flex flex-col flex-1 overflow-x-hidden">
-				<div className="relative flex flex-col w-full p-3 pt-0 gap-2">
+				<div className="relative flex flex-col w-full px-3 pb-3 gap-2">
 					<div className="flex flex-row gap-2">
 						<select
 							value={iconPack.name}
@@ -335,9 +336,9 @@ function HomePage() {
 					/>
 					<div className="absolute h-px inset-x-3 bottom-0 bg-divider"></div>
 				</div>
-				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto p-3 pt-0 flex-1">
+				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto flex-1">
 					<div
-						className="grid w-full pt-3"
+						className="grid w-full p-3"
 						style={{
 							gridTemplateColumns: `repeat(${ICONS_PER_ROW}, ${ICON_HEIGHT}px)`,
 							gridTemplateRows: `repeat(auto-fill, ${ICON_HEIGHT}px)`,

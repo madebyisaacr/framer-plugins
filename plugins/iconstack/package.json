@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": ["../.."],
+  "workspaces": [
+    "../.."
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build --base=${PREFIX_BASE_PATH:+/$npm_package_name}/",
@@ -14,5 +16,9 @@
   "main": "postcss.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41"
+  }
 }
