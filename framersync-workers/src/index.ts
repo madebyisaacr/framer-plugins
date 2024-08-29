@@ -14,9 +14,6 @@ enum Command {
 	Refresh = 'refresh',
 	Redirect = 'redirect',
 	API = 'api',
-	OpenGooglePicker = 'open-picker',
-	PollGooglePicker = 'poll-picker',
-	GooglePickerCallback = 'picker-callback',
 }
 
 async function handleRequest(request: Request, env: Env) {
@@ -385,39 +382,6 @@ async function handleRequest(request: Request, env: Env) {
 				...accessControlOrigin,
 			},
 		});
-	}
-
-	// Open Google Picker //
-	if (request.method === 'GET' && command === Command.OpenGooglePicker && platform === Platform.GoogleSheets) {
-		const accessToken = requestUrl.searchParams.get('access_token');
-
-		if (!accessToken) {
-			return new Response('Missing access token URL param', {
-				status: 400,
-			});
-		}
-
-		return new Response(
-			getGooglePickerHTML({
-				accessToken,
-				developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
-				pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
-			}),
-			{
-				headers: {
-					'Content-Type': 'text/html',
-				},
-			}
-		);
-	}
-
-	// Poll Google Picker //
-	if (request.method === 'POST' && command === Command.PollGooglePicker && platform === Platform.GoogleSheets) {
-		return new Response('Polling Google Picker');
-	}
-
-	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
-		return new Response('Google Picker Callback');
 	}
 
 	if (request.method === 'GET' && requestUrl.pathname === '/') {
