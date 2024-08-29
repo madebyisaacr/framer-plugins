@@ -8,7 +8,7 @@ const pageSizes = {
 	},
 	Authenticate: {
 		width: 350,
-		height: 380,
+		height: 450,
 	},
 	SelectDatabaseWide: {
 		width: 750,

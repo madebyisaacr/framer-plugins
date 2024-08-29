@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { authorize } from "./notion";
-import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
 import { framer } from "framer-plugin";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import Window from "../general/Window";
 import BackButton from "../components/BackButton";
+import { NotionLogo, FramerLogo } from "../assets/AppIcons";
+import { IconChevron } from "../components/Icons";
 
 function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
@@ -64,7 +65,31 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 	return (
 		<Window page="Authenticate" className="flex flex-col justify-center gap-3 pb-3 px-3">
 			<BackButton onClick={onBackButtonClick} />
-			<img src={loginIllustration} className="max-w-100% rounded flex-shrink-0" />
+			<h1 className="text-base font-bold text-primary">
+				Connect your Notion account
+				<br />
+				with FramerSync
+			</h1>
+			<div className="w-full aspect-[1.8] rounded bg-secondary flex flex-row items-center justify-center gap-3">
+				<NotionLogo size={50} />
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="text-tertiary"
+				>
+					<path d="M5 12l14 0" />
+					<path d="M13 18l6 -6" />
+					<path d="M13 6l6 6" />
+				</svg>
+				<FramerLogo size={42} />
+			</div>
 			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
 					<span className="text-center max-w-[80%] block text-secondary">
