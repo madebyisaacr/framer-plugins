@@ -8,7 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
-import GoogleSheets from "./googleSheets/GoogleSheetsIntegration";
+// import GoogleSheets from "./googleSheets/GoogleSheetsIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 
 import { framer } from "framer-plugin";
@@ -23,7 +23,7 @@ import CanvasPage from "./general/CanvasPage";
 export const integrations = {
 	notion: Notion,
 	airtable: Airtable,
-	"google-sheets": GoogleSheets,
+	// "google-sheets": GoogleSheets,
 };
 
 const root = document.getElementById("root");

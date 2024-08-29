@@ -153,41 +153,44 @@ export function MapFieldsPageTemplate({
 		);
 	};
 
+	const selectField = (id: string) => {
+		setEditMenuFieldConfig(id);
+	};
+
 	function FieldConfigRow({ fieldConfig }: { fieldConfig: CollectionFieldConfig }) {
 		const id = fieldConfig.property.id;
 		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
 		return (
 			<Fragment key={fieldConfig.originalFieldName}>
-				<label
-					htmlFor={`${id}-checkbox`}
-					className={classNames(
-						"size-full flex items-center",
-						!fieldConfig.unsupported && "cursor-pointer"
-					)}
-				>
-					<input
-						type="checkbox"
-						id={`${id}-checkbox`}
-						disabled={!fieldConfig.property}
-						checked={!!fieldConfig.property && !isDisabled}
-						className={classNames(
-							"mx-auto",
-							!fieldConfig.property && "opacity-50",
-							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
-						)}
-						onChange={() => {
-							assert(fieldConfig.property);
-
-							handleFieldToggle(id);
-						}}
-					/>
-				</label>
 				<StaticInput
 					ref={(el) => (fieldElementRefs[id] = el)}
 					disabled={isDisabled}
 					leftText={getPropertyTypeName(fieldConfig.property.type)}
+					className="pl-6"
 				>
+					<label
+						className={classNames(
+							"absolute left-0 inset-y-0 w-6 flex items-center justify-center",
+							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
+						)}
+					>
+						<input
+							type="checkbox"
+							id={`${id}-checkbox`}
+							disabled={!fieldConfig.property}
+							checked={!!fieldConfig.property && !isDisabled}
+							className={classNames(
+								(disabledFieldIds.has(id) || !fieldConfig.property || fieldConfig.unsupported) &&
+									"!bg-[#b4b4b4] dark:!bg-[#5b5b5b]",
+								"pointer-events-none"
+							)}
+							onChange={() => {
+								assert(fieldConfig.property);
+								handleFieldToggle(id);
+							}}
+						/>
+					</label>
 					{fieldConfig.originalFieldName}
 					{fieldConfig.isNewField && !fieldConfig.unsupported && (
 						<div
@@ -279,7 +282,7 @@ export function MapFieldsPageTemplate({
 								isLoading && "opacity-50 blur-sm pointer-events-none"
 							)}
 						>
-							<div className="flex flex-col gap-2 px-[26px] mb-2">
+							<div className="flex flex-col gap-2 mb-2">
 								<BackButton onClick={onBackButtonClick} />
 								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
 							</div>
@@ -309,10 +312,10 @@ export function MapFieldsPageTemplate({
 								<div
 									className="grid gap-2 w-full items-center justify-center"
 									style={{
-										gridTemplateColumns: `16px 1.5fr 8px 1fr 150px auto`,
+										gridTemplateColumns: `1.5fr 8px 1fr 150px auto`,
 									}}
 								>
-									<div className="col-start-2 flex flex-row justify-between">
+									<div className="flex flex-row justify-between">
 										<span className="text-ellipsis text-nowrap overflow-hidden capitalize font-semibold">
 											{propertyLabelText}
 										</span>
@@ -328,24 +331,27 @@ export function MapFieldsPageTemplate({
 										Field Type
 									</span>
 									<div />
-									<input type="checkbox" readOnly checked={true} className="opacity-50 mx-auto" />
-									<select
-										ref={(el) => (fieldElementRefs["slug"] = el)}
-										className="w-full"
-										value={slugFieldId ?? ""}
-										onChange={(e) => setSlugFieldId(e.target.value)}
-										required
-									>
-										<option value="" disabled>
-											{slugFieldTitleText}
-										</option>
-										<hr />
-										{slugFields.map((field) => (
-											<option key={field.id} value={field.id}>
-												{field.name}
+									<div className="w-full relative" ref={(el) => (fieldElementRefs["slug"] = el)}>
+										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
+											<input type="checkbox" readOnly checked={true} className="opacity-40" />
+										</div>
+										<select
+											className="w-full pl-6"
+											value={slugFieldId ?? ""}
+											onChange={(e) => setSlugFieldId(e.target.value)}
+											required
+										>
+											<option value="" disabled>
+												{slugFieldTitleText}
 											</option>
-										))}
-									</select>
+											<hr />
+											{slugFields.map((field) => (
+												<option key={field.id} value={field.id}>
+													{field.name}
+												</option>
+											))}
+										</select>
+									</div>
 									<div className="flex items-center justify-center">
 										<IconChevron />
 									</div>
@@ -506,9 +512,6 @@ function FieldTypeSelector({
 }) {
 	return (
 		<div className="relative">
-			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
-				{cmsFieldIcons[fieldType]}
-			</div>
 			{availableFieldTypes?.length > 1 ? (
 				<select
 					disabled={disabled}
@@ -527,6 +530,9 @@ function FieldTypeSelector({
 					{cmsFieldTypeNames[fieldType]}
 				</StaticInput>
 			)}
+			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
+				{cmsFieldIcons[fieldType]}
+			</div>
 		</div>
 	);
 }
@@ -537,7 +543,7 @@ const StaticInput = forwardRef(
 			<div
 				ref={ref}
 				className={classNames(
-					"w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
+					"relative w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
 					disabled && "opacity-50",
 					className
 				)}
