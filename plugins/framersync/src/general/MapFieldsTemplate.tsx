@@ -331,26 +331,15 @@ export function MapFieldsPageTemplate({
 										Field Type
 									</span>
 									<div />
-									<div className="w-full relative" ref={(el) => (fieldElementRefs["slug"] = el)}>
+									<div
+										ref={(el) => (fieldElementRefs["slug"] = el)}
+										onClick={() => setEditMenuFieldConfig("slug")}
+										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
+									>
 										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
 											<input type="checkbox" readOnly checked={true} className="opacity-40" />
 										</div>
-										<select
-											className="w-full pl-6"
-											value={slugFieldId ?? ""}
-											onChange={(e) => setSlugFieldId(e.target.value)}
-											required
-										>
-											<option value="" disabled>
-												{slugFieldTitleText}
-											</option>
-											<hr />
-											{slugFields.map((field) => (
-												<option key={field.id} value={field.id}>
-													{field.name}
-												</option>
-											))}
-										</select>
+										{slugFields.find((field) => field.id === slugFieldId)?.name || slugFieldId}
 									</div>
 									<div className="flex items-center justify-center">
 										<IconChevron />
