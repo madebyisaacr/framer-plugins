@@ -169,7 +169,9 @@ export function MapFieldsPageTemplate({
 	};
 
 	function FieldConfigRow({ fieldConfig }: { fieldConfig: CollectionFieldConfig }) {
-		const id = fieldConfig.property.id;
+		const property = fieldConfig.property;
+		const id = property?.id;
+		const unsupported = fieldConfig.unsupported;
 		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
 
 		return (
@@ -177,34 +179,34 @@ export function MapFieldsPageTemplate({
 				<StaticInput
 					ref={(el) => (fieldElementRefs[id] = el)}
 					disabled={isDisabled}
-					leftText={getPropertyTypeName(fieldConfig.property.type)}
-					className="pl-6 cursor-pointer"
-					onClick={() => selectField(id)}
+					leftText={getPropertyTypeName(property.type)}
+					className={classNames("pl-6", property && !unsupported && "cursor-pointer")}
+					onClick={unsupported ? null : () => selectField(id)}
 				>
 					<label
 						className={classNames(
 							"absolute left-0 inset-y-0 w-6 flex items-center justify-center",
-							fieldConfig.property && !fieldConfig.unsupported && "cursor-pointer"
+							property && !unsupported && "cursor-pointer"
 						)}
 					>
 						<input
 							type="checkbox"
 							id={`${id}-checkbox`}
-							disabled={!fieldConfig.property}
-							checked={!!fieldConfig.property && !isDisabled}
+							disabled={!property}
+							checked={!!property && !isDisabled}
 							className={classNames(
-								(disabledFieldIds.has(id) || !fieldConfig.property || fieldConfig.unsupported) &&
+								(disabledFieldIds.has(id) || !property || unsupported) &&
 									"!bg-[#b4b4b4] dark:!bg-[#5b5b5b]",
 								"pointer-events-none"
 							)}
 							onChange={() => {
-								assert(fieldConfig.property);
+								assert(property);
 								handleFieldToggle(id);
 							}}
 						/>
 					</label>
 					{fieldConfig.originalFieldName}
-					{fieldConfig.isNewField && !fieldConfig.unsupported && (
+					{fieldConfig.isNewField && !unsupported && (
 						<div
 							className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
 							style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
@@ -218,7 +220,7 @@ export function MapFieldsPageTemplate({
 				</div>
 				{!fieldTypes[id] ? (
 					<UnsupportedFieldBlock
-						{...getFieldConversionMessage(fieldTypes[id], fieldConfig.property.type, true)}
+						{...getFieldConversionMessage(fieldTypes[id], property.type, true)}
 					/>
 				) : (
 					<>
@@ -230,7 +232,7 @@ export function MapFieldsPageTemplate({
 							value={fieldNameOverrides[id] ?? ""}
 							onFocus={() => selectField(id)}
 							onChange={(e) => {
-								assert(fieldConfig.property);
+								assert(property);
 								handleFieldNameChange(id, e.target.value);
 							}}
 						></input>
@@ -243,9 +245,7 @@ export function MapFieldsPageTemplate({
 						/>
 					</>
 				)}
-				{!fieldConfig.unsupported && (
-					<EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />
-				)}
+				{!unsupported && <EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />}
 			</Fragment>
 		);
 	}
@@ -531,7 +531,7 @@ function FieldTypeSelector({
 	onChange = (value) => {},
 }) {
 	return (
-		<div className="relative" onClick={onClick}>
+		<div className="relative cursor-pointer" onClick={onClick}>
 			{availableFieldTypes?.length > 1 ? (
 				<select
 					disabled={disabled}
