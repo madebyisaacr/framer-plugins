@@ -1,18 +1,5 @@
-import {
-	APIErrorCode,
-	Client,
-	collectPaginatedAPI,
-	isFullBlock,
-	isFullDatabase,
-	isFullPage,
-	isNotionClientError,
-} from "@notionhq/client";
+import { google, sheets_v4 } from "googleapis";
 import pLimit from "p-limit";
-import {
-	GetDatabaseResponse,
-	PageObjectResponse,
-	RichTextItemResponse,
-} from "@notionhq/client/build/src/api-endpoints";
 import { assert, formatDate, isDefined, isString, slugify } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -23,56 +10,52 @@ export type FieldId = string;
 
 const apiBaseUrl =
 	window.location.hostname === "localhost"
-		? "http://localhost:8787/notion"
-		: "https://framersync-workers.isaac-b49.workers.dev/notion";
+		? "http://localhost:8787/google-sheets"
+		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
-// Storage for the notion API key.
-const notionBearerStorageKey = "notionBearerToken";
+// Storage for the Google Sheets API key.
+const googleSheetsTokenStorageKey = "googleSheetsToken";
 
 const propertyConversionTypes = {
-	checkbox: ["boolean"],
-	title: ["string"],
-	multi_select: ["string"],
-	phone_number: ["string"],
-	email: ["string"],
-	created_time: ["date"],
-	date: ["date"],
-	last_edited_time: ["date"],
-	files: ["link", "image"],
-	number: ["number"],
-	rich_text: ["formattedText", "string"],
-	select: ["enum", "string"],
-	status: ["enum", "string"],
-	url: ["link", "string"],
-	unique_id: ["string", "number"],
-	formula: ["string", "number", "boolean", "date", "link", "image"],
-	rollup: ["string", "number", "boolean", "date", "link", "image"],
+	BOOLEAN: ["boolean"],
+	TEXT: ["string"],
+	NUMBER: ["number"],
+	DATE: ["date"],
+	TIME: ["date"],
+	DATETIME: ["date"],
+	FORMULA: ["string", "number", "boolean", "date"],
+	IMAGE: ["image"],
+	HYPERLINK: ["link", "string"],
 };
 
-// Maximum number of concurrent requests to Notion API
+// Maximum number of concurrent requests to Google Sheets API
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
 
-export type NotionProperty = GetDatabaseResponse["properties"][string];
+export type GoogleSheetsColumn = sheets_v4.Schema$CellData;
 
-export async function getIntegrationContext(integrationData: object, databaseName: string) {
-	const { databaseId } = integrationData;
+export async function getIntegrationContext(integrationData: object, sheetName: string) {
+	const { spreadsheetId } = integrationData;
 
-	if (!databaseId) {
+	if (!spreadsheetId) {
 		return null;
 	}
 
 	try {
-		assert(notion, "Notion client is not initialized");
-		const database = await notion.databases.retrieve({ database_id: databaseId });
+		assert(sheets, "Google Sheets client is not initialized");
+		const response = await sheets.spreadsheets.get({
+			spreadsheetId: spreadsheetId,
+			ranges: [sheetName],
+			includeGridData: true,
+		});
 
 		return {
-			database,
+			sheet: response.data.sheets?.[0],
 		};
 	} catch (error) {
-		if (isNotionClientError(error) && error.code === APIErrorCode.ObjectNotFound) {
+		if (error.code === 404) {
 			return Error(
-				`The database "${databaseName}" was not found. Log in with Notion and select the Database to sync.`
+				`The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
 			);
 		}
 
@@ -80,102 +63,62 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 	}
 }
 
-// A page in database consists of blocks.
-// We allow configuration to include this as a field in the collection.
-// This is used as an identifier to recognize that property and treat it as page content
-export const pageContentField: CollectionField = {
-	type: "formattedText",
-	id: "page-content",
-	name: "Content",
-};
-
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
-	return localStorage.getItem(notionBearerStorageKey) !== null;
+	return localStorage.getItem(googleSheetsTokenStorageKey) !== null;
 }
 
-let notion: Client | null = null;
+let sheets: sheets_v4.Sheets | null = null;
 if (isAuthenticated()) {
-	initNotionClient();
+	initGoogleSheetsClient();
 }
 
-export function initNotionClient() {
-	const token = localStorage.getItem(notionBearerStorageKey);
-	if (!token) throw new Error("Notion API token is missing");
+export function initGoogleSheetsClient() {
+	const token = localStorage.getItem(googleSheetsTokenStorageKey);
+	if (!token) throw new Error("Google Sheets API token is missing");
 
-	notion = new Client({
-		fetch: async (url, fetchInit) => {
-			console.log("Fetching", url);
+	const auth = new google.auth.OAuth2();
+	auth.setCredentials({ access_token: token });
 
-			try {
-				const searchParams = new URLSearchParams();
-				searchParams.set("url", url);
-				searchParams.set("access_token", token);
-				const resp = await fetch(`${apiBaseUrl}/api/?${searchParams.toString()}`, fetchInit);
-
-				// If status is unauthorized, clear the token
-				// And we close the plugin (for now)
-				// TODO: Improve this flow in the plugin.
-				if (resp.status === 401) {
-					localStorage.removeItem(notionBearerStorageKey);
-					await framer.closePlugin(
-						"Notion Authorization Failed. Re-open the plugin to re-authorize.",
-						{
-							variant: "error",
-						}
-					);
-					return resp;
-				}
-
-				return resp;
-			} catch (error) {
-				console.log("Notion API error", error);
-				throw error;
-			}
-		},
-		auth: token,
-	});
+	sheets = google.sheets({ version: "v4", auth });
 }
 
 // The order in which we display slug fields
-const slugFieldTypes: NotionProperty["type"][] = [
-	"title",
-	"rich_text",
-	"unique_id",
-	"formula",
-	"rollup",
-];
+const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
 
 /**
- * Given a Notion Database returns a list of possible fields that can be used as
+ * Given a Google Sheets worksheet returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
 export function getPossibleSlugFields(integrationContext: object) {
-	const { database } = integrationContext;
-	assert(isFullDatabase(database));
+	const { sheet } = integrationContext;
+	assert(sheet && sheet.data && sheet.data[0].rowData);
 
-	const options: NotionProperty[] = [];
+	const headerRow = sheet.data[0].rowData[0].values;
+	const options: GoogleSheetsColumn[] = [];
 
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
-
-		if (slugFieldTypes.includes(property.type)) {
-			options.push(property);
+	headerRow.forEach((cell, index) => {
+		if (slugFieldTypes.includes(cell.effectiveFormat?.numberFormat?.type || "TEXT")) {
+			options.push({ ...cell, columnIndex: index });
 		}
-	}
-	function getOrderIndex(type: NotionProperty["type"]): number {
+	});
+
+	function getOrderIndex(type: string): number {
 		const index = slugFieldTypes.indexOf(type);
 		return index === -1 ? slugFieldTypes.length : index;
 	}
 
-	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
+	options.sort(
+		(a, b) =>
+			getOrderIndex(a.effectiveFormat?.numberFormat?.type || "TEXT") -
+			getOrderIndex(b.effectiveFormat?.numberFormat?.type || "TEXT")
+	);
 
 	return options;
 }
 
-// Authorize the plugin with Notion.
+// Authorize the plugin with Google Sheets.
 export async function authorize() {
 	const response = await fetch(`${apiBaseUrl}/authorize`, {
 		method: "POST",
@@ -204,8 +147,8 @@ export async function authorize() {
 					const { access_token } = tokenInfo;
 
 					clearInterval(interval);
-					localStorage.setItem(notionBearerStorageKey, access_token);
-					initNotionClient();
+					localStorage.setItem(googleSheetsTokenStorageKey, access_token);
+					initGoogleSheetsClient();
 				}
 
 				resolve();
@@ -215,115 +158,31 @@ export async function authorize() {
 }
 
 /**
- * Given a Notion Database Properties object returns a CollectionField object
- * That maps the Notion Property to the Framer CMS collection property type
+ * Given a Google Sheets column returns a CollectionField object
+ * That maps the Google Sheets column to the Framer CMS collection property type
  */
 export function getCollectionFieldForProperty(
-	property: NotionProperty,
+	column: GoogleSheetsColumn,
 	name: string,
 	type: string
 ): CollectionField | null {
-	if (type == "enum") {
-		let cases: any[] = [];
-
-		if (property.type == "select") {
-			cases = property.select.options.map((option) => ({
-				id: option.id,
-				name: option.name,
-			}));
-		} else if (property.type == "status") {
-			cases = property.status.options.map((option) => ({
-				id: option.id,
-				name: option.name,
-			}));
-		}
-
-		return {
-			type: "enum",
-			id: property.id,
-			name,
-			cases,
-		};
-	}
-
 	return {
 		type: type,
-		id: property.id,
+		id: column.columnIndex!.toString(),
 		name,
 	};
 }
 
-export function richTextToPlainText(richText: RichTextItemResponse[]) {
-	return richText.map((value) => value.plain_text).join("");
-}
-
-export function getPropertyValue(
-	property: PageObjectResponse["properties"][string],
-	fieldType: string
-): unknown | undefined {
-	const value = property[property.type];
-
-	switch (property.type) {
-		case "checkbox":
-		case "created_time":
-		case "last_edited_time":
-		case "url":
-		case "number":
-		case "phone_number":
-		case "email":
-			return value;
-		case "title":
-		case "rich_text":
-			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
-		case "created_by":
-		case "last_edited_by":
-			return value?.id;
-		case "multi_select":
-			return value.map((option) => option.name).join(", ");
-		case "people":
-			return value.map((person) => person.id).join(", ");
-		case "formula":
-			switch (fieldType) {
-				case "string":
-				case "link":
-				case "image":
-					return String(value[value.type] ?? "");
-				case "number":
-					return Number(value[value.type] ?? 0);
-				case "date":
-					return value.type == "date" ? value.date : null;
-				case "boolean":
-					return value.type == "boolean" ? value.boolean : !!value;
-				default:
-					return null;
-			}
-		case "rollup":
-			switch (value.type) {
-				case "array":
-					const item = value.array[0];
-					return item ? getPropertyValue(item, fieldType) : null;
-				case "number":
-					return value.number;
-				case "date":
-					return value.date;
-				default:
-					return null;
-			}
-		case "date":
-			return value?.start;
-		case "files":
-			return value[0]?.[value[0].type].url ?? null;
-		case "select":
-		case "status":
-			return fieldType == "enum" ? value?.id : value?.name;
-		case "unique_id":
-			return fieldType == "string"
-				? value.prefix
-					? `${value.prefix}-${value.number}`
-					: String(value.number)
-				: value.number;
+export function getCellValue(cell: sheets_v4.Schema$CellData): unknown {
+	if (cell.effectiveValue?.boolValue !== undefined) {
+		return cell.effectiveValue.boolValue;
+	} else if (cell.effectiveValue?.numberValue !== undefined) {
+		return cell.effectiveValue.numberValue;
+	} else if (cell.effectiveValue?.stringValue !== undefined) {
+		return cell.effectiveValue.stringValue;
+	} else if (cell.formattedValue) {
+		return cell.formattedValue;
 	}
-
 	return null;
 }
 
@@ -335,7 +194,7 @@ export interface SynchronizeMutationOptions {
 }
 
 export interface ItemResult {
-	url: string;
+	rowIndex: number;
 	fieldId?: string;
 	message: string;
 }
@@ -351,7 +210,8 @@ export interface SynchronizeResult extends SyncStatus {
 }
 
 async function processItem(
-	item: PageObjectResponse,
+	row: sheets_v4.Schema$RowData,
+	rowIndex: number,
 	fieldsById: FieldsById,
 	slugFieldId: string,
 	status: SyncStatus,
@@ -363,62 +223,57 @@ async function processItem(
 	const fieldData: Record<string, unknown> = {};
 
 	// Mark the item as seen
-	unsyncedItemIds.delete(item.id);
+	unsyncedItemIds.delete(rowIndex.toString());
 
-	assert(isFullPage(item));
-
-	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
+	if (isUnchangedSinceLastSync(row.values![0].formattedValue!, lastSyncedTime)) {
 		status.info.push({
 			message: `Skipping. last updated: ${formatDate(
-				item.last_edited_time
+				row.values![0].formattedValue!
 			)}, last synced: ${formatDate(lastSyncedTime!)}`,
-			url: item.url,
+			rowIndex,
 		});
 		return null;
 	}
 
-	for (const key in item.properties) {
-		const property = item.properties[key];
-		assert(property);
-
-		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, "string");
+	row.values!.forEach((cell, index) => {
+		if (index.toString() === slugFieldId) {
+			const resolvedSlug = getCellValue(cell);
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
-				continue;
+				return;
 			}
 			slugValue = slugify(resolvedSlug);
 		}
 
-		const field = fieldsById.get(property.id);
+		const field = fieldsById.get(index.toString());
 
-		// We can continue if the property was not included in the field mapping
+		// We can continue if the column was not included in the field mapping
 		if (!field) {
-			continue;
+			return;
 		}
 
-		const fieldValue = getPropertyValue(property, field.type);
-		if (!fieldValue) {
+		const fieldValue = getCellValue(cell);
+		if (fieldValue === null || fieldValue === undefined) {
 			status.warnings.push({
-				url: item.url,
+				rowIndex,
 				fieldId: field.id,
 				message: `Value is missing for field ${field.name}`,
 			});
-			continue;
+			return;
 		}
 
 		fieldData[field.id] = fieldValue;
-	}
+	});
 
 	if (!slugValue) {
 		status.warnings.push({
-			url: item.url,
+			rowIndex,
 			message: "Slug property is missing. Skipping item.",
 		});
 		return null;
 	}
 
 	return {
-		id: item.id,
+		id: rowIndex.toString(),
 		fieldData,
 		slug: slugValue,
 	};
@@ -428,7 +283,7 @@ type FieldsById = Map<FieldId, CollectionField>;
 
 // Function to process all items concurrently with a limit
 async function processAllItems(
-	data: PageObjectResponse[],
+	data: sheets_v4.Schema$RowData[],
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
@@ -440,9 +295,9 @@ async function processAllItems(
 		info: [],
 		warnings: [],
 	};
-	const promises = data.map((item) =>
+	const promises = data.map((row, index) =>
 		limit(() =>
-			processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate)
+			processItem(row, index, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate)
 		)
 	);
 	const results = await Promise.all(promises);
@@ -455,15 +310,13 @@ async function processAllItems(
 	};
 }
 
-export async function synchronizeDatabase(
-	pluginContext: PluginContext
-): Promise<SynchronizeResult> {
+export async function synchronizeSheet(pluginContext: PluginContext): Promise<SynchronizeResult> {
 	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
-	const { database } = integrationContext;
+	const { sheet } = integrationContext;
 
-	assert(isFullDatabase(database));
-	assert(notion);
+	assert(sheet && sheet.data && sheet.data[0].rowData);
+	assert(sheets);
 
 	const collection = await framer.getManagedCollection();
 
@@ -474,11 +327,7 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await collectPaginatedAPI(notion.databases.query, {
-		database_id: database.id,
-	});
-
-	assert(data.every(isFullPage), "Response is not a full page");
+	const data = sheet.data[0].rowData!.slice(1); // Skip header row
 
 	const { collectionItems, status } = await processAllItems(
 		data,
@@ -488,18 +337,18 @@ export async function synchronizeDatabase(
 		lastSyncedTime
 	);
 
-	console.log("Submitting database");
+	console.log("Submitting sheet");
 	console.table(collectionItems);
 
 	try {
 		const itemsToDelete = Array.from(unsyncedItemIds);
-		const databaseName = richTextToPlainText(database.title);
+		const sheetName = sheet.properties!.title!;
 		await updateCollection(
 			pluginContext,
 			collectionItems,
 			itemsToDelete,
-			{ databaseId: database.id },
-			databaseName
+			{ spreadsheetId: sheet.properties!.sheetId },
+			sheetName
 		);
 
 		return {
@@ -519,7 +368,7 @@ export async function synchronizeDatabase(
 	}
 }
 
-export function useSynchronizeDatabaseMutation(
+export function useSynchronizeSheetMutation(
 	pluginContext: object,
 	{
 		onSuccess,
@@ -534,25 +383,19 @@ export function useSynchronizeDatabaseMutation(
 		},
 		onSuccess,
 		mutationFn: async (): Promise<SynchronizeResult> => {
-			return synchronizeDatabase(pluginContext);
+			return synchronizeSheet(pluginContext);
 		},
 	});
 }
 
-export function useDatabasesQuery() {
-	assert(notion);
+export function useSpreadsheetsQuery() {
+	assert(sheets);
 	return useQuery({
-		queryKey: ["databases"],
+		queryKey: ["spreadsheets"],
 		queryFn: async () => {
-			assert(notion);
-			const results = await collectPaginatedAPI(notion.search, {
-				filter: {
-					property: "object",
-					value: "database",
-				},
-			});
-
-			return results.filter(isFullDatabase);
+			assert(sheets);
+			const response = await sheets.spreadsheets.list();
+			return response.data.files || [];
 		},
 	});
 }
@@ -569,22 +412,25 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	return parsed;
 }
 
-function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFieldIds: FieldId[]) {
+function getSuggestedFieldsForSheet(sheet: sheets_v4.Schema$Sheet, ignoredFieldIds: FieldId[]) {
 	const fields: object[] = [];
 
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
+	assert(sheet.data && sheet.data[0].rowData);
+	const headerRow = sheet.data[0].rowData[0].values;
 
-		// These fields were ignored by the user
-		if (ignoredFieldIds.includes(property.id)) continue;
+	headerRow.forEach((cell, index) => {
+		if (ignoredFieldIds.includes(index.toString())) return;
 
-		if (property.type === "title") continue;
+		const field = getCollectionFieldForProperty(
+			cell,
+			cell.formattedValue || `Column ${index + 1}`,
+			propertyConversionTypes[cell.effectiveFormat?.numberFormat?.type || "TEXT"][0]
+		);
 
 		if (field) {
 			fields.push(field);
 		}
-	}
+	});
 
 	return fields;
 }
@@ -594,8 +440,8 @@ export function hasFieldConfigurationChanged(
 	integrationContext: object,
 	ignoredFieldIds: string[]
 ): boolean {
-	const { database } = integrationContext;
-	assert(isFullDatabase(database));
+	const { sheet } = integrationContext;
+	assert(sheet && sheet.data && sheet.data[0].rowData);
 
 	const fields = currentConfig;
 
@@ -604,19 +450,22 @@ export function hasFieldConfigurationChanged(
 		currentFieldsById.set(field.id, field);
 	}
 
-	const properties = Object.values(database.properties).filter(
-		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]
-	);
+	const headerRow = sheet.data[0].rowData[0].values;
+	const properties = headerRow.filter((_, index) => !ignoredFieldIds.includes(index.toString()));
 
 	if (properties.length !== fields.length) return true;
 
-	const includedProperties = properties.filter((property) => currentFieldsById.has(property.id));
+	const includedProperties = properties.filter((_, index) =>
+		currentFieldsById.has(index.toString())
+	);
 
-	for (const property of includedProperties) {
-		const currentField = currentFieldsById.get(property.id);
+	for (let i = 0; i < includedProperties.length; i++) {
+		const property = includedProperties[i];
+		const currentField = currentFieldsById.get(i.toString());
 		if (!currentField) return true;
 
-		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
+		const propertyType = property.effectiveFormat?.numberFormat?.type || "TEXT";
+		if (!propertyConversionTypes[propertyType].includes(currentField.type)) return true;
 	}
 
 	return false;
@@ -637,6 +486,200 @@ export function isUnchangedSinceLastSync(
 	return lastSynced > lastEdited;
 }
 
-export function getFieldConversionTypes(property: NotionProperty) {
-	return propertyConversionTypes[property.type] || [];
+export function getFieldConversionTypes(column: GoogleSheetsColumn) {
+	return propertyConversionTypes[column.effectiveFormat?.numberFormat?.type || "TEXT"] || [];
+}
+
+export async function getSheetData(spreadsheetId: string, sheetName: string) {
+	assert(sheets);
+	const response = await sheets.spreadsheets.values.get({
+		spreadsheetId,
+		range: sheetName,
+	});
+	return response.data.values;
+}
+
+export function parseSheetData(data: any[][]): CollectionItem[] {
+	const headers = data[0];
+	return data.slice(1).map((row, index) => {
+		const fieldData: Record<string, unknown> = {};
+		headers.forEach((header, i) => {
+			fieldData[header] = row[i];
+		});
+		return {
+			id: (index + 1).toString(),
+			fieldData,
+			slug: slugify(row[0] || `Row ${index + 1}`),
+		};
+	});
+}
+
+export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
+	assert(sheets);
+	await sheets.spreadsheets.values.update({
+		spreadsheetId,
+		range: sheetName,
+		valueInputOption: "USER_ENTERED",
+		requestBody: {
+			values: data,
+		},
+	});
+}
+
+export function convertFramerItemToSheetRow(item: CollectionItem, headers: string[]): any[] {
+	return headers.map((header) => item.fieldData[header] || "");
+}
+
+export async function syncFramerToSheet(pluginContext: PluginContext) {
+	const { integrationContext } = pluginContext;
+	const { sheet } = integrationContext;
+	assert(sheet && sheet.properties);
+
+	const spreadsheetId = sheet.properties.sheetId!.toString();
+	const sheetName = sheet.properties.title!;
+
+	const collection = await framer.getManagedCollection();
+	const items = await collection.getItems();
+
+	const sheetData = await getSheetData(spreadsheetId, sheetName);
+	const headers = sheetData[0];
+
+	const updatedData = [headers, ...items.map((item) => convertFramerItemToSheetRow(item, headers))];
+
+	await updateSheetData(spreadsheetId, sheetName, updatedData);
+}
+
+export function useSyncFramerToSheetMutation(pluginContext: PluginContext) {
+	return useMutation({
+		mutationFn: () => syncFramerToSheet(pluginContext),
+	});
+}
+
+export async function getSheetMetadata(spreadsheetId: string) {
+	assert(sheets);
+	const response = await sheets.spreadsheets.get({ spreadsheetId });
+	return response.data;
+}
+
+export function useSheetMetadataQuery(spreadsheetId: string) {
+	return useQuery({
+		queryKey: ["sheetMetadata", spreadsheetId],
+		queryFn: () => getSheetMetadata(spreadsheetId),
+	});
+}
+
+export function getColumnLetter(index: number): string {
+	let columnLetter = "";
+	while (index >= 0) {
+		columnLetter = String.fromCharCode(65 + (index % 26)) + columnLetter;
+		index = Math.floor(index / 26) - 1;
+	}
+	return columnLetter;
+}
+
+export async function resizeSheet(
+	spreadsheetId: string,
+	sheetId: number,
+	rowCount: number,
+	columnCount: number
+) {
+	assert(sheets);
+	await sheets.spreadsheets.batchUpdate({
+		spreadsheetId,
+		requestBody: {
+			requests: [
+				{
+					updateSheetProperties: {
+						properties: {
+							sheetId,
+							gridProperties: {
+								rowCount,
+								columnCount,
+							},
+						},
+						fields: "gridProperties(rowCount,columnCount)",
+					},
+				},
+			],
+		},
+	});
+}
+
+export function useResizeSheetMutation() {
+	return useMutation({
+		mutationFn: ({
+			spreadsheetId,
+			sheetId,
+			rowCount,
+			columnCount,
+		}: {
+			spreadsheetId: string;
+			sheetId: number;
+			rowCount: number;
+			columnCount: number;
+		}) => resizeSheet(spreadsheetId, sheetId, rowCount, columnCount),
+	});
+}
+
+export async function clearSheet(spreadsheetId: string, sheetName: string) {
+	assert(sheets);
+	await sheets.spreadsheets.values.clear({
+		spreadsheetId,
+		range: sheetName,
+	});
+}
+
+export function useClearSheetMutation() {
+	return useMutation({
+		mutationFn: ({ spreadsheetId, sheetName }: { spreadsheetId: string; sheetName: string }) =>
+			clearSheet(spreadsheetId, sheetName),
+	});
+}
+
+export async function addSheet(spreadsheetId: string, sheetTitle: string) {
+	assert(sheets);
+	await sheets.spreadsheets.batchUpdate({
+		spreadsheetId,
+		requestBody: {
+			requests: [
+				{
+					addSheet: {
+						properties: {
+							title: sheetTitle,
+						},
+					},
+				},
+			],
+		},
+	});
+}
+
+export function useAddSheetMutation() {
+	return useMutation({
+		mutationFn: ({ spreadsheetId, sheetTitle }: { spreadsheetId: string; sheetTitle: string }) =>
+			addSheet(spreadsheetId, sheetTitle),
+	});
+}
+
+export async function deleteSheet(spreadsheetId: string, sheetId: number) {
+	assert(sheets);
+	await sheets.spreadsheets.batchUpdate({
+		spreadsheetId,
+		requestBody: {
+			requests: [
+				{
+					deleteSheet: {
+						sheetId,
+					},
+				},
+			],
+		},
+	});
+}
+
+export function useDeleteSheetMutation() {
+	return useMutation({
+		mutationFn: ({ spreadsheetId, sheetId }: { spreadsheetId: string; sheetId: number }) =>
+			deleteSheet(spreadsheetId, sheetId),
+	});
 }
