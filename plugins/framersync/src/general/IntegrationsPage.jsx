@@ -1,6 +1,7 @@
 import Window from "./Window";
 import { usePluginContext } from "./PluginContext";
 import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
+import Button from "@shared/Button";
 
 export default function IntegrationsPage() {
 	const { updatePluginContext } = usePluginContext();
@@ -12,7 +13,7 @@ export default function IntegrationsPage() {
 	return (
 		<Window
 			page="Integrations"
-			className="flex flex-col p-3 pt-0 gap-3 overflow-y-auto items-center"
+			className="flex flex-col p-3 pt-0 gap-2 overflow-y-auto items-center"
 		>
 			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
 				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
@@ -35,6 +36,25 @@ export default function IntegrationsPage() {
 					onClick={() => onIntegrationClick("google-sheets")}
 				/>
 			</div>
+			<Button>Activate your License Key</Button>
+			<Button primary>Get a License Key
+			<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2.5"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="-ml-0.5"
+				>
+					<path d="M5 12l14 0" />
+					<path d="M13 18l6 -6" />
+					<path d="M13 6l6 6" />
+				</svg>
+			</Button>
 		</Window>
 	);
 }

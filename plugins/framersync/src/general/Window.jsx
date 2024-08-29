@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const pageSizes = {
 	Integrations: {
 		width: 500,
-		height: 350,
+		height: 450,
 	},
 	Authenticate: {
 		width: 350,
