@@ -10,6 +10,10 @@ import Window from "./Window";
 import { SegmentedControl } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes.js";
 import BackButton from "../components/BackButton.jsx";
+import { useLemonSqueezy } from "./LemonSqueezy.jsx";
+import { LicenseKeyMenu } from "./LicenceKeyPage.jsx";
+import { XIcon } from "@shared/components";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -19,6 +23,12 @@ export interface CollectionFieldConfig {
 	conversionTypes: string[];
 	isPageLevelField: boolean;
 }
+
+const TRANSITION = {
+	type: "tween",
+	ease: [0.25, 1, 0.4, 1],
+	duration: 0.35,
+};
 
 function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
 	const result: Record<string, string> = {};
@@ -56,6 +66,9 @@ export function MapFieldsPageTemplate({
 }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
 	const { integrationContext } = pluginContext;
+	const { licenseKeyValid } = useLemonSqueezy();
+
+	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(false);
 
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
@@ -127,8 +140,13 @@ export function MapFieldsPageTemplate({
 		}));
 	};
 
-	const handleSubmit = () => {
+	const onImportClick = () => {
 		if (isLoading) return;
+
+		if (!licenseKeyValid) {
+			setShowLicenseKeyMenu(true);
+			return;
+		}
 
 		const fields: any[] = [];
 
@@ -296,11 +314,16 @@ export function MapFieldsPageTemplate({
 	return (
 		<Window page="MapFields" className="flex-col gap-3 overflow-hidden">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-			<div
+			<motion.div
 				className={classNames(
 					"h-full flex-1 overflow-hidden flex-col",
-					isLoading && "opacity-50 blur-sm pointer-events-none"
+					(isLoading || showLicenseKeyMenu) && "pointer-events-none"
 				)}
+				animate={{
+					opacity: isLoading || showLicenseKeyMenu ? 0.5 : 1,
+					filter: isLoading || showLicenseKeyMenu ? "blur(5px)" : "blur(0px)",
+				}}
+				transition={TRANSITION}
 			>
 				<div className="flex-row flex-1 w-full overflow-hidden">
 					<div className="flex-col flex-1">
@@ -492,19 +515,43 @@ export function MapFieldsPageTemplate({
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-							<Button primary onClick={handleSubmit} disabled={!slugFieldId}>
+							<Button primary onClick={onImportClick} disabled={!slugFieldId}>
 								{pluginContext.type === "update" ? "Save & Import Collection" : "Import Collection"}
 							</Button>
 						</div>
 					</div>
 				</div>
-			</div>
+			</motion.div>
 			{isLoading && (
 				<div className="absolute inset-0 flex-col items-center justify-center gap-3 font-semibold">
 					<Spinner inline />
 					Importing items...
 				</div>
 			)}
+			<AnimatePresence>
+				{showLicenseKeyMenu && (
+					<motion.div
+						className="absolute inset-0 flex-col items-center justify-center"
+						initial={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
+						animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+						exit={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
+						transition={TRANSITION}
+					>
+						<div
+							className="w-[350px] h-[600px] bg-primary rounded-xl pt-3 flex-col relative"
+							style={{
+								boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
+							}}
+						>
+							<LicenseKeyMenu closePage={() => setShowLicenseKeyMenu(false)} />
+							<XIcon
+								onClick={() => setShowLicenseKeyMenu(false)}
+								className="absolute top-4 right-4"
+							/>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</Window>
 	);
 }

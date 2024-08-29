@@ -1,7 +1,7 @@
 import Window from "./Window";
 import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
 import Button from "@shared/Button";
-import { LicenceKeyPage } from "./LicenceKeyPage";
+import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
 import { Spinner } from "@shared/spinner/Spinner";
@@ -23,7 +23,7 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 	};
 
 	return licenseKeyPageOpen ? (
-		<LicenceKeyPage closePage={() => setLicenseKeyPageOpen(false)} />
+		<LicenseKeyPage closePage={() => setLicenseKeyPageOpen(false)} />
 	) : (
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">

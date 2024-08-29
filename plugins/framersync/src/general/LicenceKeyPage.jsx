@@ -4,27 +4,31 @@ import BackButton from "../components/BackButton";
 import { useState, useEffect } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
 
-const checkoutURL = "https://store.framestack.co/buy/24b67220-4e17-478b-9a4a-9cbf0e2db171?embed=1";
+export function LicenseKeyPage({ closePage, checkout }) {
+	return (
+		<Window page="LicenceKey" className="flex-col">
+			<BackButton onClick={closePage} />
+			<LicenseKeyMenu closePage={closePage} checkout={checkout} />
+		</Window>
+	);
+}
 
-export function LicenceKeyPage({ closePage, checkout }) {
-	const [checkoutOpened, setCheckoutOpened] = useState(checkout);
+export function LicenseKeyMenu({ checkout }) {
 	const [licenseKey, setLicenseKey] = useState("");
 	const [isActivating, setIsActivating] = useState(false);
 	const [isValidated, setIsValidated] = useState(false);
 	const [error, setError] = useState(null);
 
-	const { openCheckout, activateLicenseKey, setLicenseKeyValid } = useLemonSqueezy();
+	const { openCheckout, activateLicenseKey } = useLemonSqueezy();
 
 	useEffect(() => {
 		if (checkout) {
-			setCheckoutOpened(true);
 			openCheckout();
 		}
 	}, [checkout]);
 
 	const onBuyButtonClick = () => {
 		openCheckout();
-		setCheckoutOpened(true);
 	};
 
 	async function onSubmitLicenseKey() {
@@ -57,8 +61,7 @@ export function LicenceKeyPage({ closePage, checkout }) {
 	}
 
 	return (
-		<Window page="LicenceKey" className="flex-col justify-center px-3 pb-3 gap-2">
-			<BackButton onClick={closePage} />
+		<div className="flex-col justify-center px-3 pb-3 gap-2 flex-1 w-full">
 			<div className="flex-col gap-2 flex-1 items-center justify-center w-full">
 				<KeyIcon />
 				<h1 className="font-bold text-base">Activate your Licence Key</h1>
@@ -88,12 +91,7 @@ export function LicenceKeyPage({ closePage, checkout }) {
 					}}
 					disabled={isValidated}
 				/>
-				<Button
-					primary
-					onClick={onSubmitLicenseKey}
-					className="w-full"
-					loading={isActivating}
-				>
+				<Button primary onClick={onSubmitLicenseKey} className="w-full" loading={isActivating}>
 					{isValidated ? "Activated License Key!" : "Activate License Key"}
 				</Button>
 				{error && <p className="text-error text-center">{error}</p>}
@@ -112,7 +110,7 @@ export function LicenceKeyPage({ closePage, checkout }) {
 			<Button onClick={onBuyButtonClick} className="w-full">
 				Get a Licence Key
 			</Button>
-		</Window>
+		</div>
 	);
 }
 
