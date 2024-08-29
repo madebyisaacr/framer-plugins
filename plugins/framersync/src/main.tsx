@@ -91,7 +91,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 		return {
 			type: "new",
 			collection,
-			isAuthenticated,
+			authenticatedIntegrations: isAuthenticated ? [integrationId] : [],
 			integrationId,
 		};
 	}
@@ -112,7 +112,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			return {
 				type: "error",
 				message: integrationContext.message,
-				isAuthenticated: false,
+				authenticatedIntegrations: [],
 			};
 		}
 
@@ -133,13 +133,13 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			slugFieldId,
 			databaseName,
 			hasChangedFields,
-			isAuthenticated,
+			authenticatedIntegrations: isAuthenticated ? [integrationId] : [],
 		};
 	} catch (error) {
 		return {
 			type: "error",
 			message: "Failed to get plugin context. Please try again.",
-			isAuthenticated: false,
+			authenticatedIntegrations: [],
 		};
 	}
 }
@@ -190,7 +190,7 @@ function App() {
 
 	if (!integration) {
 		return <IntegrationsPage />;
-	} else if (!pluginContext.isAuthenticated) {
+	} else if (!pluginContext.authenticatedIntegrations.includes(pluginContext.integrationId)) {
 		const { AuthenticatePage } = integration;
 		return <AuthenticatePage onAuthenticated={handleAuthenticated} />;
 	}
@@ -221,7 +221,8 @@ async function runPlugin() {
 			pluginContext = {
 				type: "new",
 				collection,
-				isAuthenticated: false,
+				authenticatedIntegrations: [],
+				integrationId: null,
 			};
 		}
 

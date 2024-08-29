@@ -10,7 +10,7 @@ export enum Integration {
 export interface PluginContextNew {
 	type: "new";
 	collection: ManagedCollection;
-	isAuthenticated: boolean;
+	authenticatedIntegrations: Integration[];
 	integrationId: Integration | null;
 }
 
@@ -25,13 +25,13 @@ export interface PluginContextUpdate {
 	ignoredFieldIds: string[];
 	slugFieldId: string | null;
 	databaseName: string;
-	isAuthenticated: boolean;
+	authenticatedIntegrations: Integration[];
 }
 
 export interface PluginContextError {
 	type: "error";
 	message: string;
-	isAuthenticated: false;
+	authenticatedIntegrations: Integration[];
 }
 
 export type PluginContext = PluginContextNew | PluginContextUpdate | PluginContextError;
