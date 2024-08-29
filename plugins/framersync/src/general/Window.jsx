@@ -1,5 +1,6 @@
 import { framer } from "framer-plugin";
 import { motion } from "framer-motion";
+import classNames from "classnames";
 
 const pageSizes = {
 	Integrations: {
@@ -29,12 +30,7 @@ export default function Window({ page, className, children }) {
 
 	return (
 		<motion.div
-			className={className}
-			style={{
-				...pageSizes[page],
-				minWidth: pageSizes[page].width,
-				minHeight: pageSizes[page].height,
-			}}
+			className={classNames("size-full", className)}
 			initial={{
 				opacity: 0,
 			}}
