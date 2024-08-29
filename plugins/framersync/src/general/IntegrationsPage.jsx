@@ -29,6 +29,7 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 					onClick={() => onIntegrationSelected("google-sheets")}
 				/>
 			</div>
+			<div className="w-full h-px bg-divider my-1" />
 			<Button>Activate your License Key</Button>
 			<Button primary>
 				Get a License Key

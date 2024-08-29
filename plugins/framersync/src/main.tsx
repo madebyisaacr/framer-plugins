@@ -8,6 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
+import GoogleSheets from "./googleSheets/GoogleSheetsIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 
 import { framer } from "framer-plugin";
@@ -22,7 +23,7 @@ import CanvasPage from "./general/CanvasPage";
 export const integrations = {
 	notion: Notion,
 	airtable: Airtable,
-	// "google-sheets": GoogleSheets,
+	"google-sheets": GoogleSheets,
 };
 
 const root = document.getElementById("root");
@@ -191,7 +192,8 @@ function App() {
 		updatePluginContext(authenticatedContext);
 	};
 
-	const handleIntegrationSelected = async (integrationId: string) => {
+	const onIntegrationSelected = async (integrationId: string) => {
+		console.log("onIntegrationSelected", integrationId);
 		const authenticatedContext = await createPluginContext(integrationId);
 		updatePluginContext(authenticatedContext);
 	};
@@ -199,7 +201,7 @@ function App() {
 	const integration = integrations[pluginContext.integrationId];
 
 	if (!integration) {
-		return <IntegrationsPage onIntegrationSelected={handleIntegrationSelected} />;
+		return <IntegrationsPage onIntegrationSelected={onIntegrationSelected} />;
 	} else if (!pluginContext.authenticatedIntegrations.includes(pluginContext.integrationId)) {
 		const { AuthenticatePage } = integration;
 		return <AuthenticatePage onAuthenticated={handleAuthenticated} />;

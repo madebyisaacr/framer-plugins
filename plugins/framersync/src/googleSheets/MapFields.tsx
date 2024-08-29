@@ -1,12 +1,9 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { assert } from "../utils";
 import {
-	NotionProperty,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
-	hasFieldConfigurationChanged,
-	pageContentField,
-	richTextToPlainText,
+	hasFieldConfigurationChanged,,
 	getFieldConversionTypes,
 } from "./googleSheets";
 import { isFullDatabase } from "@notionhq/client";
@@ -119,7 +116,7 @@ export function MapFieldsPage({
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Notion property"
 			slugFieldTitleText="Slug Field Property"
-			databaseName={richTextToPlainText(database.title)}
+			databaseName={database.title}
 			databaseUrl={database.url}
 			getFieldConversionMessage={getFieldConversionMessage}
 			getPropertyTypeName={getPropertyTypeName}
