@@ -313,7 +313,13 @@ export function MapFieldsPageTemplate({
 								<div className="flex-row gap-2 items-center">
 									{databaseIcon}
 									<div className="flex-col gap-0.5">
-										<h1 className="text-lg font-bold">{databaseName}</h1>
+										<a
+											href={databaseUrl}
+											target="_blank"
+											className="text-lg font-bold hover:underline"
+										>
+											{databaseName}
+										</a>
 										{subheading && <span className="text-tertiary font-medium">{subheading}</span>}
 									</div>
 								</div>
@@ -402,8 +408,17 @@ export function MapFieldsPageTemplate({
 								</div>
 							</div>
 						</div>
+						{error && (
+							<div className="relative w-full flex-row items-center gap-1.5 p-3">
+								<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
+								<div className="size-1.5 bg-[#f87171] rounded-full" />
+								<span className="text-[#f87171] font-semibold min-h-6 flex-row items-center">
+									{error?.message || "Error"}
+								</span>
+							</div>
+						)}
 					</div>
-					<div className="w-[285px] h-full relative">
+					<div className="w-[285px] h-full relative flex-col">
 						<div className="absolute left-0 inset-y-3 w-px bg-divider z-10" />
 						{editMenuFieldConfig == "slug" ? (
 							<div className="size-full flex-col">
@@ -462,37 +477,20 @@ export function MapFieldsPageTemplate({
 								getPropertyTypeName={getPropertyTypeName}
 							/>
 						) : (
-							<div />
+							<div className="flex-1" />
 						)}
+						<div className="flex-col p-3 relative">
+							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
+							<Button
+								primary
+								onClick={handleSubmit}
+								className="w-auto px-4 min-w-[100px]"
+								disabled={!slugFieldId}
+							>
+								{pluginContext.type === "update" ? "Save & Import" : "Import"}
+							</Button>
+						</div>
 					</div>
-				</div>
-				<div className="relative w-full flex-row items-center justify-between gap-3 p-3 overflow-hidden">
-					<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-					<div className="inline-flex items-center min-w-0 flex-1">
-						{error ? (
-							<span className="text-[#f87171]">{error.message}</span>
-						) : (
-							<>
-								<span className="text-tertiary flex-shrink-0 whitespace-pre">Importing from </span>
-								<a
-									href={databaseUrl}
-									className="font-semibold text-secondary hover:text-primary truncate"
-									target="_blank"
-									tabIndex={-1}
-								>
-									{databaseName}
-								</a>
-							</>
-						)}
-					</div>
-					<Button
-						primary
-						onClick={handleSubmit}
-						className="w-auto px-4 min-w-[100px]"
-						disabled={!slugFieldId}
-					>
-						{pluginContext.type === "update" ? "Save & Import" : "Import"}
-					</Button>
 				</div>
 			</div>
 			{isLoading && (
