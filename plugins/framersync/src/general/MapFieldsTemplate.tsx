@@ -562,7 +562,12 @@ function FieldTypeSelector({
 					{cmsFieldTypeNames[fieldType]}
 				</StaticInput>
 			)}
-			<div className="text-tint absolute top-[4px] left-[4px] pointer-events-none">
+			<div
+				className={classNames(
+					"text-tint absolute top-[4px] left-[4px] pointer-events-none",
+					disabled && "opacity-50"
+				)}
+			>
 				{cmsFieldIcons[fieldType]}
 			</div>
 		</div>
