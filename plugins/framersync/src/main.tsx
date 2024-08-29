@@ -238,7 +238,7 @@ async function runPlugin() {
 
 		renderPlugin(
 			<QueryClientProvider client={queryClient}>
-				<div className="flex flex-col items-center size-full justify-center overflow-hidden select-none">
+				<div className="flex flex-col items-start size-full justify-start overflow-hidden select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
 						<PluginContextProvider initialContext={pluginContext}>
 							<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>

@@ -26,5 +26,16 @@ const pageSizes = {
 export default function Window({ page, className, children }) {
 	framer.showUI(pageSizes[page]);
 
-	return <div className={classNames("size-full", className)}>{children}</div>;
+	return (
+		<div
+			className={className}
+			style={{
+				...pageSizes[page],
+				minWidth: pageSizes[page].width,
+				minHeight: pageSizes[page].height,
+			}}
+		>
+			{children}
+		</div>
+	);
 }
