@@ -296,13 +296,17 @@ export function MapFieldsPageTemplate({
 	return (
 		<Window page="MapFields" className="flex-col gap-3 overflow-hidden">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-			<div className="h-full flex-1 overflow-hidden flex-col">
+			<div
+				className={classNames(
+					"h-full flex-1 overflow-hidden flex-col",
+					isLoading && "opacity-50 blur-sm pointer-events-none"
+				)}
+			>
 				<div className="flex-row flex-1 w-full overflow-hidden">
 					<div className="flex-col flex-1">
 						<div
 							className={classNames(
-								"flex-col flex-1 p-3 gap-3 transition-opacity relative overflow-y-auto",
-								isLoading && "opacity-50 blur-sm pointer-events-none"
+								"flex-col flex-1 p-3 gap-3 transition-opacity relative overflow-y-auto"
 							)}
 						>
 							<div className="flex-col gap-3 mb-2">
@@ -481,20 +485,15 @@ export function MapFieldsPageTemplate({
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-							<Button
-								primary
-								onClick={handleSubmit}
-								className="w-auto px-4 min-w-[100px]"
-								disabled={!slugFieldId}
-							>
-								{pluginContext.type === "update" ? "Save & Import" : "Import"}
+							<Button primary onClick={handleSubmit} disabled={!slugFieldId}>
+								{pluginContext.type === "update" ? "Save & Import" : "Import Collection"}
 							</Button>
 						</div>
 					</div>
 				</div>
 			</div>
 			{isLoading && (
-				<div className="absolute inset-0 flex-col items-center justify-center gap-3">
+				<div className="absolute inset-0 flex-col items-center justify-center gap-3 font-semibold">
 					<Spinner inline />
 					Importing items...
 				</div>
@@ -522,7 +521,7 @@ function UnsupportedFieldBlock({ title, text }) {
 						hover ? "opacity-100" : "opacity-0"
 					)}
 					style={{
-						boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
+						boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 20px 0px",
 					}}
 				>
 					<p className="text-primary font-semibold">{title}</p>
