@@ -93,10 +93,7 @@ export function isAuthenticated() {
 // TODO: Check if refresh token is expired (60 days)
 export async function refreshAirtableToken() {
 	// Do not refresh if we already have an access token
-	console.log("Refreshing Airtable token");
-	console.log(airtableAccessToken);
 	if (airtableAccessToken) {
-		console.log("Already have access token");
 		return true;
 	}
 
@@ -116,7 +113,6 @@ export async function refreshAirtableToken() {
 
 		airtableAccessToken = access_token;
 		localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-		console.log("Set refresh token to:", refresh_token);
 		return true;
 	} catch (error) {
 		localStorage.removeItem(airtableRefreshTokenKey);
@@ -203,7 +199,6 @@ export async function authorize() {
 					clearInterval(interval);
 					airtableAccessToken = access_token;
 					localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-					console.log("Set refresh token to:", refresh_token);
 				}
 
 				resolve();
