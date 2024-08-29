@@ -310,7 +310,7 @@ async function processAllItems(
 	};
 }
 
-export async function synchronizeSheet(pluginContext: PluginContext): Promise<SynchronizeResult> {
+export async function synchronizeDatabase(pluginContext: PluginContext): Promise<SynchronizeResult> {
 	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
 	const { sheet } = integrationContext;
@@ -368,8 +368,8 @@ export async function synchronizeSheet(pluginContext: PluginContext): Promise<Sy
 	}
 }
 
-export function useSynchronizeSheetMutation(
-	pluginContext: object,
+export function useSynchronizeDatabaseMutation(
+	pluginContext: PluginContext,
 	{
 		onSuccess,
 		onError,
@@ -383,7 +383,7 @@ export function useSynchronizeSheetMutation(
 		},
 		onSuccess,
 		mutationFn: async (): Promise<SynchronizeResult> => {
-			return synchronizeSheet(pluginContext);
+			return synchronizeDatabase(pluginContext);
 		},
 	});
 }
@@ -549,25 +549,6 @@ export async function syncFramerToSheet(pluginContext: PluginContext) {
 	await updateSheetData(spreadsheetId, sheetName, updatedData);
 }
 
-export function useSyncFramerToSheetMutation(pluginContext: PluginContext) {
-	return useMutation({
-		mutationFn: () => syncFramerToSheet(pluginContext),
-	});
-}
-
-export async function getSheetMetadata(spreadsheetId: string) {
-	assert(sheets);
-	const response = await sheets.spreadsheets.get({ spreadsheetId });
-	return response.data;
-}
-
-export function useSheetMetadataQuery(spreadsheetId: string) {
-	return useQuery({
-		queryKey: ["sheetMetadata", spreadsheetId],
-		queryFn: () => getSheetMetadata(spreadsheetId),
-	});
-}
-
 export function getColumnLetter(index: number): string {
 	let columnLetter = "";
 	while (index >= 0) {
@@ -575,111 +556,4 @@ export function getColumnLetter(index: number): string {
 		index = Math.floor(index / 26) - 1;
 	}
 	return columnLetter;
-}
-
-export async function resizeSheet(
-	spreadsheetId: string,
-	sheetId: number,
-	rowCount: number,
-	columnCount: number
-) {
-	assert(sheets);
-	await sheets.spreadsheets.batchUpdate({
-		spreadsheetId,
-		requestBody: {
-			requests: [
-				{
-					updateSheetProperties: {
-						properties: {
-							sheetId,
-							gridProperties: {
-								rowCount,
-								columnCount,
-							},
-						},
-						fields: "gridProperties(rowCount,columnCount)",
-					},
-				},
-			],
-		},
-	});
-}
-
-export function useResizeSheetMutation() {
-	return useMutation({
-		mutationFn: ({
-			spreadsheetId,
-			sheetId,
-			rowCount,
-			columnCount,
-		}: {
-			spreadsheetId: string;
-			sheetId: number;
-			rowCount: number;
-			columnCount: number;
-		}) => resizeSheet(spreadsheetId, sheetId, rowCount, columnCount),
-	});
-}
-
-export async function clearSheet(spreadsheetId: string, sheetName: string) {
-	assert(sheets);
-	await sheets.spreadsheets.values.clear({
-		spreadsheetId,
-		range: sheetName,
-	});
-}
-
-export function useClearSheetMutation() {
-	return useMutation({
-		mutationFn: ({ spreadsheetId, sheetName }: { spreadsheetId: string; sheetName: string }) =>
-			clearSheet(spreadsheetId, sheetName),
-	});
-}
-
-export async function addSheet(spreadsheetId: string, sheetTitle: string) {
-	assert(sheets);
-	await sheets.spreadsheets.batchUpdate({
-		spreadsheetId,
-		requestBody: {
-			requests: [
-				{
-					addSheet: {
-						properties: {
-							title: sheetTitle,
-						},
-					},
-				},
-			],
-		},
-	});
-}
-
-export function useAddSheetMutation() {
-	return useMutation({
-		mutationFn: ({ spreadsheetId, sheetTitle }: { spreadsheetId: string; sheetTitle: string }) =>
-			addSheet(spreadsheetId, sheetTitle),
-	});
-}
-
-export async function deleteSheet(spreadsheetId: string, sheetId: number) {
-	assert(sheets);
-	await sheets.spreadsheets.batchUpdate({
-		spreadsheetId,
-		requestBody: {
-			requests: [
-				{
-					deleteSheet: {
-						sheetId,
-					},
-				},
-			],
-		},
-	});
-}
-
-export function useDeleteSheetMutation() {
-	return useMutation({
-		mutationFn: ({ spreadsheetId, sheetId }: { spreadsheetId: string; sheetId: number }) =>
-			deleteSheet(spreadsheetId, sheetId),
-	});
 }

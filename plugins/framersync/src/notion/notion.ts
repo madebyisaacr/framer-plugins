@@ -563,7 +563,7 @@ export async function synchronizeDatabase(
 }
 
 export function useSynchronizeDatabaseMutation(
-	pluginContext: object,
+	pluginContext: PluginContext,
 	{
 		onSuccess,
 		onError,
