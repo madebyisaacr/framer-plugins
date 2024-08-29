@@ -1,12 +1,10 @@
-import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
 import { assert } from "../utils";
 import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
-	hasFieldConfigurationChanged,,
+	hasFieldConfigurationChanged,
 	getFieldConversionTypes,
 } from "./googleSheets";
-import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
@@ -27,10 +25,6 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
 	const { integrationContext } = pluginContext;
 	const { database } = integrationContext;
-
-	if (!isFullDatabase(database)) {
-		return [];
-	}
 
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
@@ -68,7 +62,7 @@ function getInitialSlugFieldId(
 
 function getLastSyncedTime(
 	pluginContext: PluginContext,
-	database: GetDatabaseResponse,
+	database,
 	slugFieldId: string,
 	disabledFieldIds: Set<string>
 ): string | null {
@@ -103,8 +97,6 @@ export function MapFieldsPage({
 	const { pluginContext } = usePluginContext();
 
 	const { database } = pluginContext.integrationContext;
-
-	assert(isFullDatabase(database));
 
 	return (
 		<MapFieldsPageTemplate
@@ -147,3 +139,4 @@ function getPropertyTypeName(propertyType: string) {
 }
 
 const allFieldSettings = [];
+const fieldConversionMessages = {};
