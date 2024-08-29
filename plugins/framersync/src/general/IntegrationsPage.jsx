@@ -1,13 +1,23 @@
 import Window from "./Window";
 import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
 import Button from "@shared/Button";
+import { LicenceKeyPage } from "./LicenceKeyPage";
+import { useState } from "react";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
-	return (
-		<Window
-			page="Integrations"
-			className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center"
-		>
+	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
+	const [checkoutPageOpen, setCheckoutPageOpen] = useState(false);
+
+	return licenseKeyPageOpen || checkoutPageOpen ? (
+		<LicenceKeyPage
+			checkout={checkoutPageOpen}
+			closePage={() => {
+				setLicenseKeyPageOpen(false);
+				setCheckoutPageOpen(false);
+			}}
+		/>
+	) : (
+		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">
 				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
 				<p>Select an app to connect to your website.</p>
@@ -30,8 +40,8 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 				/>
 			</div>
 			<div className="w-full h-px bg-divider my-1" />
-			<Button>Activate your License Key</Button>
-			<Button primary>
+			<Button onClick={() => setLicenseKeyPageOpen(true)}>Activate your License Key</Button>
+			<Button primary onClick={() => setCheckoutPageOpen(true)}>
 				Get a License Key
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
