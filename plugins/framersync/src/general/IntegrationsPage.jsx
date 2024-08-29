@@ -4,11 +4,12 @@ import Button from "@shared/Button";
 import { LicenceKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
+import { Spinner } from "@shared/spinner/Spinner";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
 
-	const { openCheckout } = useLemonSqueezy();
+	const { openCheckout, licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
 
 	const onLicenseKeyButtonClick = () => {
 		setLicenseKeyPageOpen(true);
@@ -29,6 +30,31 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 				<Logo />
 				<h1 className="text-xl font-bold mt-2 text-center">Sync your data with the Framer CMS</h1>
 				<p>Select an app to connect to your website.</p>
+				{licenseKeyValidLoading ? (
+					<div className="flex-row items-center justify-center gap-2 text-secondary mt-2">
+						<Spinner inline />
+						Verifying License Key...
+					</div>
+				) : (
+					licenseKeyValid && (
+						<div className="text-secondary flex-row items-center gap-1 mt-2">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							>
+								<path d="M5 12l5 5l10 -10" />
+							</svg>
+							License Key Activated
+						</div>
+					)
+				)}
 			</div>
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton
@@ -47,27 +73,31 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 					onClick={() => onIntegrationSelected("google-sheets")}
 				/>
 			</div>
-			<div className="w-full h-px bg-divider my-1" />
-			<Button onClick={onLicenseKeyButtonClick}>Activate your License Key</Button>
-			<Button primary onClick={onBuyButtonClick}>
-				Get a License Key
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="16"
-					height="16"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					className="-ml-0.5"
-				>
-					<path d="M5 12l14 0" />
-					<path d="M13 18l6 -6" />
-					<path d="M13 6l6 6" />
-				</svg>
-			</Button>
+			{!licenseKeyValidLoading && !licenseKeyValid && (
+				<>
+					<div className="w-full h-px bg-divider my-1" />
+					<Button onClick={onLicenseKeyButtonClick}>Activate your License Key</Button>
+					<Button primary onClick={onBuyButtonClick}>
+						Get a License Key
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							className="-ml-0.5"
+						>
+							<path d="M5 12l14 0" />
+							<path d="M13 18l6 -6" />
+							<path d="M13 6l6 6" />
+						</svg>
+					</Button>
+				</>
+			)}
 		</Window>
 	);
 }

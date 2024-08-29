@@ -13,7 +13,7 @@ export function LicenceKeyPage({ closePage, checkout }) {
 	const [isValidated, setIsValidated] = useState(false);
 	const [error, setError] = useState(null);
 
-	const { openCheckout, activateLicenseKey } = useLemonSqueezy();
+	const { openCheckout, activateLicenseKey, setLicenseKeyValid } = useLemonSqueezy();
 
 	useEffect(() => {
 		if (checkout) {
@@ -28,6 +28,10 @@ export function LicenceKeyPage({ closePage, checkout }) {
 	};
 
 	async function onSubmitLicenseKey() {
+		if (isValidated) {
+			return;
+		}
+
 		if (!licenseKey.length) {
 			setError("Please enter a license key.");
 			return;
@@ -41,6 +45,7 @@ export function LicenceKeyPage({ closePage, checkout }) {
 			const activated = await activateLicenseKey(licenseKey);
 			if (activated) {
 				setIsValidated(true);
+				setLicenseKey("");
 			} else {
 				setError("The license key is not valid.");
 			}
@@ -88,7 +93,6 @@ export function LicenceKeyPage({ closePage, checkout }) {
 					onClick={onSubmitLicenseKey}
 					className="w-full"
 					loading={isActivating}
-					disabled={isValidated}
 				>
 					{isValidated ? "Activated License Key!" : "Activate License Key"}
 				</Button>

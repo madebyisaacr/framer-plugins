@@ -1,4 +1,4 @@
-import { useEffect, useContext, createContext } from "react";
+import { useEffect, useContext, createContext, useState } from "react";
 import { framer } from "framer-plugin";
 
 const checkoutURL = "https://store.framestack.co/buy/24b67220-4e17-478b-9a4a-9cbf0e2db171";
@@ -10,6 +10,9 @@ export function useLemonSqueezy() {
 }
 
 export function LemonSqueezyProvider({ children }) {
+	const [isLoading, setIsLoading] = useState(true);
+	const [licenseKeyValid, setLicenseKeyValid] = useState(false);
+
 	function openCheckout() {
 		window.open(checkoutURL, "_blank");
 	}
@@ -51,6 +54,7 @@ export function LemonSqueezyProvider({ children }) {
 			},
 			body: JSON.stringify({
 				license_key: licenseKey,
+				instance_name: "FramerSync",
 			}),
 		});
 
@@ -64,8 +68,24 @@ export function LemonSqueezyProvider({ children }) {
 		return data.activated;
 	}
 
+	useEffect(() => {
+		validateLicenseKey().then((valid) => {
+			setLicenseKeyValid(valid);
+			setIsLoading(false);
+		});
+	}, []);
+
 	return (
-		<LemonSqueezyContext.Provider value={{ openCheckout, validateLicenseKey, activateLicenseKey }}>
+		<LemonSqueezyContext.Provider
+			value={{
+				openCheckout,
+				validateLicenseKey,
+				activateLicenseKey,
+				licenseKeyValid,
+				setLicenseKeyValid,
+				licenseKeyValidLoading: isLoading,
+			}}
+		>
 			{children}
 		</LemonSqueezyContext.Provider>
 	);
