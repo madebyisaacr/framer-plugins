@@ -1,6 +1,5 @@
 import { framer } from "framer-plugin";
-import { useEffect } from "react";
-
+import classNames from "classnames";
 const pageSizes = {
 	Integrations: {
 		width: 500,
@@ -25,20 +24,7 @@ const pageSizes = {
 };
 
 export default function Window({ page, className, children }) {
-	useEffect(() => {
-		framer.showUI(pageSizes[page]);
-	}, [page]);
+	framer.showUI(pageSizes[page]);
 
-	return (
-		<div
-			className={className}
-			style={{
-				...pageSizes[page],
-				minWidth: pageSizes[page].width,
-				minHeight: pageSizes[page].height,
-			}}
-		>
-			{children}
-		</div>
-	);
+	return <div className={classNames("size-full", className)}>{children}</div>;
 }
