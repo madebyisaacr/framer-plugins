@@ -84,7 +84,7 @@ export function App() {
 }
 
 function HomePage() {
-	const { openPage } = useContext(PageStackContext);
+	const { openModal } = useContext(PageStackContext);
 
 	const [iconPack, setIconPack] = useState(iconPacks[0]);
 	const [iconType, setIconType] = useState(0);
@@ -101,7 +101,10 @@ function HomePage() {
 	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
 	const iconGroup = iconGroups[iconType];
 	const searchValue = searchText.toLowerCase().replace(/\s/g, "-");
-	const filteredIcons = searchValue.length > 0 ? iconGroup.filter((iconName) => iconName.includes(searchValue)) : iconGroup;
+	const filteredIcons =
+		searchValue.length > 0
+			? iconGroup.filter((iconName) => iconName.includes(searchValue))
+			: iconGroup;
 
 	useEffect(() => {
 		const scrollContainer = scrollContainerRef.current;
@@ -150,7 +153,8 @@ function HomePage() {
 			if (copy) {
 				await navigator.clipboard.writeText(svgText);
 			} else {
-				const iconName = (iconPackData.iconNames ? iconNames[iconPackData.iconIds.indexOf(icon)] : icon) ?? "Icon";
+				const iconName =
+					(iconPackData.iconNames ? iconNames[iconPackData.iconIds.indexOf(icon)] : icon) ?? "Icon";
 				await framer.addSVG({
 					svg: svgText,
 					name: `${iconName}.svg`,
@@ -252,7 +256,9 @@ function HomePage() {
 						<select
 							value={iconPack.name}
 							className="flex-1"
-							onChange={(event) => changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))}
+							onChange={(event) =>
+								changeIconPack(iconPacks.find((iconPack) => iconPack.name === event.target.value))
+							}
 						>
 							{pinnedIconPacks
 								.slice()
@@ -304,8 +310,14 @@ function HomePage() {
 								</svg>
 							)}
 						</Button>
-						<Button square onClick={() => openPage(<IconPackInfoPage iconPack={iconPack} />)}>
-							<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<Button square onClick={() => openModal(<IconPackInfoPage iconPack={iconPack} />)}>
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 18 18"
+								fill="none"
+								xmlns="http://www.w3.org/2000/svg"
+							>
 								<rect x="8" y="3" width="2" height="2" rx="1" fill="currentColor" />
 								<rect x="8" y="7" width="2" height="8" rx="1" fill="currentColor" />
 							</svg>
@@ -321,7 +333,11 @@ function HomePage() {
 								onChange={changeIconType}
 							/>
 						) : (
-							<select value={iconType} className="w-full" onChange={(event) => setIconType(parseInt(event.target.value))}>
+							<select
+								value={iconType}
+								className="w-full"
+								onChange={(event) => setIconType(parseInt(event.target.value))}
+							>
 								{iconPackData.typeNames.map((type, index) => (
 									<option key={type} value={index}>
 										{type}
@@ -364,7 +380,9 @@ function HomePage() {
 								/>
 							</div>
 							<div className="flex flex-col gap-1 flex-1 pt-0.5">
-								<span className="font-semibold">{iconNames[iconPackData?.iconIds?.indexOf(icon)]}</span>
+								<span className="font-semibold">
+									{iconNames[iconPackData?.iconIds?.indexOf(icon)]}
+								</span>
 								<span className="text-secondary">{iconPack?.name}</span>
 							</div>
 						</div>
@@ -385,16 +403,21 @@ function HomePage() {
 }
 
 function IconPackInfoPage({ iconPack }) {
+	const { closeModal } = useContext(PageStackContext);
+
 	const iconPackData = ICON_PACKS[iconPack?.name];
 
 	return (
-		<div className="flex flex-col size-full p-3 pt-0 gap-2">
-			<BackButton />
-			<h1 className="text-xl font-bold -mb-1 mt-1">{iconPack?.name}</h1>
-			<p>{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
-			<div className="flex-1" />
+		<div className="flex flex-col size-full p-3 gap-2">
+			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
+			<h1 className="text-sm font-bold -mb-1">{iconPack?.name}</h1>
+			<p className="mb-1">{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
 			{iconPack?.licenseUrl && (
-				<Button newTab href={iconPack.licenseUrl.replace("[github]", iconPack.github)} className="flex-1">
+				<Button
+					newTab
+					href={iconPack.licenseUrl.replace("[github]", iconPack.github)}
+					className="flex-1"
+				>
 					{iconPack.license} License
 				</Button>
 			)}

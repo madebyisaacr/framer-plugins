@@ -92,7 +92,6 @@ export function PageStack({ homePage }) {
 										className="size-full"
 										animate={{
 											opacity: index < pageStack.length ? 0.2 : modal ? 0.3 : 1,
-											scale: modal ? 0.95 : 1,
 										}}
 										initial={false}
 										transition={TRANSITION}

@@ -10,7 +10,7 @@
 }
 
 .icon-div {
-	@apply relative size-[52px] rounded cursor-pointer order-10;
+	@apply relative size-[52px] rounded-lg cursor-pointer order-10;
 }
 
 .icon-div:hover {
