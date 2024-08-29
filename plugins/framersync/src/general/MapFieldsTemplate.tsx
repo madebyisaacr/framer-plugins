@@ -7,7 +7,7 @@ import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext.js";
 import Window from "./Window";
-import { SegmentedControl, XIcon } from "@shared/components";
+import { SegmentedControl } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes.js";
 import BackButton from "../components/BackButton.jsx";
 
@@ -481,7 +481,16 @@ export function MapFieldsPageTemplate({
 								getPropertyTypeName={getPropertyTypeName}
 							/>
 						) : (
-							<div className="flex-1" />
+							<div className="flex-1 flex-col items-center justify-center text-secondary gap-1">
+								<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" className="mb-2 text-tertiary">
+									<path
+										d="M 0 4 C 0 1.791 1.791 0 4 0 L 14 0 C 16.209 0 18 1.791 18 4 L 18 14 C 18 16.209 16.209 18 14 18 L 4 18 C 1.791 18 0 16.209 0 14 Z M 7.5 9 C 7.5 9.828 8.172 10.5 9 10.5 C 9.828 10.5 10.5 9.828 10.5 9 C 10.5 8.172 9.828 7.5 9 7.5 C 8.172 7.5 7.5 8.172 7.5 9 Z M 12 9 C 12 9.828 12.672 10.5 13.5 10.5 C 14.328 10.5 15 9.828 15 9 C 15 8.172 14.328 7.5 13.5 7.5 C 12.672 7.5 12 8.172 12 9 Z M 3 9 C 3 9.828 3.672 10.5 4.5 10.5 C 5.328 10.5 6 9.828 6 9 C 6 8.172 5.328 7.5 4.5 7.5 C 3.672 7.5 3 8.172 3 9 Z"
+										fill="currentColor"
+									></path>
+								</svg>
+								<span className="font-semibold text-primary">No field selected</span>
+								<span className="text-tertiary">Select a field to edit</span>
+							</div>
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
