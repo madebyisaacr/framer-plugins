@@ -19,9 +19,10 @@ import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import CanvasPage from "./general/CanvasPage";
 
-const integrations = {
+export const integrations = {
 	notion: Notion,
 	airtable: Airtable,
+	// "google-sheets": GoogleSheets,
 };
 
 const root = document.getElementById("root");
@@ -34,6 +35,25 @@ const queryClient = new QueryClient({
 		},
 	},
 });
+
+const collection = await framer.getManagedCollection();
+const [
+	collectionFields,
+	collectionIntegrationId,
+	integrationDataJson,
+	ignoredFieldIdsJson,
+	lastSyncedTime,
+	slugFieldId,
+	databaseName,
+] = await Promise.all([
+	collection.getFields(),
+	collection.getPluginData(PluginDataKey.integrationId),
+	collection.getPluginData(PluginDataKey.integrationData),
+	collection.getPluginData(PluginDataKey.ignoredFieldIds),
+	collection.getPluginData(PluginDataKey.lastSyncedTime),
+	collection.getPluginData(PluginDataKey.slugFieldId),
+	collection.getPluginData(PluginDataKey.databaseName),
+]);
 
 function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
 	if (pluginContext.type !== "update") return false;
@@ -54,50 +74,35 @@ function renderPlugin(app: ReactNode) {
 }
 
 async function createPluginContext(selectedIntegrationId: string = ""): Promise<PluginContext> {
-	const collection = await framer.getManagedCollection();
-	const [
-		collectionFields,
-		collectionIntegrationId,
-		integrationDataJson,
-		ignoredFieldIdsJson,
-		lastSyncedTime,
-		slugFieldId,
-		databaseName,
-	] = await Promise.all([
-		collection.getFields(),
-		collection.getPluginData(PluginDataKey.integrationId),
-		collection.getPluginData(PluginDataKey.integrationData),
-		collection.getPluginData(PluginDataKey.ignoredFieldIds),
-		collection.getPluginData(PluginDataKey.lastSyncedTime),
-		collection.getPluginData(PluginDataKey.slugFieldId),
-		collection.getPluginData(PluginDataKey.databaseName),
-	]);
-
 	const integrationId = collectionIntegrationId ?? selectedIntegrationId;
 	const integration = integrations[integrationId];
 
-	if (!integration) {
+	let authenticatedIntegrations = [];
+	for (const integrationId of Object.keys(integrations)) {
+		const integration = integrations[integrationId];
+		if (integration.isAuthenticated()) {
+			authenticatedIntegrations.push(integrationId);
+		}
+	}
+
+	if (
+		integration &&
+		authenticatedIntegrations.includes(integrationId) &&
+		typeof integration.refreshToken === "function"
+	) {
+		const success = await integration.refreshToken();
+		if (!success) {
+			authenticatedIntegrations = authenticatedIntegrations.filter((id) => id !== integrationId);
+		}
+	}
+
+	if (!integration || !integrationDataJson) {
 		return {
 			type: "new",
 			collection,
-			isAuthenticated: false,
-			integrationId: null,
+			authenticatedIntegrations,
+			integrationId: integration ? integrationId : null,
 		};
-	}
-
-	const isAuthenticated = integration.isAuthenticated();
-
-	if (!integrationDataJson) {
-		return {
-			type: "new",
-			collection,
-			authenticatedIntegrations: isAuthenticated ? [integrationId] : [],
-			integrationId,
-		};
-	}
-
-	if (isAuthenticated && typeof integration.refreshToken === "function") {
-		await integration.refreshToken();
 	}
 
 	try {
@@ -133,7 +138,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			slugFieldId,
 			databaseName,
 			hasChangedFields,
-			authenticatedIntegrations: isAuthenticated ? [integrationId] : [],
+			authenticatedIntegrations,
 		};
 	} catch (error) {
 		return {
@@ -186,10 +191,15 @@ function App() {
 		updatePluginContext(authenticatedContext);
 	};
 
+	const handleIntegrationSelected = async (integrationId: string) => {
+		const authenticatedContext = await createPluginContext(integrationId);
+		updatePluginContext(authenticatedContext);
+	};
+
 	const integration = integrations[pluginContext.integrationId];
 
 	if (!integration) {
-		return <IntegrationsPage />;
+		return <IntegrationsPage onIntegrationSelected={handleIntegrationSelected} />;
 	} else if (!pluginContext.authenticatedIntegrations.includes(pluginContext.integrationId)) {
 		const { AuthenticatePage } = integration;
 		return <AuthenticatePage onAuthenticated={handleAuthenticated} />;
@@ -221,7 +231,7 @@ async function runPlugin() {
 			pluginContext = {
 				type: "new",
 				collection,
-				authenticatedIntegrations: [],
+				authenticatedIntegrations: pluginContext.authenticatedIntegrations,
 				integrationId: null,
 			};
 		}

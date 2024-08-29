@@ -1,15 +1,8 @@
 import Window from "./Window";
-import { usePluginContext } from "./PluginContext";
 import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
 import Button from "@shared/Button";
 
-export default function IntegrationsPage() {
-	const { updatePluginContext } = usePluginContext();
-
-	function onIntegrationClick(integrationId) {
-		updatePluginContext({ integrationId });
-	}
-
+export default function IntegrationsPage({ onIntegrationSelected }) {
 	return (
 		<Window
 			page="Integrations"
@@ -23,22 +16,23 @@ export default function IntegrationsPage() {
 				<AppButton
 					icon={<NotionLogo size={45} />}
 					title="Notion"
-					onClick={() => onIntegrationClick("notion")}
+					onClick={() => onIntegrationSelected("notion")}
 				/>
 				<AppButton
 					icon={<AirtableLogo size={45} />}
 					title="Airtable"
-					onClick={() => onIntegrationClick("airtable")}
+					onClick={() => onIntegrationSelected("airtable")}
 				/>
 				<AppButton
 					icon={<GoogleSheetsLogo size={45} />}
 					title="Google Sheets"
-					onClick={() => onIntegrationClick("google-sheets")}
+					onClick={() => onIntegrationSelected("google-sheets")}
 				/>
 			</div>
 			<Button>Activate your License Key</Button>
-			<Button primary>Get a License Key
-			<svg
+			<Button primary>
+				Get a License Key
+				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="16"
 					height="16"

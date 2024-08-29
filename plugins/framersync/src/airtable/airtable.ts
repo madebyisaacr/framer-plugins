@@ -93,27 +93,36 @@ export function isAuthenticated() {
 // TODO: Check if refresh token is expired (60 days)
 export async function refreshAirtableToken() {
 	// Do not refresh if we already have an access token
+	console.log("Refreshing Airtable token");
+	console.log(airtableAccessToken);
 	if (airtableAccessToken) {
-		return;
+		console.log("Already have access token");
+		return true;
 	}
 
-	const response = await fetch(
-		`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		}
-	);
+	try {
+		const response = await fetch(
+			`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
 
-	const responseJson = await response.json();
-	console.log(responseJson);
-	const { access_token, refresh_token } = responseJson;
+		const responseJson = await response.json();
+		const { access_token, refresh_token } = responseJson;
 
-	airtableAccessToken = access_token;
-	localStorage.setItem(airtableRefreshTokenKey, refresh_token);
-	console.log("Set refresh token to:", refresh_token);
+		airtableAccessToken = access_token;
+		localStorage.setItem(airtableRefreshTokenKey, refresh_token);
+		console.log("Set refresh token to:", refresh_token);
+		return true;
+	} catch (error) {
+		localStorage.removeItem(airtableRefreshTokenKey);
+		console.error("Failed to refresh Airtable token", error);
+		return false;
+	}
 }
 
 // DONE
@@ -622,7 +631,8 @@ export function hasFieldConfigurationChanged(
 	}
 
 	const properties = Object.values(table.fields).filter(
-		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type].length > 0
+		(property) =>
+			!ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type].length > 0
 	);
 
 	if (properties.length !== fields.length) return true;

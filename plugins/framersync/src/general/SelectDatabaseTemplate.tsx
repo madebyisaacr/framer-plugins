@@ -203,7 +203,7 @@ function DatabaseButton({
 								className={classNames(
 									"rounded h-6 flex flex-row items-center px-1",
 									selectedSubdatabase === subdatabase
-										? "bg-primary text-tint font-semibold"
+										? "bg-segmented-control text-tint dark:text-primary font-semibold"
 										: "text-secondary font-medium"
 								)}
 								style={{
