@@ -468,7 +468,7 @@ export function MapFieldsPageTemplate({
 								</div>
 							</div>
 						) : editMenuFieldConfig ? (
-							<FieldSettingsMenu
+							<EditFieldMenu
 								fieldConfig={editMenuFieldConfig}
 								fieldTypes={fieldTypes}
 								fieldNames={fieldNameOverrides}
@@ -630,7 +630,7 @@ function createFieldTypesList(
 	return result;
 }
 
-function FieldSettingsMenu({
+function EditFieldMenu({
 	fieldConfig,
 	fieldTypes,
 	fieldNames,
