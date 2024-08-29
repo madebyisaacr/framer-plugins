@@ -4,7 +4,8 @@ import loginIllustration from "../assets/notion-login.png";
 import Button from "@shared/Button";
 import { framer } from "framer-plugin";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
-import { updateWindowSize } from "../general/PageWindowSizes";
+import Window from "../general/Window";
+import BackButton from "../components/BackButton";
 
 function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
@@ -28,7 +29,7 @@ interface AuthenticationProps {
 }
 
 export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
-	const { pluginContext } = usePluginContext();
+	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const [isLoading, setIsLoading] = useState(false);
 	const isDocumentVisible = useIsDocumentVisibile();
@@ -46,8 +47,6 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 		framer.notify(pluginContext.message, { variant: "error" });
 	}, [pluginContext, isDocumentVisible]);
 
-	updateWindowSize("Authenticate");
-
 	const handleAuth = () => {
 		setIsLoading(true);
 
@@ -60,8 +59,14 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 				setIsLoading(false);
 			});
 	};
+
+	const onBackButtonClick = () => {
+		updatePluginContext({ integrationId: null, integrationContext: null });
+	};
+
 	return (
-		<div className="w-full h-full flex flex-col items-center justify-center gap-3 pb-3 px-3">
+		<Window page="Authenticate" className="flex flex-col justify-center gap-3 pb-3 px-3">
+			<BackButton onClick={onBackButtonClick} />
 			<img src={loginIllustration} className="max-w-100% rounded flex-shrink-0" />
 			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
@@ -79,6 +84,6 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 			<Button primary onClick={handleAuth} loading={isLoading} disabled={isLoading}>
 				Log in to Airtable
 			</Button>
-		</div>
+		</Window>
 	);
 }

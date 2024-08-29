@@ -4,7 +4,7 @@ import { ReloadIcon } from "../components/Icons";
 import Button from "@shared/Button";
 import classNames from "classnames";
 import { Spinner } from "@shared/spinner/Spinner";
-import { updateWindowSize } from "./PageWindowSizes";
+import Window from "./Window";
 import { usePluginContext } from "./PluginContext";
 import BackButton from "../components/BackButton";
 
@@ -34,8 +34,6 @@ export default function SelectDatabasePageTemplate({
 	const [selectedDatabaseId, setSelectedDatabaseId] = useState<string | null>(null);
 	const [selectedSubdatabase, setSelectedSubdatabase] = useState<string | null>(null);
 
-	updateWindowSize(instructions ? "SelectDatabaseWide" : "SelectDatabase");
-
 	const handleSubmit = () => {
 		assert(databases);
 
@@ -62,7 +60,7 @@ export default function SelectDatabasePageTemplate({
 	const nextButtonDisabled = !selectedDatabaseId || (subdatabases && !selectedSubdatabase);
 
 	return (
-		<div className="flex flex-row size-full">
+		<Window page={instructions ? "SelectDatabaseWide" : "SelectDatabase"} className="flex flex-row">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
 			{instructions && (
 				<div className="relative flex flex-col gap-3 p-3 w-[280px]">
@@ -116,7 +114,7 @@ export default function SelectDatabasePageTemplate({
 					Next: Configure Collection Fields
 				</Button>
 			</div>
-		</div>
+		</Window>
 	);
 }
 

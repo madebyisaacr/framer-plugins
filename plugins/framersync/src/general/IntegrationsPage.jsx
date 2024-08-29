@@ -1,17 +1,15 @@
-import { updateWindowSize } from "./PageWindowSizes";
+import Window from "./Window";
 import { usePluginContext } from "./PluginContext";
 
 export default function IntegrationsPage() {
 	const { updatePluginContext } = usePluginContext();
-
-	updateWindowSize("Integrations");
 
 	function onIntegrationClick(integrationId) {
 		updatePluginContext({ integrationId });
 	}
 
 	return (
-		<div className="flex flex-col size-full p-3 pt-0 gap-3 flex-1 overflow-y-auto items-center">
+		<Window page="Integrations" className="flex flex-col p-3 pt-0 gap-3 overflow-y-auto items-center">
 			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
 				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
 				<p>Select an app to connect to your website.</p>
@@ -33,7 +31,7 @@ export default function IntegrationsPage() {
 					onClick={() => onIntegrationClick("google-sheets")}
 				/>
 			</div>
-		</div>
+		</Window>
 	);
 }
 

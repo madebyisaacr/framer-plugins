@@ -6,7 +6,7 @@ import Button from "@shared/Button";
 import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext.js";
-import { updateWindowSize } from "./PageWindowSizes.js";
+import Window from "./Window";
 import { SegmentedControl, XIcon } from "@shared/components";
 import { cmsFieldTypeNames } from "./CMSFieldTypes.js";
 import BackButton from "../components/BackButton.jsx";
@@ -51,8 +51,6 @@ export function MapFieldsPageTemplate({
 	isLoading: boolean;
 	error: Error | null;
 }) {
-	updateWindowSize("MapFields");
-
 	const { pluginContext, updatePluginContext } = usePluginContext();
 	const { integrationContext } = pluginContext;
 
@@ -270,7 +268,7 @@ export function MapFieldsPageTemplate({
 	);
 
 	return (
-		<div className="flex-1 flex flex-col gap-3 overflow-hidden">
+		<Window page="MapFields" className="flex flex-col gap-3 overflow-hidden">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
 			<div className="h-full flex-1 overflow-hidden flex flex-col">
 				<div className="flex flex-row flex-1 w-full overflow-hidden">
@@ -466,7 +464,7 @@ export function MapFieldsPageTemplate({
 					Importing items...
 				</div>
 			)}
-		</div>
+		</Window>
 	);
 }
 

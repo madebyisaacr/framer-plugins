@@ -9,7 +9,6 @@ import { CenteredSpinner } from "./components/CenteredSpinner";
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
-import { updateWindowSize } from "./general/PageWindowSizes";
 
 import { framer } from "framer-plugin";
 import { logSyncResult } from "./debug";
@@ -237,11 +236,9 @@ async function runPlugin() {
 			return;
 		}
 
-		updateWindowSize("Integrations");
-
 		renderPlugin(
 			<QueryClientProvider client={queryClient}>
-				<div className="w-full flex flex-col items-center justify-center overflow-auto flex-1 select-none">
+				<div className="flex flex-col items-center size-full justify-center overflow-hidden select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
 						<PluginContextProvider initialContext={pluginContext}>
 							<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>
