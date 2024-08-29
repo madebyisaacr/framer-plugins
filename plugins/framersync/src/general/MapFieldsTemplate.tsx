@@ -408,8 +408,8 @@ export function MapFieldsPageTemplate({
 						{error && (
 							<div className="relative w-full flex-row items-center gap-1.5 p-3">
 								<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-								<div className="size-1.5 bg-[#f87171] rounded-full" />
-								<span className="text-[#f87171] font-semibold min-h-6 flex-row items-center">
+								<div className="size-1.5 bg-error rounded-full" />
+								<span className="text-error font-semibold min-h-6 flex-row items-center">
 									{error?.message || "Error"}
 								</span>
 							</div>

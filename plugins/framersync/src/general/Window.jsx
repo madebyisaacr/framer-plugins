@@ -25,7 +25,7 @@ const pageSizes = {
 	},
 	LicenceKey: {
 		width: 350,
-		height: 550,
+		height: 600,
 	},
 	Checkout: {
 		width: 1100,

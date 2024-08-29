@@ -20,18 +20,16 @@ export function LemonSqueezyProvider({ children }) {
 
 		if (!licenseKey || !instanceId) return false;
 
-		const searchParams = new URLSearchParams({
-			license_key: licenseKey,
-			instance_id: instanceId,
-		});
-
 		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
-			body: searchParams.toString(),
+			body: JSON.stringify({
+				license_key: licenseKey,
+				instance_id: instanceId,
+			}),
 		});
 
 		const data = await response.json();
@@ -48,10 +46,12 @@ export function LemonSqueezyProvider({ children }) {
 		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/activate`, {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
-			body: `license_key=${licenseKey}`,
+			body: JSON.stringify({
+				license_key: licenseKey,
+			}),
 		});
 
 		const data = await response.json();

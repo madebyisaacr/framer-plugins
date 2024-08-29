@@ -1,24 +1,33 @@
 import Window from "./Window";
 import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
 import Button from "@shared/Button";
-import { CheckoutPage, LicenceKeyPage } from "./LicenceKeyPage";
+import { LicenceKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
+import { useLemonSqueezy } from "./LemonSqueezy";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
-	const [checkoutPageOpen, setCheckoutPageOpen] = useState(false);
+
+	const { openCheckout } = useLemonSqueezy();
+
+	const onLicenseKeyButtonClick = () => {
+		setLicenseKeyPageOpen(true);
+	};
+
+	const onBuyButtonClick = () => {
+		openCheckout();
+		setTimeout(() => {
+			setLicenseKeyPageOpen(true);
+		}, 400);
+	};
 
 	return licenseKeyPageOpen ? (
 		<LicenceKeyPage closePage={() => setLicenseKeyPageOpen(false)} />
-	) : checkoutPageOpen ? (
-		<CheckoutPage closePage={() => setCheckoutPageOpen(false)} />
 	) : (
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">
 				<Logo />
-				<h1 className="text-xl font-bold mt-2 text-center">
-					Sync your data with the Framer CMS
-				</h1>
+				<h1 className="text-xl font-bold mt-2 text-center">Sync your data with the Framer CMS</h1>
 				<p>Select an app to connect to your website.</p>
 			</div>
 			<div className="grid grid-cols-3 gap-2 w-full">
@@ -39,8 +48,8 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 				/>
 			</div>
 			<div className="w-full h-px bg-divider my-1" />
-			<Button onClick={() => setLicenseKeyPageOpen(true)}>Activate your License Key</Button>
-			<Button primary onClick={() => setCheckoutPageOpen(true)}>
+			<Button onClick={onLicenseKeyButtonClick}>Activate your License Key</Button>
+			<Button primary onClick={onBuyButtonClick}>
 				Get a License Key
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

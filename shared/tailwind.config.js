@@ -15,6 +15,7 @@ export default {
 			"segmented-control": "var(--color-segmented-control)",
 			"modal": "var(--color-bg-modal)",
 			transparent: "transparent",
+			error: "var(--color-error)",
 		},
 		colors: {
 			primary: "var(--framer-color-text)",
@@ -22,6 +23,7 @@ export default {
 			tertiary: "var(--framer-color-text-tertiary)",
 			reversed: "var(--framer-color-text-reversed)",
 			tint: "var(--framer-color-tint)",
+			error: "var(--color-error)",
 		},
 		borderColor: {
 			primary: "var(--framer-color-bg)",
