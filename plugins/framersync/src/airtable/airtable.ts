@@ -46,7 +46,7 @@ export const propertyConversionTypes: Record<string, string[]> = {
 	multilineText: ["string"],
 	multipleLookupValues: [],
 	multipleCollaborators: [],
-	multipleSelects: ["enum", "string"],
+	multipleSelects: [], // ["enum", "string"],
 	number: ["number"],
 	percent: ["number"],
 	phoneNumber: ["string"],

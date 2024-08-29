@@ -3,21 +3,23 @@ import Button from "@shared/Button";
 import BackButton from "../components/BackButton";
 import { useState, useEffect } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
-
+import classNames from "classnames";
 export function LicenseKeyPage({ closePage, checkout }) {
 	return (
 		<Window page="LicenceKey" className="flex-col">
 			<BackButton onClick={closePage} />
-			<LicenseKeyMenu closePage={closePage} checkout={checkout} />
+			<LicenseKeyMenu closePage={closePage} checkout={checkout} className="flex-1" />
 		</Window>
 	);
 }
 
-export function LicenseKeyMenu({ checkout }) {
+export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, className = "" }) {
 	const [licenseKey, setLicenseKey] = useState("");
 	const [isActivating, setIsActivating] = useState(false);
 	const [isValidated, setIsValidated] = useState(false);
 	const [error, setError] = useState(null);
+
+	const [paywallMode, setPaywallMode] = useState(paywall);
 
 	const { openCheckout, activateLicenseKey } = useLemonSqueezy();
 
@@ -29,6 +31,9 @@ export function LicenseKeyMenu({ checkout }) {
 
 	const onBuyButtonClick = () => {
 		openCheckout();
+		setTimeout(() => {
+			setPaywallMode(false);
+		}, 400);
 	};
 
 	async function onSubmitLicenseKey() {
@@ -61,55 +66,75 @@ export function LicenseKeyMenu({ checkout }) {
 	}
 
 	return (
-		<div className="flex-col justify-center px-3 pb-3 gap-2 flex-1 w-full">
-			<div className="flex-col gap-2 flex-1 items-center justify-center w-full">
+		<div className={classNames("flex-col justify-center px-3 pb-3 gap-2 w-full", className)}>
+			<div className="flex-col gap-2 flex-1 py-8 items-center justify-center w-full text-center">
 				<KeyIcon />
-				<h1 className="font-bold text-base">Activate your Licence Key</h1>
-				<p className="text-center px-3 text-balance mb-2">
-					If you have a FramerSync license, you can find your licence key in your order confirmation
-					email or on the{" "}
-					<a
-						href="https://app.lemonsqueezy.com/my-orders/"
-						target="_blank"
-						className="text-tint dark:text-primary font-semibold hover:underline"
-					>
-						order page
-					</a>
-					.
-				</p>
-				<input
-					type="text"
-					className="w-full"
-					placeholder="Licence Key"
-					value={licenseKey}
-					autoFocus
-					onChange={(e) => setLicenseKey(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							onSubmitLicenseKey();
-						}
-					}}
-					disabled={isValidated}
-				/>
-				<Button primary onClick={onSubmitLicenseKey} className="w-full" loading={isActivating}>
-					{isValidated ? "Activated License Key!" : "Activate License Key"}
-				</Button>
-				{error && <p className="text-error text-center">{error}</p>}
+				{paywallMode ? (
+					<>
+						<h1 className="font-bold text-base text-balance">
+							Upgrade to sync your {databaseLabel} with the Framer CMS
+						</h1>
+						<p className="text-balance px-3 mb-4">
+							Start syncing your {databaseLabel} with your website's CMS today.
+						</p>
+						<Button primary onClick={onBuyButtonClick} className="w-full">
+							Buy Now
+						</Button>
+						<FeaturesList paywallMode />
+					</>
+				) : (
+					<>
+						<h1 className="font-bold text-base text-balance">Activate your Licence Key</h1>
+						<p className="px-3 text-balance mb-4">
+							If you have a FramerSync license, you can find your licence key in your order
+							confirmation email or on the{" "}
+							<a
+								href="https://app.lemonsqueezy.com/my-orders/"
+								target="_blank"
+								className="text-tint dark:text-primary font-semibold hover:underline"
+							>
+								order page
+							</a>
+							.
+						</p>
+						<input
+							type="text"
+							className="w-full"
+							placeholder="Licence Key"
+							value={licenseKey}
+							autoFocus
+							onChange={(e) => setLicenseKey(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") {
+									onSubmitLicenseKey();
+								}
+							}}
+							disabled={isValidated}
+						/>
+						<Button primary onClick={onSubmitLicenseKey} className="w-full" loading={isActivating}>
+							{isValidated ? "Activated License Key!" : "Activate License Key"}
+						</Button>
+						{error && <p className="text-error text-center">{error}</p>}
+					</>
+				)}
 			</div>
-			<div className="flex-col gap-1 bg-secondary rounded p-3 text-secondary">
-				<span className="font-semibold text-primary">
-					Don't have a licence yet? Get lifetime access to FramerSync for $49
-				</span>
-				<ul className="list-disc pl-3 flex flex-col gap-1">
-					<li>One time purchase - buy once, use forever.</li>
-					<li>Includes all future updates.</li>
-					<li>One license key unlocks syncing unlimited collections in a single Framer project.</li>
-					<li>Connect Notion, Airtable, and Google Sheets.</li>
-				</ul>
-			</div>
-			<Button onClick={onBuyButtonClick} className="w-full">
-				Get a Licence Key
-			</Button>
+			{paywallMode ? (
+				<div className="flex-col gap-2">
+					<p className="text-balance text-center">
+						Already have a license? Activate it to get started.
+					</p>
+					<Button onClick={() => setPaywallMode(false)}>Activate License Key</Button>
+				</div>
+			) : paywall ? (
+				<Button onClick={onBuyButtonClick}>Buy FramerSync License</Button>
+			) : (
+				<>
+					<FeaturesList />
+					<Button onClick={onBuyButtonClick} className="w-full">
+						Get a Licence Key
+					</Button>
+				</>
+			)}
 		</div>
 	);
 }
@@ -147,5 +172,45 @@ function KeyIcon() {
 				strokeLinejoin="round"
 			/>
 		</svg>
+	);
+}
+
+function FeaturesList({ paywallMode = false }) {
+	return (
+		<div className="flex-col gap-1 bg-secondary rounded p-3 text-secondary text-left">
+			<span className="font-semibold text-primary">
+				{paywallMode ? "" : "Don't have a licence yet? "}Get lifetime access to FramerSync for $49
+			</span>
+			<ul className="list-disc flex flex-col gap-1">
+				<ChecklistItem>One time purchase - buy once, use forever.</ChecklistItem>
+				<ChecklistItem>Includes all future updates.</ChecklistItem>
+				<ChecklistItem>
+					Sync unlimted collections in a single Framer project with one license key.
+				</ChecklistItem>
+				<ChecklistItem>Connect Notion, Airtable, and Google Sheets.</ChecklistItem>
+			</ul>
+		</div>
+	);
+}
+
+function ChecklistItem({ children }) {
+	return (
+		<div className="flex-row items-start gap-1 w-full">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="15"
+				height="15"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth="2.5"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				className="min-w-3 mt-px"
+			>
+				<path d="M5 12l5 5l10 -10" />
+			</svg>
+			{children}
+		</div>
 	);
 }

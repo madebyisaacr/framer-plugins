@@ -58,7 +58,7 @@ export function MapFieldsPageTemplate({
 	getCollectionFieldForProperty,
 	coverImage = null,
 	databaseIcon = null,
-	subheading = null,
+	databaseLabel = null,
 }: {
 	onSubmit: () => void;
 	isLoading: boolean;
@@ -347,7 +347,7 @@ export function MapFieldsPageTemplate({
 										>
 											{databaseName}
 										</a>
-										{subheading && <span className="text-tertiary font-medium">{subheading}</span>}
+										{databaseLabel && <span className="text-tertiary font-medium">{databaseLabel}</span>}
 									</div>
 								</div>
 							</div>
@@ -538,12 +538,16 @@ export function MapFieldsPageTemplate({
 						transition={TRANSITION}
 					>
 						<div
-							className="w-[350px] h-[600px] bg-primary rounded-xl pt-3 flex-col relative"
+							className="w-[350px] bg-primary rounded-xl pt-3 flex-col relative"
 							style={{
 								boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
 							}}
 						>
-							<LicenseKeyMenu closePage={() => setShowLicenseKeyMenu(false)} />
+							<LicenseKeyMenu
+								closePage={() => setShowLicenseKeyMenu(false)}
+								paywall
+								databaseLabel={databaseLabel}
+							/>
 							<XIcon
 								onClick={() => setShowLicenseKeyMenu(false)}
 								className="absolute top-4 right-4"

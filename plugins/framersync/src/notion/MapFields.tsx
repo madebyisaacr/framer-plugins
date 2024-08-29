@@ -234,7 +234,7 @@ export function MapFieldsPage({
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
 			coverImage={coverImage}
 			databaseIcon={icon}
-			subheading="Notion database"
+			databaseLabel="Notion database"
 		/>
 	);
 }
