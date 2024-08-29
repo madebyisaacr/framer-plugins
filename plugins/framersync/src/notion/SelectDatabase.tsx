@@ -42,10 +42,13 @@ export function SelectDatabasePage() {
 			instructions={
 				<>
 					<img src={notionConnectSrc} alt="Notion connect" className="w-full rounded" />
-					<p>
-						Connect your databases: open a database in Notion, click the ... button in the top-right
-						corner of the page, then pick Connections → Connect to → Framer.
-					</p>
+					<div className="flex-col gap-1">
+						<p className="font-semibold text-primary">Don't see the database you're looking for?</p>
+						<p>Connect another database:</p>
+						<p>1. Open a database in Notion</p>
+						<p>2. Click the ... button in the top-right corner</p>
+						<p>3. Click Connections → Connect to → FramerSync</p>
+					</div>
 				</>
 			}
 		/>
