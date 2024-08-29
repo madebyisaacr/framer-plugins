@@ -46,6 +46,7 @@ export function MapFieldsPageTemplate({
 	getPropertyTypeName,
 	allFieldSettings,
 	getCollectionFieldForProperty,
+	coverImage = null,
 }: {
 	onSubmit: () => void;
 	isLoading: boolean;
@@ -304,6 +305,9 @@ export function MapFieldsPageTemplate({
 						>
 							<div className="flex-col gap-2 mb-2">
 								{pluginContext.type === "new" && <BackButton onClick={onBackButtonClick} />}
+								{coverImage && (
+									<img className="w-full aspect-[5/1] rounded-lg object-cover mb-2" src={coverImage} />
+								)}
 								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
 							</div>
 							<div className="relative flex-1 flex-col gap-4">

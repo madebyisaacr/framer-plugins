@@ -212,6 +212,8 @@ export function MapFieldsPage({
 
 	assert(isFullDatabase(database));
 
+	const coverImage = database.cover?.type === "external" ? database.cover.external.url : null;
+
 	return (
 		<MapFieldsPageTemplate
 			onSubmit={onSubmit}
@@ -228,6 +230,7 @@ export function MapFieldsPage({
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
+			coverImage={coverImage}
 		/>
 	);
 }
