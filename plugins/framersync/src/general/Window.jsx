@@ -4,19 +4,19 @@ import classNames from "classnames";
 
 const pageSizes = {
 	Integrations: {
-		width: 500,
+		width: 450,
 		height: 450,
 	},
 	Authenticate: {
 		width: 350,
 		height: 450,
 	},
-	SelectDatabaseWide: {
-		width: 750,
-		height: 550,
-	},
 	SelectDatabase: {
 		width: 400,
+		height: 550,
+	},
+	SelectDatabaseWide: {
+		width: 400 + 280,
 		height: 550,
 	},
 	MapFields: {
