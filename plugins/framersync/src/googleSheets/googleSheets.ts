@@ -401,23 +401,40 @@ export function useSpreadsheetsQuery() {
 		queryKey: ["spreadsheets"],
 		queryFn: async () => {
 			const token = localStorage.getItem(googleSheetsTokenStorageKey);
+			console.log("token", token);
 			if (!token) throw new Error("Google Sheets API token is missing");
 
-			const response = await fetch(
-				"https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27",
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
+			try {
+				const response = await fetch(
+					"https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27",
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+
+				if (response.status === 403) {
+					console.error("403 Forbidden error. Token may be invalid or expired.");
+					localStorage.removeItem(googleSheetsTokenStorageKey);
+					throw new Error("Authorization failed. Please log in again.");
 				}
-			);
 
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+
+				const data = await response.json();
+				return data.files || [];
+			} catch (error) {
+				console.error("Error fetching spreadsheets:", error);
+				throw error;
 			}
-
-			const data = await response.json();
-			return data.files || [];
+		},
+		retry: false, // Disable automatic retries on failure
+		onError: (error) => {
+			console.error("Query error:", error);
+			// You can add additional error handling here if needed
 		},
 	});
 }

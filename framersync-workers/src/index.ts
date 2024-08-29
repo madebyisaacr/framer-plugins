@@ -83,7 +83,7 @@ async function handleRequest(request: Request, env: Env) {
 				googleAuthorizeParams.append('response_type', 'code');
 				googleAuthorizeParams.append(
 					'scope',
-					'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.file'
+					'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly'
 				);
 				googleAuthorizeParams.append('access_type', 'offline');
 				googleAuthorizeParams.append('include_granted_scopes', 'true');
