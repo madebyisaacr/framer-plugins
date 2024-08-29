@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export function assert(condition: unknown, ...msg: unknown[]): asserts condition {
 	if (condition) return;
 
@@ -95,7 +97,7 @@ export function jsonStringToArray(jsonString: string | null) {
 	return parsed;
 }
 
-function useIsDocumentVisibile() {
+export function useIsDocumentVisibile() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
 
 	useEffect(() => {
