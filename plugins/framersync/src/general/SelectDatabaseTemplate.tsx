@@ -60,16 +60,16 @@ export default function SelectDatabasePageTemplate({
 	const nextButtonDisabled = !selectedDatabaseId || (subdatabases && !selectedSubdatabase);
 
 	return (
-		<Window page={instructions ? "SelectDatabaseWide" : "SelectDatabase"} className="flex flex-row">
+		<Window page={instructions ? "SelectDatabaseWide" : "SelectDatabase"} className="flex-row">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
 			{instructions && (
-				<div className="relative flex flex-col gap-3 p-3 w-[280px]">
+				<div className="relative flex-col gap-3 p-3 w-[280px]">
 					<BackButton onClick={onBackButtonClick} />
 					{instructions}
 					<div className="absolute right-0 inset-y-3 w-px bg-divider" />
 				</div>
 			)}
-			<div className="flex flex-col gap-2 flex-1 justify-between p-3">
+			<div className="flex-col gap-2 flex-1 justify-between p-3">
 				{!instructions && <BackButton onClick={onBackButtonClick} />}
 				<div className="flex items-center justify-between">
 					<span>{title}</span>
@@ -82,12 +82,12 @@ export default function SelectDatabasePageTemplate({
 					</button>
 				</div>
 				{isLoading ? (
-					<div className="flex flex-col items-center justify-center flex-1 gap-4">
+					<div className="flex-col items-center justify-center flex-1 gap-4">
 						<Spinner inline />
 						Loading {databasesLabel}...
 					</div>
 				) : (
-					<div className="flex-1 flex flex-col">
+					<div className="flex-1 flex-col">
 						{databases?.map((database) => (
 							<DatabaseButton
 								key={database.id}
@@ -180,19 +180,19 @@ function DatabaseButton({
 	return (
 		<div
 			className={classNames(
-				"relative cursor-pointer flex flex-col font-semibold",
+				"relative cursor-pointer flex-col font-semibold",
 				selected && "bg-secondary rounded"
 			)}
 		>
-			<div onClick={onClick} className="flex flex-row gap-2 items-center h-7 px-2">
+			<div onClick={onClick} className="flex-row gap-2 items-center h-7 px-2">
 				{icon}
 				{databaseName}
 			</div>
 			{selected && hasSubdatabases && (
-				<div className="flex flex-col px-1 pb-1 pt-1.5 relative">
+				<div className="flex-col px-1 pb-1 pt-1.5 relative">
 					<div className="absolute top-0 inset-x-2 h-px bg-divider-secondary" />
 					{isLoadingSubdatabases ? (
-						<div className="flex flex-row items-center justify-center flex-1 gap-2 min-h-7 text-secondary">
+						<div className="flex-row items-center justify-center flex-1 gap-2 min-h-7 text-secondary">
 							<Spinner inline />
 							Loading {subdatabasesLabel}...
 						</div>
@@ -201,7 +201,7 @@ function DatabaseButton({
 							<div
 								key={subdatabase.id}
 								className={classNames(
-									"rounded h-6 flex flex-row items-center px-1",
+									"rounded h-6 flex-row items-center px-1",
 									selectedSubdatabase === subdatabase
 										? "bg-segmented-control text-tint dark:text-primary font-semibold"
 										: "text-secondary font-medium"

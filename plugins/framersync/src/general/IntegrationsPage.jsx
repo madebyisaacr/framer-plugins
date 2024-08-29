@@ -6,9 +6,9 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 	return (
 		<Window
 			page="Integrations"
-			className="flex flex-col p-3 pt-0 gap-2 overflow-y-auto items-center"
+			className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center"
 		>
-			<div className="flex-1 flex flex-col gap-1 w-full items-center justify-center">
+			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">
 				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
 				<p>Select an app to connect to your website.</p>
 			</div>
@@ -60,7 +60,7 @@ function AppButton({ title, icon, onClick }) {
 	return (
 		<div
 			onClick={onClick}
-			className="flex flex-col items-center justify-center gap-3 bg-secondary rounded aspect-square font-semibold cursor-pointer hover:bg-tertiary transition-colors"
+			className="flex-col items-center justify-center gap-3 bg-secondary rounded aspect-square font-semibold cursor-pointer hover:bg-tertiary transition-colors"
 		>
 			{icon}
 			{title}

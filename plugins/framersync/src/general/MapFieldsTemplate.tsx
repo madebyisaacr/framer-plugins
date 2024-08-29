@@ -291,22 +291,22 @@ export function MapFieldsPageTemplate({
 	);
 
 	return (
-		<Window page="MapFields" className="flex flex-col gap-3 overflow-hidden">
+		<Window page="MapFields" className="flex-col gap-3 overflow-hidden">
 			<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
-			<div className="h-full flex-1 overflow-hidden flex flex-col">
-				<div className="flex flex-row flex-1 w-full overflow-hidden">
-					<div className="flex flex-col flex-1">
+			<div className="h-full flex-1 overflow-hidden flex-col">
+				<div className="flex-row flex-1 w-full overflow-hidden">
+					<div className="flex-col flex-1">
 						<div
 							className={classNames(
-								"flex flex-col flex-1 p-3 gap-3 transition-opacity relative overflow-y-auto",
+								"flex-col flex-1 p-3 gap-3 transition-opacity relative overflow-y-auto",
 								isLoading && "opacity-50 blur-sm pointer-events-none"
 							)}
 						>
-							<div className="flex flex-col gap-2 mb-2">
+							<div className="flex-col gap-2 mb-2">
 								<BackButton onClick={onBackButtonClick} />
 								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
 							</div>
-							<div className="relative flex-1 flex flex-col gap-4">
+							<div className="relative flex-1 flex-col gap-4">
 								{editMenuFieldConfig && (
 									<div
 										className="absolute inset-x-0 w-full h-6 pointer-events-none"
@@ -335,7 +335,7 @@ export function MapFieldsPageTemplate({
 										gridTemplateColumns: `1.5fr 8px 1fr 150px auto`,
 									}}
 								>
-									<div className="flex flex-row justify-between">
+									<div className="flex-row justify-between">
 										<span className="text-ellipsis text-nowrap overflow-hidden capitalize font-semibold">
 											{propertyLabelText}
 										</span>
@@ -354,7 +354,7 @@ export function MapFieldsPageTemplate({
 									<div
 										ref={(el) => (fieldElementRefs["slug"] = el)}
 										onClick={() => toggleEditMenuFieldConfig("slug")}
-										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
+										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
 									>
 										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
 											<input type="checkbox" readOnly checked={true} className="opacity-40" />
@@ -394,22 +394,22 @@ export function MapFieldsPageTemplate({
 					<div className="w-[285px] h-full relative">
 						<div className="absolute left-0 inset-y-3 w-px bg-divider z-10" />
 						{editMenuFieldConfig == "slug" ? (
-							<div className="size-full flex flex-col">
-								<div className="relative flex flex-col gap-1 w-full p-3">
+							<div className="size-full flex-col">
+								<div className="relative flex-col gap-1 w-full p-3">
 									<h1 className="text-lg font-bold -mb-1 mt-1">Slug</h1>
 									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 								</div>
-								<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
-									<div className="min-h-10 flex flex-row items-center justify-between -mb-2">
+								<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
+									<div className="min-h-10 flex-row items-center justify-between -mb-2">
 										<span className="text-primary font-semibold">{slugFieldTitleText}</span>
 										<span className="text-tertiary pr-2">Type</span>
 									</div>
-									<div className="flex flex-col gap-0.5 flex-1">
+									<div className="flex-col gap-0.5 flex-1">
 										{slugFields.map((field) => (
 											<label
 												key={field.id}
 												className={classNames(
-													"items-center flex flex-row gap-2 rounded px-2 h-6 cursor-pointer",
+													"items-center flex-row gap-2 rounded px-2 h-6 cursor-pointer",
 													slugFieldId === field.id && "bg-secondary"
 												)}
 											>
@@ -426,7 +426,7 @@ export function MapFieldsPageTemplate({
 											</label>
 										))}
 									</div>
-									<div className="flex flex-col gap-1 p-3 bg-secondary rounded text-secondary">
+									<div className="flex-col gap-1 p-3 bg-secondary rounded text-secondary">
 										<p className="text-primary font-semibold">What is a slug field?</p>
 										<p>
 											The slug field is a unique ID for each item in the collection. If the CMS
@@ -454,7 +454,7 @@ export function MapFieldsPageTemplate({
 						)}
 					</div>
 				</div>
-				<div className="relative w-full flex flex-row items-center justify-between gap-3 p-3 overflow-hidden">
+				<div className="relative w-full flex-row items-center justify-between gap-3 p-3 overflow-hidden">
 					<div className="absolute top-0 inset-x-3 h-px bg-divider z-10" />
 					<div className="inline-flex items-center min-w-0 flex-1">
 						{error ? (
@@ -484,7 +484,7 @@ export function MapFieldsPageTemplate({
 				</div>
 			</div>
 			{isLoading && (
-				<div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+				<div className="absolute inset-0 flex-col items-center justify-center gap-3">
 					<Spinner inline />
 					Importing items...
 				</div>
@@ -508,7 +508,7 @@ function UnsupportedFieldBlock({ title, text }) {
 			{text && (
 				<div
 					className={classNames(
-						"flex flex-col gap-1.5 rounded-lg p-3 w-full z-10 text-secondary bg-modal pointer-events-none absolute -top-2 -translate-y-[100%] transition-opacity",
+						"flex-col gap-1.5 rounded-lg p-3 w-full z-10 text-secondary bg-modal pointer-events-none absolute -top-2 -translate-y-[100%] transition-opacity",
 						hover ? "opacity-100" : "opacity-0"
 					)}
 					style={{
@@ -569,7 +569,7 @@ const StaticInput = forwardRef(
 					className
 				)}
 			>
-				<span className="shrink-0 flex flex-row items-center gap-1.5">{children}</span>
+				<span className="shrink-0 flex-row items-center gap-1.5">{children}</span>
 				{leftText && (
 					<span
 						className={classNames(
@@ -672,14 +672,14 @@ function FieldSettingsMenu({
 	}, [propertyType, fieldType]);
 
 	return (
-		<div className="size-full flex flex-col">
-			<div className="relative flex flex-col gap-1 w-full px-3 pt-3 pb-2">
+		<div className="size-full flex-col">
+			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1">{getPropertyTypeName(fieldConfig.property.type)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
-			<div className="flex flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
-				<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
+			<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
+				<div className="min-h-10 flex-row items-center text-primary font-semibold -mb-2">
 					Field Settings
 				</div>
 				<PropertyControl title="Import Field">
@@ -713,7 +713,7 @@ function FieldSettingsMenu({
 				{fieldConversionMessage && (
 					<div
 						className={classNames(
-							"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
+							"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
 							disabled && "opacity-50"
 						)}
 					>
@@ -737,7 +737,7 @@ function FieldSettingsMenu({
 						</PropertyControl>
 						<div
 							className={classNames(
-								"p-3 bg-secondary rounded text-secondary flex flex-col gap-1.5 transition-opacity",
+								"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
 								disabled && "opacity-50"
 							)}
 						>

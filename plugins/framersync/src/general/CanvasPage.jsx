@@ -2,8 +2,8 @@ const videoURL = "https://framerusercontent.com/assets/jJ7GProNLEEkQw0A6ozYjFRc7
 
 export default function CanvasPage() {
 	return (
-		<div className="size-full px-3 pb-3 flex flex-col gap-2">
-			<div className="flex flex-col gap-2 text-center items-center justify-center flex-1">
+		<div className="size-full px-3 pb-3 flex-col gap-2">
+			<div className="flex-col gap-2 text-center items-center justify-center flex-1">
 				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
 				<p className="max-w-[400px]">
 					To connect your website with data from Notion, Airtable or Google Sheets, open the Framer

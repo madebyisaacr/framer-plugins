@@ -49,14 +49,14 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 	};
 
 	return (
-		<Window page="Authenticate" className="flex flex-col justify-center gap-3 pb-3 px-3">
+		<Window page="Authenticate" className="flex-col justify-center gap-3 pb-3 px-3">
 			<BackButton onClick={onBackButtonClick} />
 			<h1 className="text-base font-bold text-primary">
 				Connect your Airtable account
 				<br />
 				with FramerSync
 			</h1>
-			<div className="w-full aspect-[1.8] rounded bg-secondary flex flex-row items-center justify-center gap-3">
+			<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
 				<AirtableLogo size={50} />
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -76,13 +76,13 @@ export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
 				</svg>
 				<FramerLogo size={42} />
 			</div>
-			<div className="flex flex-col items-center gap-2 flex-1 justify-center w-full">
+			<div className="flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
 					<span className="text-center max-w-[80%] block text-secondary">
 						Complete the authentication and return to this page.
 					</span>
 				) : (
-					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex flex-col flex-1">
+					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex-col flex-1">
 						<li>Log in to your Airtable account</li>
 						<li>Pick the base you want to import</li>
 						<li>Map the base fields to the Framer CMS</li>
