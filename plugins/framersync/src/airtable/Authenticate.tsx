@@ -6,23 +6,7 @@ import { PluginContext, usePluginContext } from "../general/PluginContext";
 import Window from "../general/Window";
 import BackButton from "../components/BackButton";
 import { AirtableLogo, FramerLogo } from "../assets/AppIcons";
-
-function useIsDocumentVisibile() {
-	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
-
-	useEffect(() => {
-		const handleVisibilityChange = () => {
-			setIsVisible(document.visibilityState === "visible");
-		};
-
-		document.addEventListener("visibilitychange", handleVisibilityChange);
-		return () => {
-			document.removeEventListener("visibilitychange", handleVisibilityChange);
-		};
-	}, []);
-
-	return isVisible;
-}
+import { useIsDocumentVisibile } from "../utils";
 
 interface AuthenticationProps {
 	onAuthenticated: () => void;
