@@ -371,7 +371,7 @@ function HomePage() {
 							boxShadow: "0 -12px 12px -12px rgba(0,0,0,0.05)",
 						}}
 					>
-						<div className="flex flex-row gap-2 flex-1 pt-0.5">
+						<div className="flex flex-row gap-2.5 flex-1 pt-0.5">
 							<div className="relative size-[80px] bg-secondary rounded">
 								<img
 									className="dark-invert absolute size-[64px] top-1.5 left-1.5"
@@ -387,14 +387,12 @@ function HomePage() {
 							</div>
 						</div>
 						<div className="flex flex-row gap-2 items-end flex-1">
+							<CopySVGButton copyFunction={async () => await onIconActionButtonClick(true)} />
 							<Button primary onClick={() => onIconActionButtonClick(false)} className="flex-1">
 								Insert Icon
 							</Button>
-							<Button onClick={() => onIconActionButtonClick(true)} className="flex-1">
-								Copy SVG
-							</Button>
 						</div>
-						<XIcon className="absolute top-3 right-3" onClick={() => setIcon(null)} />
+						<XIcon className="absolute top-4 right-4" onClick={() => setIcon(null)} />
 					</div>
 				)}
 			</div>
@@ -497,4 +495,23 @@ function generateIconGroups(iconPackData) {
 	}
 
 	return [iconPackData.iconIds];
+}
+
+function CopySVGButton({ copyFunction }) {
+	const [isCopied, setIsCopied] = useState(false);
+
+	async function onClick() {
+		await copyFunction();
+		setIsCopied(true);
+
+		setTimeout(() => {
+			setIsCopied(false);
+		}, 2000);
+	}
+
+	return (
+		<Button onClick={onClick} className="flex-1">
+			{isCopied ? "Copied!" : "Copy SVG"}
+		</Button>
+	);
 }
