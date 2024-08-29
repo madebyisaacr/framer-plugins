@@ -13,6 +13,7 @@ import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import getDatabaseIcon from "./getDatabaseIcon";
 
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
@@ -213,6 +214,7 @@ export function MapFieldsPage({
 	assert(isFullDatabase(database));
 
 	const coverImage = database.cover?.type === "external" ? database.cover.external.url : null;
+	const icon = getDatabaseIcon(database, 28);
 
 	return (
 		<MapFieldsPageTemplate
@@ -231,6 +233,8 @@ export function MapFieldsPage({
 			allFieldSettings={allFieldSettings}
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
 			coverImage={coverImage}
+			databaseIcon={icon}
+			subheading="Notion database"
 		/>
 	);
 }

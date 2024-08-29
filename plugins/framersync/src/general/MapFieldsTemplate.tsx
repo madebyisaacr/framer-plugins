@@ -47,6 +47,8 @@ export function MapFieldsPageTemplate({
 	allFieldSettings,
 	getCollectionFieldForProperty,
 	coverImage = null,
+	databaseIcon = null,
+	subheading = null,
 }: {
 	onSubmit: () => void;
 	isLoading: boolean;
@@ -303,12 +305,26 @@ export function MapFieldsPageTemplate({
 								isLoading && "opacity-50 blur-sm pointer-events-none"
 							)}
 						>
-							<div className="flex-col gap-2 mb-2">
+							<div className="flex-col gap-3 mb-2">
 								{pluginContext.type === "new" && <BackButton onClick={onBackButtonClick} />}
 								{coverImage && (
-									<img className="w-full aspect-[5/1] rounded-lg object-cover mb-2" src={coverImage} />
+									<img
+										className="w-full aspect-[5] rounded-lg object-cover"
+										style={{
+											boxShadow: "rgba(0, 0, 0, 0.05) 0px 8px 16px 0px",
+										}}
+										src={coverImage}
+									/>
 								)}
-								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
+								<div className="flex-row gap-2 items-center">
+									{databaseIcon}
+									<div className="flex-col gap-0.5">
+										<h1 className="text-lg font-bold">{databaseName}</h1>
+										{subheading && (
+											<span className="text-tertiary font-medium">{subheading}</span>
+										)}
+									</div>
+								</div>
 							</div>
 							<div className="relative flex-1 flex-col gap-4">
 								{editMenuFieldConfig && (

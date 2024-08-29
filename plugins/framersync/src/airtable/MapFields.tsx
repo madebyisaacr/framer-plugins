@@ -194,6 +194,7 @@ export function MapFieldsPage({
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
+			subheading="Airtable table"
 		/>
 	);
 }

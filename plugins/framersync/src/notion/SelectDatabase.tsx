@@ -2,6 +2,7 @@ import { richTextToPlainText, useDatabasesQuery } from "./notion";
 import notionConnectSrc from "../assets/notion-connect.png";
 import { usePluginContext } from "../general/PluginContext";
 import SelectDatabasePageTemplate from "../general/SelectDatabaseTemplate";
+import getDatabaseIcon from "./getDatabaseIcon";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
@@ -22,30 +23,10 @@ export function SelectDatabasePage() {
 	const databases = isLoading
 		? []
 		: data?.map((database) => {
-				let iconEmoji = null;
-				let iconUrl = null;
-
-				if (database.icon) {
-					switch (database.icon.type) {
-						case "emoji":
-							iconEmoji = database.icon.emoji;
-							break;
-						case "external":
-							iconUrl = database.icon.external.url;
-							break;
-						case "file":
-							iconUrl = database.icon.file.url;
-							break;
-						default:
-							break;
-					}
-				}
-
 				return {
 					id: database.id,
 					title: richTextToPlainText(database.title),
-					iconEmoji,
-					iconUrl,
+					icon: getDatabaseIcon(database, 18, true),
 				};
 		  });
 
@@ -58,7 +39,6 @@ export function SelectDatabasePage() {
 			onSubmit={onSubmit}
 			title="Select a Notion database to sync"
 			databasesLabel="Databases"
-			showDatabaseIcons
 			instructions={
 				<>
 					<img src={notionConnectSrc} alt="Notion connect" className="w-full rounded" />
