@@ -4,6 +4,7 @@ import "./App.css";
 import { iconPacks } from "./IconstackData.jsx";
 import { SearchBar, XIcon, SegmentedControl } from "@shared/components.jsx";
 import Button from "@shared/Button.jsx";
+import classNames from "classnames";
 import { PageStack, PageStackContext, BackButton } from "@shared/PageStack.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
@@ -249,8 +250,8 @@ function HomePage() {
 	}
 
 	return (
-		<div className="flex flex-row overflow-hidden flex-1 max-h-full">
-			<div className="relative flex flex-col flex-1 overflow-x-hidden">
+		<div className="flex flex-row overflow-hidden flex-1 h-full">
+			<div className="relative flex flex-col h-full overflow-x-hidden">
 				<div className="relative flex flex-col w-full px-3 pb-3 gap-2">
 					<div className="flex flex-row gap-2">
 						<select
@@ -322,6 +323,18 @@ function HomePage() {
 								<rect x="8" y="7" width="2" height="8" rx="1" fill="currentColor" />
 							</svg>
 						</Button>
+						<Button square onClick={() => openModal(<CustomizationMenu />)}>
+							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+								<path
+									fill="none"
+									stroke="currentColor"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth="2"
+									d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4m9.5-13.5l4 4"
+								/>
+							</svg>
+						</Button>
 					</div>
 					{iconPackData?.types &&
 						(iconPackData.types.length < 5 ? (
@@ -352,13 +365,13 @@ function HomePage() {
 					/>
 					<div className="absolute h-px inset-x-3 bottom-0 bg-divider"></div>
 				</div>
-				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto flex-1">
+				<div ref={scrollContainerRef} className="hide-scrollbar overflow-y-auto flex-1 p-3">
 					<div
-						className="grid w-full p-3"
+						className="grid w-full"
 						style={{
 							gridTemplateColumns: `repeat(${ICONS_PER_ROW}, ${ICON_HEIGHT}px)`,
 							gridTemplateRows: `repeat(auto-fill, ${ICON_HEIGHT}px)`,
-							height: ((filteredIcons?.length ?? 0) / ICONS_PER_ROW) * ICON_HEIGHT,
+							height: Math.ceil((filteredIcons?.length ?? 0) / ICONS_PER_ROW) * ICON_HEIGHT,
 						}}
 					>
 						{icons}
@@ -513,5 +526,72 @@ function CopySVGButton({ copyFunction }) {
 		<Button onClick={onClick} className="flex-1">
 			{isCopied ? "Copied!" : "Copy SVG"}
 		</Button>
+	);
+}
+
+function CustomizationMenu() {
+	const { closeModal } = useContext(PageStackContext);
+
+	const [size, setSize] = useState(16);
+
+	return (
+		<div className="flex flex-col size-full p-3 gap-2">
+			<h1 className="text-sm font-bold">Customization</h1>
+			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
+			<PropertyControl title="Size">
+				<div className="flex flex-row gap-2 w-full">
+					<input
+						type="number"
+						min="1"
+						max="100"
+						value={size}
+						onChange={(e) => setSize(parseInt(e.target.value))}
+						className="w-1/2"
+					/>
+					<div className="flex flex-row bg-secondary rounded h-6 w-1/2 text-tertiary items-center">
+						<div
+							onClick={() => setSize(Math.max(size - 1, 1))}
+							className="flex flex-1 justify-center items-center h-full cursor-pointer"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+								<path
+									d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
+									fill="currentColor"
+								></path>
+							</svg>
+						</div>
+						<div className="min-w-[1px] bg-divider-secondary h-3"></div>
+						<div
+							onClick={() => setSize(Math.min(size + 1, 1000))}
+							className="flex flex-1 justify-center items-center h-full cursor-pointer"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
+								<path
+									d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
+									fill="currentColor"
+								></path>
+							</svg>
+						</div>
+					</div>
+				</div>
+			</PropertyControl>
+		</div>
+	);
+}
+
+function PropertyControl({ title, children, disabled = false }) {
+	return (
+		<div
+			className={classNames(
+				"grid gap-2 w-full items-center transition-opacity",
+				disabled && "opacity-50 pointer-events-none"
+			)}
+			style={{
+				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
+			}}
+		>
+			<span className="text-secondary pl-2">{title}</span>
+			<div className="col-span-2">{children}</div>
+		</div>
 	);
 }
