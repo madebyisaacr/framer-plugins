@@ -19,6 +19,7 @@ import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import CanvasPage from "./general/CanvasPage";
+import { LemonSqueezyProvider } from "./general/LemonSqueezy";
 
 export const integrations = {
 	notion: Notion,
@@ -254,7 +255,9 @@ async function runPlugin() {
 				<div className="flex-col items-start size-full justify-start overflow-hidden select-none">
 					<ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
 						<PluginContextProvider initialContext={pluginContext}>
-							<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>
+							<LemonSqueezyProvider>
+								<Suspense fallback={<CenteredSpinner />}>{<App />}</Suspense>
+							</LemonSqueezyProvider>
 						</PluginContextProvider>
 					</ErrorBoundary>
 				</div>
