@@ -1,4 +1,3 @@
-import { google, sheets_v4 } from "googleapis";
 import pLimit from "p-limit";
 import { assert, formatDate, isDefined, isString, slugify } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
@@ -32,56 +31,62 @@ const propertyConversionTypes = {
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
 
-export type GoogleSheetsColumn = sheets_v4.Schema$CellData;
+export type GoogleSheetsColumn = {
+	columnIndex: number;
+	effectiveFormat?: {
+		numberFormat?: {
+			type: string;
+		};
+	};
+	effectiveValue?: {
+		boolValue?: boolean;
+		numberValue?: number;
+		stringValue?: string;
+	};
+	formattedValue?: string;
+};
+
+const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
 
 export async function getIntegrationContext(integrationData: object, sheetName: string) {
-	const { spreadsheetId } = integrationData;
+    const { spreadsheetId } = integrationData;
 
-	if (!spreadsheetId) {
-		return null;
-	}
+    if (!spreadsheetId) {
+        return null;
+    }
 
-	try {
-		assert(sheets, "Google Sheets client is not initialized");
-		const response = await sheets.spreadsheets.get({
-			spreadsheetId: spreadsheetId,
-			ranges: [sheetName],
-			includeGridData: true,
-		});
+    try {
+        const token = localStorage.getItem(googleSheetsTokenStorageKey);
+        if (!token) throw new Error("Google Sheets API token is missing");
 
-		return {
-			sheet: response.data.sheets?.[0],
-		};
-	} catch (error) {
-		if (error.code === 404) {
-			return Error(
-				`The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
-			);
-		}
+        const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetName}&includeGridData=true`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
 
-		throw error;
-	}
+        if (!response.ok) {
+            if (response.status === 404) {
+                return Error(
+                    `The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
+                );
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return {
+            sheet: data.sheets[0],
+        };
+    } catch (error) {
+        throw error;
+    }
 }
 
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
 	return localStorage.getItem(googleSheetsTokenStorageKey) !== null;
-}
-
-let sheets: sheets_v4.Sheets | null = null;
-if (isAuthenticated()) {
-	initGoogleSheetsClient();
-}
-
-export function initGoogleSheetsClient() {
-	const token = localStorage.getItem(googleSheetsTokenStorageKey);
-	if (!token) throw new Error("Google Sheets API token is missing");
-
-	const auth = new google.auth.OAuth2();
-	auth.setCredentials({ access_token: token });
-
-	sheets = google.sheets({ version: "v4", auth });
 }
 
 // The order in which we display slug fields
@@ -148,7 +153,6 @@ export async function authorize() {
 
 					clearInterval(interval);
 					localStorage.setItem(googleSheetsTokenStorageKey, access_token);
-					initGoogleSheetsClient();
 				}
 
 				resolve();
@@ -173,7 +177,7 @@ export function getCollectionFieldForProperty(
 	};
 }
 
-export function getCellValue(cell: sheets_v4.Schema$CellData): unknown {
+export function getCellValue(cell: GoogleSheetsColumn): unknown {
 	if (cell.effectiveValue?.boolValue !== undefined) {
 		return cell.effectiveValue.boolValue;
 	} else if (cell.effectiveValue?.numberValue !== undefined) {
@@ -210,7 +214,7 @@ export interface SynchronizeResult extends SyncStatus {
 }
 
 async function processItem(
-	row: sheets_v4.Schema$RowData,
+	row: { values: GoogleSheetsColumn[] },
 	rowIndex: number,
 	fieldsById: FieldsById,
 	slugFieldId: string,
@@ -225,17 +229,17 @@ async function processItem(
 	// Mark the item as seen
 	unsyncedItemIds.delete(rowIndex.toString());
 
-	if (isUnchangedSinceLastSync(row.values![0].formattedValue!, lastSyncedTime)) {
+	if (isUnchangedSinceLastSync(row.values[0].formattedValue!, lastSyncedTime)) {
 		status.info.push({
 			message: `Skipping. last updated: ${formatDate(
-				row.values![0].formattedValue!
+				row.values[0].formattedValue!
 			)}, last synced: ${formatDate(lastSyncedTime!)}`,
 			rowIndex,
 		});
 		return null;
 	}
 
-	row.values!.forEach((cell, index) => {
+	row.values.forEach((cell, index) => {
 		if (index.toString() === slugFieldId) {
 			const resolvedSlug = getCellValue(cell);
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
@@ -283,7 +287,7 @@ type FieldsById = Map<FieldId, CollectionField>;
 
 // Function to process all items concurrently with a limit
 async function processAllItems(
-	data: sheets_v4.Schema$RowData[],
+	data: { values: GoogleSheetsColumn[] }[],
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
@@ -316,7 +320,6 @@ export async function synchronizeDatabase(pluginContext: PluginContext): Promise
 	const { sheet } = integrationContext;
 
 	assert(sheet && sheet.data && sheet.data[0].rowData);
-	assert(sheets);
 
 	const collection = await framer.getManagedCollection();
 
@@ -389,15 +392,26 @@ export function useSynchronizeDatabaseMutation(
 }
 
 export function useSpreadsheetsQuery() {
-	assert(sheets);
-	return useQuery({
-		queryKey: ["spreadsheets"],
-		queryFn: async () => {
-			assert(sheets);
-			const response = await sheets.spreadsheets.list();
-			return response.data.files || [];
-		},
-	});
+    return useQuery({
+        queryKey: ["spreadsheets"],
+        queryFn: async () => {
+            const token = localStorage.getItem(googleSheetsTokenStorageKey);
+            if (!token) throw new Error("Google Sheets API token is missing");
+
+            const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.files || [];
+        },
+    });
 }
 
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
@@ -412,7 +426,7 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	return parsed;
 }
 
-function getSuggestedFieldsForSheet(sheet: sheets_v4.Schema$Sheet, ignoredFieldIds: FieldId[]) {
+function getSuggestedFieldsForSheet(sheet: { data: { rowData: { values: GoogleSheetsColumn[] }[] } }, ignoredFieldIds: FieldId[]) {
 	const fields: object[] = [];
 
 	assert(sheet.data && sheet.data[0].rowData);
@@ -491,12 +505,21 @@ export function getFieldConversionTypes(column: GoogleSheetsColumn) {
 }
 
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
-	assert(sheets);
-	const response = await sheets.spreadsheets.values.get({
-		spreadsheetId,
-		range: sheetName,
-	});
-	return response.data.values;
+    const token = localStorage.getItem(googleSheetsTokenStorageKey);
+    if (!token) throw new Error("Google Sheets API token is missing");
+
+    const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.values;
 }
 
 export function parseSheetData(data: any[][]): CollectionItem[] {
@@ -515,15 +538,23 @@ export function parseSheetData(data: any[][]): CollectionItem[] {
 }
 
 export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
-	assert(sheets);
-	await sheets.spreadsheets.values.update({
-		spreadsheetId,
-		range: sheetName,
-		valueInputOption: "USER_ENTERED",
-		requestBody: {
-			values: data,
-		},
-	});
+    const token = localStorage.getItem(googleSheetsTokenStorageKey);
+    if (!token) throw new Error("Google Sheets API token is missing");
+
+    const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            values: data,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
 }
 
 export function convertFramerItemToSheetRow(item: CollectionItem, headers: string[]): any[] {

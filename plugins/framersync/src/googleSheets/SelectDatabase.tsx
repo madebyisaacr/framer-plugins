@@ -1,39 +1,33 @@
 import { usePluginContext } from "../general/PluginContext";
 import SelectDatabasePageTemplate from "../general/SelectDatabaseTemplate";
+import { useSpreadsheetsQuery } from "./googleSheets";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
 
-	// const { data, refetch, isRefetching, isLoading } = useDatabasesQuery();
+	const { data, refetch, isRefetching, isLoading } = useSpreadsheetsQuery();
 
-	const data = [];
-	const refetch = () => {};
-	const isRefetching = false;
-	const isLoading = false;
-
-	const onSubmit = (databaseId: string) => {
-		const database = data?.find((database) => database.id === databaseId);
-		if (!database) {
+	const onSubmit = (spreadsheetId: string) => {
+		const spreadsheet = data?.find((sheet) => sheet.id === spreadsheetId);
+		if (!spreadsheet) {
 			return;
 		}
 
 		updatePluginContext({
-			integrationContext: { database },
+			integrationContext: { database: spreadsheet },
 		});
 	};
 
-	const databases = isLoading
+	const spreadsheets = isLoading
 		? []
-		: data?.map((database) => {
-				return {
-					id: database.id,
-					title: database.title,
-				};
-		  });
+		: data?.map((sheet) => ({
+				id: sheet.id,
+				title: sheet.title,
+		  }));
 
 	return (
 		<SelectDatabasePageTemplate
-			databases={databases}
+			databases={spreadsheets}
 			refetch={refetch}
 			isLoading={isLoading}
 			isRefetching={isRefetching}
