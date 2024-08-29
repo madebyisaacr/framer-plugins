@@ -303,7 +303,7 @@ export function MapFieldsPageTemplate({
 							)}
 						>
 							<div className="flex-col gap-2 mb-2">
-								<BackButton onClick={onBackButtonClick} />
+								{pluginContext.type === "new" && <BackButton onClick={onBackButtonClick} />}
 								<h1 className="text-lg font-bold">Configure Collection Fields</h1>
 							</div>
 							<div className="relative flex-1 flex-col gap-4">
