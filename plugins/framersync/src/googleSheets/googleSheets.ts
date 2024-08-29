@@ -49,38 +49,41 @@ export type GoogleSheetsColumn = {
 const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
 
 export async function getIntegrationContext(integrationData: object, sheetName: string) {
-    const { spreadsheetId } = integrationData;
+	const { spreadsheetId } = integrationData;
 
-    if (!spreadsheetId) {
-        return null;
-    }
+	if (!spreadsheetId) {
+		return null;
+	}
 
-    try {
-        const token = localStorage.getItem(googleSheetsTokenStorageKey);
-        if (!token) throw new Error("Google Sheets API token is missing");
+	try {
+		const token = localStorage.getItem(googleSheetsTokenStorageKey);
+		if (!token) throw new Error("Google Sheets API token is missing");
 
-        const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetName}&includeGridData=true`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
+		const response = await fetch(
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetName}&includeGridData=true`,
+			{
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			}
+		);
 
-        if (!response.ok) {
-            if (response.status === 404) {
-                return Error(
-                    `The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
-                );
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+		if (!response.ok) {
+			if (response.status === 404) {
+				return Error(
+					`The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
+				);
+			}
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
 
-        const data = await response.json();
-        return {
-            sheet: data.sheets[0],
-        };
-    } catch (error) {
-        throw error;
-    }
+		const data = await response.json();
+		return {
+			sheet: data.sheets[0],
+		};
+	} catch (error) {
+		throw error;
+	}
 }
 
 // Naive implementation to be authenticated, a token could be expired.
@@ -314,7 +317,9 @@ async function processAllItems(
 	};
 }
 
-export async function synchronizeDatabase(pluginContext: PluginContext): Promise<SynchronizeResult> {
+export async function synchronizeDatabase(
+	pluginContext: PluginContext
+): Promise<SynchronizeResult> {
 	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
 	const { sheet } = integrationContext;
@@ -392,26 +397,29 @@ export function useSynchronizeDatabaseMutation(
 }
 
 export function useSpreadsheetsQuery() {
-    return useQuery({
-        queryKey: ["spreadsheets"],
-        queryFn: async () => {
-            const token = localStorage.getItem(googleSheetsTokenStorageKey);
-            if (!token) throw new Error("Google Sheets API token is missing");
+	return useQuery({
+		queryKey: ["spreadsheets"],
+		queryFn: async () => {
+			const token = localStorage.getItem(googleSheetsTokenStorageKey);
+			if (!token) throw new Error("Google Sheets API token is missing");
 
-            const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+			const response = await fetch(
+				"https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27",
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
 
-            const data = await response.json();
-            return data.files || [];
-        },
-    });
+			const data = await response.json();
+			return data.files || [];
+		},
+	});
 }
 
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
@@ -426,7 +434,10 @@ function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	return parsed;
 }
 
-function getSuggestedFieldsForSheet(sheet: { data: { rowData: { values: GoogleSheetsColumn[] }[] } }, ignoredFieldIds: FieldId[]) {
+function getSuggestedFieldsForSheet(
+	sheet: { data: { rowData: { values: GoogleSheetsColumn[] }[] } },
+	ignoredFieldIds: FieldId[]
+) {
 	const fields: object[] = [];
 
 	assert(sheet.data && sheet.data[0].rowData);
@@ -505,21 +516,21 @@ export function getFieldConversionTypes(column: GoogleSheetsColumn) {
 }
 
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
-    const token = localStorage.getItem(googleSheetsTokenStorageKey);
-    if (!token) throw new Error("Google Sheets API token is missing");
+	const token = localStorage.getItem(googleSheetsTokenStorageKey);
+	if (!token) throw new Error("Google Sheets API token is missing");
 
-    const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
-    });
+	const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
 
-    const data = await response.json();
-    return data.values;
+	const data = await response.json();
+	return data.values;
 }
 
 export function parseSheetData(data: any[][]): CollectionItem[] {
@@ -538,23 +549,26 @@ export function parseSheetData(data: any[][]): CollectionItem[] {
 }
 
 export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
-    const token = localStorage.getItem(googleSheetsTokenStorageKey);
-    if (!token) throw new Error("Google Sheets API token is missing");
+	const token = localStorage.getItem(googleSheetsTokenStorageKey);
+	if (!token) throw new Error("Google Sheets API token is missing");
 
-    const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            values: data,
-        }),
-    });
+	const response = await fetch(
+		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`,
+		{
+			method: "PUT",
+			headers: {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				values: data,
+			}),
+		}
+	);
 
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
 }
 
 export function convertFramerItemToSheetRow(item: CollectionItem, headers: string[]): any[] {
