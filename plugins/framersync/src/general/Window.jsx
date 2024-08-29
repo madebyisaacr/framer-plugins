@@ -23,6 +23,14 @@ const pageSizes = {
 		width: 1000,
 		height: 650,
 	},
+	LicenceKey: {
+		width: 350,
+		height: 550,
+	},
+	Checkout: {
+		width: 1100,
+		height: 800,
+	},
 };
 
 export default function Window({ page, className, children }) {
