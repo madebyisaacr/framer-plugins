@@ -76,6 +76,14 @@ export function MapFieldsPageTemplate({
 
 	const [fieldElementRefs, setFieldElementRefs] = useState<Record<string, HTMLDivElement>>({});
 
+	const fieldConfigById = useMemo(() => {
+		const result = {};
+		for (const fieldConfig of fieldConfigList) {
+			result[fieldConfig.property.id] = fieldConfig;
+		}
+		return result;
+	}, [fieldConfigList]);
+
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
 			const nextSet = new Set(current);
@@ -154,7 +162,10 @@ export function MapFieldsPageTemplate({
 	};
 
 	const selectField = (id: string) => {
-		setEditMenuFieldConfig(id);
+		const fieldConfig = fieldConfigById[id];
+		if (fieldConfig) {
+			setEditMenuFieldConfig(fieldConfig);
+		}
 	};
 
 	function FieldConfigRow({ fieldConfig }: { fieldConfig: CollectionFieldConfig }) {
@@ -167,7 +178,8 @@ export function MapFieldsPageTemplate({
 					ref={(el) => (fieldElementRefs[id] = el)}
 					disabled={isDisabled}
 					leftText={getPropertyTypeName(fieldConfig.property.type)}
-					className="pl-6"
+					className="pl-6 cursor-pointer"
+					onClick={() => selectField(id)}
 				>
 					<label
 						className={classNames(
@@ -216,6 +228,7 @@ export function MapFieldsPageTemplate({
 							disabled={isDisabled}
 							placeholder={fieldConfig.originalFieldName}
 							value={fieldNameOverrides[id] ?? ""}
+							onFocus={() => selectField(id)}
 							onChange={(e) => {
 								assert(fieldConfig.property);
 								handleFieldNameChange(id, e.target.value);
@@ -226,11 +239,12 @@ export function MapFieldsPageTemplate({
 							availableFieldTypes={fieldConfig.conversionTypes}
 							disabled={isDisabled}
 							onChange={(value) => handleFieldTypeChange(id, value)}
+							onClick={() => selectField(id)}
 						/>
 					</>
 				)}
 				{!fieldConfig.unsupported && (
-					<EditButton onClick={() => setEditMenuFieldConfig(fieldConfig)} />
+					<EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />
 				)}
 			</Fragment>
 		);
@@ -244,6 +258,12 @@ export function MapFieldsPageTemplate({
 		updatePluginContext({
 			integrationContext: null,
 		});
+	};
+
+	const toggleEditMenuFieldConfig = (value) => {
+		if (value == "slug" || (typeof value == "object" && value?.hasOwnProperty("property"))) {
+			setEditMenuFieldConfig(editMenuFieldConfig === value ? null : value);
+		}
 	};
 
 	useEffect(() => {
@@ -333,7 +353,7 @@ export function MapFieldsPageTemplate({
 									<div />
 									<div
 										ref={(el) => (fieldElementRefs["slug"] = el)}
-										onClick={() => setEditMenuFieldConfig("slug")}
+										onClick={() => toggleEditMenuFieldConfig("slug")}
 										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
 									>
 										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
@@ -344,9 +364,19 @@ export function MapFieldsPageTemplate({
 									<div className="flex items-center justify-center">
 										<IconChevron />
 									</div>
-									<StaticInput disabled>Slug</StaticInput>
-									<FieldTypeSelector fieldType="slug" availableFieldTypes={["slug"]} />
-									<EditButton onClick={() => setEditMenuFieldConfig("slug")} />
+									<StaticInput
+										disabled
+										onClick={() => toggleEditMenuFieldConfig("slug")}
+										className="cursor-pointer"
+									>
+										Slug
+									</StaticInput>
+									<FieldTypeSelector
+										fieldType="slug"
+										availableFieldTypes={["slug"]}
+										onClick={() => toggleEditMenuFieldConfig("slug")}
+									/>
+									<EditButton onClick={() => toggleEditMenuFieldConfig("slug")} />
 									{pageLevelFields.map(createFieldConfigRow)}
 									{newFields.length + otherFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
@@ -494,13 +524,14 @@ function UnsupportedFieldBlock({ title, text }) {
 }
 
 function FieldTypeSelector({
+	onClick = null,
 	fieldType,
 	availableFieldTypes,
 	disabled = false,
 	onChange = (value) => {},
 }) {
 	return (
-		<div className="relative">
+		<div className="relative" onClick={onClick}>
 			{availableFieldTypes?.length > 1 ? (
 				<select
 					disabled={disabled}
@@ -527,10 +558,11 @@ function FieldTypeSelector({
 }
 
 const StaticInput = forwardRef(
-	({ children, disabled = false, className = "", leftText = "" }, ref) => {
+	({ children, disabled = false, className = "", leftText = "", onClick = null }, ref) => {
 		return (
 			<div
 				ref={ref}
+				onClick={onClick}
 				className={classNames(
 					"relative w-full h-6 flex items-center justify-between bg-secondary rounded gap-1.5 px-2 min-w-0 text-ellipsis text-nowrap overflow-hidden",
 					disabled && "opacity-50",
