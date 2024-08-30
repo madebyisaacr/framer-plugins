@@ -3,9 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "../.."
-  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build --base=${PREFIX_BASE_PATH:+/$npm_package_name}/",
@@ -19,9 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.41",
-    "vite": "^5.4.2",
-    "@vitejs/plugin-react-swc": "^3.7.0"
+    "postcss": "^8.4.41"
   },
   "dependencies": {}
 }
