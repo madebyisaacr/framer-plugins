@@ -393,7 +393,10 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = sheet.data[0].rowData!.slice(1); // Skip header row
+	// Filter out empty rows before processing
+	const data = sheet.data[0].rowData!.slice(1).filter(row => 
+		row.values && row.values.some(cell => cell.formattedValue !== undefined && cell.formattedValue !== '')
+	);
 
 	const { collectionItems, status } = await processAllItems(
 		data,

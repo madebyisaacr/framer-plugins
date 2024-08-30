@@ -1,10 +1,24 @@
+import { useEffect } from "react";
+import { framer } from "framer-plugin";
+import { Logo } from "./IntegrationsPage";
+
 const videoURL = "https://framerusercontent.com/assets/jJ7GProNLEEkQw0A6ozYjFRc7DI.mp4";
 
 export default function CanvasPage() {
+	useEffect(() => {
+		framer.showUI({
+			width: 450,
+			height: 550,
+			position: "center",
+			resizable: false,
+		});
+	}, []);
+
 	return (
 		<div className="size-full px-3 pb-3 flex-col gap-2">
 			<div className="flex-col gap-2 text-center items-center justify-center flex-1">
-				<h1 className="text-xl font-bold">Welcome to FramerSync!</h1>
+				<Logo />
+				<h1 className="text-xl font-bold mt-2">Welcome to FramerSync!</h1>
 				<p className="max-w-[400px]">
 					To connect your website with data from Notion, Airtable or Google Sheets, open the Framer
 					CMS editor, click <strong>Add...</strong>, then <strong>Import via Plugin</strong>, and

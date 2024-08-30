@@ -11,7 +11,7 @@ import Notion from "./notion/NotionIntegration";
 import GoogleSheets from "./googleSheets/GoogleSheetsIntegration";
 import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
 
-import { framer } from "framer-plugin";
+import { framer, ManagedCollection, CollectionField } from "framer-plugin";
 import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert, jsonStringToArray } from "./utils";
@@ -38,24 +38,35 @@ const queryClient = new QueryClient({
 	},
 });
 
-const collection = await framer.getManagedCollection();
-const [
-	collectionFields,
-	collectionIntegrationId,
-	integrationDataJson,
-	ignoredFieldIdsJson,
-	lastSyncedTime,
-	slugFieldId,
-	databaseName,
-] = await Promise.all([
-	collection.getFields(),
-	collection.getPluginData(PluginDataKey.integrationId),
-	collection.getPluginData(PluginDataKey.integrationData),
-	collection.getPluginData(PluginDataKey.ignoredFieldIds),
-	collection.getPluginData(PluginDataKey.lastSyncedTime),
-	collection.getPluginData(PluginDataKey.slugFieldId),
-	collection.getPluginData(PluginDataKey.databaseName),
-]);
+let collection: ManagedCollection | null = null;
+let collectionFields: CollectionField[] | null = null;
+let collectionIntegrationId: string | null = null;
+let integrationDataJson: string | null = null;
+let ignoredFieldIdsJson: string | null = null;
+let lastSyncedTime: string | null = null;
+let slugFieldId: string | null = null;
+let databaseName: string | null = null;
+
+if (framer.mode === "syncManagedCollection" || framer.mode === "configureManagedCollection") {
+	collection = await framer.getManagedCollection();
+	[
+		collectionFields,
+		collectionIntegrationId,
+		integrationDataJson,
+		ignoredFieldIdsJson,
+		lastSyncedTime,
+		slugFieldId,
+		databaseName,
+	] = await Promise.all([
+		collection.getFields(),
+		collection.getPluginData(PluginDataKey.integrationId),
+		collection.getPluginData(PluginDataKey.integrationData),
+		collection.getPluginData(PluginDataKey.ignoredFieldIds),
+		collection.getPluginData(PluginDataKey.lastSyncedTime),
+		collection.getPluginData(PluginDataKey.slugFieldId),
+		collection.getPluginData(PluginDataKey.databaseName),
+	]);
+}
 
 function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
 	if (pluginContext.type !== "update") return false;
@@ -114,6 +125,8 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			integrationData,
 			databaseName
 		);
+
+		console.log("integrationContext", integrationContext);
 
 		if (integrationContext instanceof Error) {
 			return {
@@ -196,6 +209,8 @@ function App() {
 	const onIntegrationSelected = async (integrationId: string) => {
 		const authenticatedContext = await createPluginContext(integrationId);
 		updatePluginContext(authenticatedContext);
+		console.log("onIntegrationSelected", integrationId);
+		console.log("authenticatedContext", authenticatedContext);
 	};
 
 	const integration = integrations[pluginContext.integrationId];
@@ -212,13 +227,6 @@ function App() {
 
 async function runPlugin() {
 	if (framer.mode === "canvas") {
-		framer.showUI({
-			width: 500,
-			height: 500,
-			position: "center",
-			resizable: false,
-		});
-
 		renderPlugin(<CanvasPage />);
 		return;
 	}

@@ -116,7 +116,7 @@ function AppButton({ title, icon, onClick }) {
 	);
 }
 
-function Logo() {
+export function Logo() {
 	return (
 		<svg
 			width="80"
