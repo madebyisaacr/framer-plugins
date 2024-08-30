@@ -126,8 +126,6 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			databaseName
 		);
 
-		console.log("integrationContext", integrationContext);
-
 		if (integrationContext instanceof Error) {
 			return {
 				type: "error",
@@ -209,8 +207,6 @@ function App() {
 	const onIntegrationSelected = async (integrationId: string) => {
 		const authenticatedContext = await createPluginContext(integrationId);
 		updatePluginContext(authenticatedContext);
-		console.log("onIntegrationSelected", integrationId);
-		console.log("authenticatedContext", authenticatedContext);
 	};
 
 	const integration = integrations[pluginContext.integrationId];
@@ -273,9 +269,9 @@ async function runPlugin() {
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error(message);
-		// framer.closePlugin("An unexpected error ocurred: " + message, {
-		// 	variant: "error",
-		// });
+		framer.closePlugin("An unexpected error ocurred: " + message, {
+			variant: "error",
+		});
 	}
 }
 

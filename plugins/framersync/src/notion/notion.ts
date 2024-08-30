@@ -182,8 +182,6 @@ export async function authorize() {
 
 	const { readKey, url } = await response.json();
 
-	console.log(url, readKey);
-
 	window.open(url, "_blank");
 
 	return new Promise<void>((resolve) => {

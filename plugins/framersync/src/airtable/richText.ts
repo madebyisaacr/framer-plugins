@@ -91,8 +91,6 @@ export function richTextToHTML(richText: string) {
 		lines.push(`</${listStack.pop().type}>`);
 	}
 
-	console.log(lines.join("\n"));
-
 	return lines.join("\n");
 }
 

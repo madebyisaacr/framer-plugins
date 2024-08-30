@@ -27,10 +27,6 @@ const pageSizes = {
 		width: 350,
 		height: 600,
 	},
-	Checkout: {
-		width: 1100,
-		height: 800,
-	},
 };
 
 export default function Window({ page, className, children }) {

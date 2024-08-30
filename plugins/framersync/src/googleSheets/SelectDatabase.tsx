@@ -14,16 +14,19 @@ export function SelectDatabasePage() {
 		}
 
 		const fullSheet = await getFullSheet(spreadsheetId, sheet.id);
-		console.log("fullSheet", fullSheet);
 
 		updatePluginContext({
-			integrationContext: { spreadsheet, sheet: fullSheet, spreadsheetId, sheetId: fullSheet.id },
+			integrationContext: {
+				spreadsheet,
+				sheet: fullSheet,
+				spreadsheetId,
+				sheetId: fullSheet.properties.sheetId,
+			},
 		});
 	};
 
 	const getSubdatabases = async (spreadsheetId: string) => {
 		const sheets = await getSheetsList(spreadsheetId);
-		console.log("sheets", sheets);
 		return sheets
 			? sheets.map((sheet) => ({ id: sheet.properties.title, name: sheet.properties.title }))
 			: null;

@@ -98,6 +98,8 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 		const data = await response.json();
 		return {
 			sheet: data.sheets[0],
+			spreadsheetId,
+			sheetId,
 		};
 	} catch (error) {
 		throw error;
@@ -399,7 +401,7 @@ export async function synchronizeDatabase(
 ): Promise<SynchronizeResult> {
 	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
 		pluginContext;
-	const { sheet } = integrationContext;
+	const { sheet, spreadsheetId, sheetId } = integrationContext;
 
 	assert(sheet && sheet.data && sheet.data[0].rowData);
 
@@ -439,7 +441,7 @@ export async function synchronizeDatabase(
 			pluginContext,
 			collectionItems,
 			itemsToDelete,
-			{ spreadsheetId: sheet.properties!.sheetId },
+			{ spreadsheetId, sheetId },
 			sheetName
 		);
 
@@ -663,25 +665,6 @@ export async function updateSheetData(spreadsheetId: string, sheetName: string, 
 
 export function convertFramerItemToSheetRow(item: CollectionItem, headers: string[]): any[] {
 	return headers.map((header) => item.fieldData[header] || "");
-}
-
-export async function syncFramerToSheet(pluginContext: PluginContext) {
-	const { integrationContext } = pluginContext;
-	const { sheet } = integrationContext;
-	assert(sheet && sheet.properties);
-
-	const spreadsheetId = sheet.properties.sheetId!.toString();
-	const sheetName = sheet.properties.title!;
-
-	const collection = await framer.getManagedCollection();
-	const items = await collection.getItems();
-
-	const sheetData = await getSheetData(spreadsheetId, sheetName);
-	const headers = sheetData[0];
-
-	const updatedData = [headers, ...items.map((item) => convertFramerItemToSheetRow(item, headers))];
-
-	await updateSheetData(spreadsheetId, sheetName, updatedData);
 }
 
 export function getColumnLetter(index: number): string {
