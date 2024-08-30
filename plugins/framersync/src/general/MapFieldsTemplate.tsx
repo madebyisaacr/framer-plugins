@@ -268,9 +268,9 @@ export function MapFieldsPageTemplate({
 						>
 							<div className="flex-col gap-3 mb-2">
 								{pluginContext.type === "new" && <BackButton onClick={onBackButtonClick} />}
-								{coverImage && (
+								{/* {coverImage && (
 									<img className="w-full aspect-[5] rounded-lg object-cover" src={coverImage} />
-								)}
+								)} */}
 								<div className="flex-row gap-2 items-center">
 									{databaseIcon}
 									<div className="flex-col gap-0.5">

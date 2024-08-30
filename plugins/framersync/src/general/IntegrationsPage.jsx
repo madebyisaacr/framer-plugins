@@ -4,7 +4,7 @@ import Button from "@shared/Button";
 import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
-import { Spinner } from "@shared/spinner/Spinner";
+import classNames from "classnames";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
@@ -28,33 +28,29 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">
 				<Logo />
-				<h1 className="text-xl font-bold mt-2 text-center">Sync your data with the Framer CMS</h1>
+				<h1 className="text-xl font-bold mt-3 text-center">Sync your data with the Framer CMS</h1>
 				<p>Select an app to connect to your website.</p>
-				{licenseKeyValidLoading ? (
-					<div className="flex-row items-center justify-center gap-2 text-secondary mt-2">
-						<Spinner inline />
-						Verifying License Key...
-					</div>
-				) : (
-					licenseKeyValid && (
-						<div className="text-secondary flex-row items-center gap-1 mt-2">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="18"
-								height="18"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2.5"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							>
-								<path d="M5 12l5 5l10 -10" />
-							</svg>
-							License Key Activated
-						</div>
-					)
-				)}
+				<div
+					className={classNames(
+						"text-tertiary flex-row items-center gap-1 mt-2 transition-opacity",
+						licenseKeyValid ? "opacity-100" : "opacity-0"
+					)}
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2.5"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<path d="M5 12l5 5l10 -10" />
+					</svg>
+					License Key Activated
+				</div>
 			</div>
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton
