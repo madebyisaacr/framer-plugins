@@ -377,7 +377,7 @@ export function MapFieldsPageTemplate({
 					<div className="w-[285px] h-full relative flex-col">
 						<div className="absolute left-0 inset-y-3 w-px bg-divider z-10" />
 						{editMenuFieldConfig == "slug" ? (
-							<div className="size-full flex-col">
+							<div className="w-full flex-1 flex-col overflow-y-auto">
 								<div className="relative flex-col gap-1 w-full p-3">
 									<h1 className="text-lg font-bold -mb-1 mt-1">Slug</h1>
 									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />

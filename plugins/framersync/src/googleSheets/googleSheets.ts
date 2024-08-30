@@ -60,7 +60,7 @@ export async function googleAPIFetch(url: string, method: string, route: string,
 			method,
 			headers: {
 				"Content-Type": "application/json",
-				"Accept": "application/json",
+				Accept: "application/json",
 				Authorization: `Bearer ${googleSheetsAccessToken}`,
 			},
 			body: body ? JSON.stringify(body) : undefined,
@@ -157,11 +157,14 @@ export function getPossibleSlugFields(integrationContext: object) {
 	assert(sheet && sheet.data && sheet.data[0].rowData);
 
 	const headerRow = sheet.data[0].rowData[0].values;
-	const options: GoogleSheetsColumn[] = [];
+	const options: { name: string; id: string }[] = [];
 
 	headerRow.forEach((cell, index) => {
-		if (slugFieldTypes.includes(cell.effectiveFormat?.numberFormat?.type || "TEXT")) {
-			options.push({ ...cell, columnIndex: index });
+		if (slugFieldTypes.includes(getCellPropertyType(cell)) && cell.formattedValue) {
+			options.push({
+				name: cell.formattedValue,
+				id: `column_${index}`
+			});
 		}
 	});
 
@@ -170,11 +173,11 @@ export function getPossibleSlugFields(integrationContext: object) {
 		return index === -1 ? slugFieldTypes.length : index;
 	}
 
-	options.sort(
-		(a, b) =>
-			getOrderIndex(a.effectiveFormat?.numberFormat?.type || "TEXT") -
-			getOrderIndex(b.effectiveFormat?.numberFormat?.type || "TEXT")
-	);
+	options.sort((a, b) => {
+		const aType = headerRow[parseInt(a.id.split('_')[1])].effectiveFormat?.numberFormat?.type || "TEXT";
+		const bType = headerRow[parseInt(b.id.split('_')[1])].effectiveFormat?.numberFormat?.type || "TEXT";
+		return getOrderIndex(aType) - getOrderIndex(bType);
+	});
 
 	return options;
 }
@@ -519,7 +522,7 @@ function getSuggestedFieldsForSheet(
 		const field = getCollectionFieldForProperty(
 			cell,
 			cell.formattedValue || `Column ${index + 1}`,
-			propertyConversionTypes[cell.effectiveFormat?.numberFormat?.type || "TEXT"][0]
+			propertyConversionTypes[getCellPropertyType(cell)][0]
 		);
 
 		if (field) {
@@ -581,8 +584,8 @@ export function isUnchangedSinceLastSync(
 	return lastSynced > lastEdited;
 }
 
-export function getFieldConversionTypes(column: GoogleSheetsColumn) {
-	return propertyConversionTypes[column.effectiveFormat?.numberFormat?.type || "TEXT"] || [];
+export function getFieldConversionTypes(columnType: string) {
+	return propertyConversionTypes[columnType] || [];
 }
 
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
@@ -675,7 +678,7 @@ export async function getSheetsList(spreadsheetId: string) {
 		);
 
 		if (!response.ok) {
-			console.log(response)
+			console.log(response);
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
@@ -706,4 +709,25 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	}
 
 	return sheet;
+}
+
+export function getCellPropertyType(cellValue: object) {
+	let columnType = "TEXT";
+
+	if (cellValue.effectiveFormat?.numberFormat?.type) {
+		columnType = cellValue.effectiveFormat.numberFormat.type;
+	} else if (cellValue.effectiveValue) {
+		if (typeof cellValue.effectiveValue.numberValue === "number") {
+			columnType = "NUMBER";
+		} else if (typeof cellValue.effectiveValue.boolValue === "boolean") {
+			columnType = "BOOLEAN";
+		} else if (
+			cellValue.effectiveValue.stringValue &&
+			cellValue.effectiveValue.stringValue.match(/^\d{4}-\d{2}-\d{2}$/)
+		) {
+			columnType = "DATE";
+		}
+	}
+
+	return columnType;
 }

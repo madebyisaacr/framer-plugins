@@ -4,10 +4,23 @@ import {
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	getFieldConversionTypes,
+	getCellPropertyType,
 } from "./googleSheets";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+
+const propertyTypeNames = {
+  BOOLEAN: "Boolean",
+  TEXT: "Text",
+  NUMBER: "Number",
+  DATE: "Date",
+  TIME: "Time",
+  DATETIME: "Date & Time",
+  FORMULA: "Formula",
+  IMAGE: "Image",
+  HYPERLINK: "Link"
+};
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
@@ -36,14 +49,30 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		const headerRow = sheet.data[0].rowData[0].values;
 
 		headerRow.forEach((cell, index) => {
+			// Skip columns with empty header
+			if (!cell.formattedValue) {
+				return;
+			}
+
+			let columnType = "TEXT";
+
+			// Check the column values to determine the type
+			for (let i = 1; i < sheet.data[0].rowData.length; i++) {
+				const cellValue = sheet.data[0].rowData[i].values[index];
+				if (cellValue) {
+					columnType = getCellPropertyType(cellValue);
+					break;
+				}
+			}
+
 			const property = {
 				id: `column_${index}`,
-				name: cell.formattedValue || `Column ${index + 1}`,
-				type: cell.effectiveFormat?.numberFormat?.type || "TEXT",
+				name: cell.formattedValue,
+				type: columnType,
 				columnIndex: index
 			};
 
-			const conversionTypes = getFieldConversionTypes(property);
+			const conversionTypes = getFieldConversionTypes(columnType);
 
 			fields.push({
 				originalFieldName: property.name,
@@ -141,7 +170,7 @@ function getFieldConversionMessage(fieldType: string, propertyType: string, unsu
 }
 
 function getPropertyTypeName(propertyType: string) {
-	return propertyType;
+	return propertyTypeNames[propertyType];
 }
 
 const allFieldSettings = [];
