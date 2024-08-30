@@ -22,7 +22,7 @@ export function SelectDatabasePage() {
 		? []
 		: data?.map((sheet) => ({
 				id: sheet.id,
-				title: sheet.title,
+				title: sheet.name,
 		  }));
 
 	return (
