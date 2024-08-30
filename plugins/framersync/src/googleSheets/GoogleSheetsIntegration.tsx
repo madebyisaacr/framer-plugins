@@ -4,6 +4,7 @@ import {
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
 	hasFieldConfigurationChanged,
+	refreshGoogleSheetsToken,
 } from "./googleSheets";
 import { SelectDatabasePage } from "./SelectDatabase";
 import { MapFieldsPage } from "./MapFields";
@@ -17,6 +18,7 @@ export default {
 	getIntegrationContext,
 	useSynchronizeDatabaseMutation,
 	hasFieldConfigurationChanged,
+	refreshToken: refreshGoogleSheetsToken,
 
 	AuthenticatePage,
 	SelectDatabasePage,

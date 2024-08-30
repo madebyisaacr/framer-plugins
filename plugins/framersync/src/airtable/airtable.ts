@@ -98,15 +98,18 @@ export async function refreshAirtableToken() {
 	}
 
 	try {
-		const response = await fetch(
-			`${apiBaseUrl}/refresh/?refresh_token=${localStorage.getItem(airtableRefreshTokenKey)}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			}
-		);
+		const refreshToken = localStorage.getItem(airtableRefreshTokenKey);
+
+		if (!refreshToken) {
+			return false;
+		}
+
+		const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${refreshToken}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
 
 		const responseJson = await response.json();
 		const { access_token, refresh_token } = responseJson;

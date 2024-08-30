@@ -12,8 +12,10 @@ const apiBaseUrl =
 		? "http://localhost:8787/google-sheets"
 		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
+let googleSheetsAccessToken: string | null = null;
+
 // Storage for the Google Sheets API key.
-const googleSheetsTokenStorageKey = "googleSheetsToken";
+const googleSheetsRefreshTokenKey = "googleSheetsRefreshToken";
 
 const propertyConversionTypes = {
 	BOOLEAN: ["boolean"],
@@ -56,14 +58,13 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 	}
 
 	try {
-		const token = localStorage.getItem(googleSheetsTokenStorageKey);
-		if (!token) throw new Error("Google Sheets API token is missing");
+		if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 		const response = await fetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetName}&includeGridData=true`,
 			{
 				headers: {
-					Authorization: `Bearer ${token}`,
+					Authorization: `Bearer ${googleSheetsAccessToken}`,
 				},
 			}
 		);
@@ -89,7 +90,41 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 // Naive implementation to be authenticated, a token could be expired.
 // For simplicity we just close the plugin and clear storage in that case.
 export function isAuthenticated() {
-	return localStorage.getItem(googleSheetsTokenStorageKey) !== null;
+	return localStorage.getItem(googleSheetsRefreshTokenKey) !== null;
+}
+
+// TODO: Check if refresh token is expired
+export async function refreshGoogleSheetsToken() {
+	// Do not refresh if we already have an access token
+	if (googleSheetsAccessToken) {
+		return true;
+	}
+
+	try {
+		const refreshToken = localStorage.getItem(googleSheetsRefreshTokenKey);
+
+		if (!refreshToken) {
+			return false;
+		}
+
+		const response = await fetch(`${apiBaseUrl}/refresh/?refresh_token=${refreshToken}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+
+		const responseJson = await response.json();
+		const { access_token, refresh_token } = responseJson;
+
+		googleSheetsAccessToken = access_token;
+		localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
+		return true;
+	} catch (error) {
+		localStorage.removeItem(googleSheetsRefreshTokenKey);
+		console.error("Failed to refresh Google Sheets token", error);
+		return false;
+	}
 }
 
 // The order in which we display slug fields
@@ -152,10 +187,12 @@ export async function authorize() {
 				const tokenInfo = await resp.json();
 
 				if (tokenInfo) {
-					const { access_token } = tokenInfo;
+					console.log("tokenInfo", tokenInfo);
+					const { access_token, refresh_token } = tokenInfo;
 
 					clearInterval(interval);
-					localStorage.setItem(googleSheetsTokenStorageKey, access_token);
+					googleSheetsAccessToken = access_token;
+					localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
 				}
 
 				resolve();
@@ -400,23 +437,21 @@ export function useSpreadsheetsQuery() {
 	return useQuery({
 		queryKey: ["spreadsheets"],
 		queryFn: async () => {
-			const token = localStorage.getItem(googleSheetsTokenStorageKey);
-			console.log("token", token);
-			if (!token) throw new Error("Google Sheets API token is missing");
+			if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 			try {
 				const response = await fetch(
 					"https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27",
 					{
 						headers: {
-							Authorization: `Bearer ${token}`,
+							Authorization: `Bearer ${googleSheetsAccessToken}`,
 						},
 					}
 				);
 
 				if (response.status === 403) {
+					// TODO: Refresh the token instead of throwing an error
 					console.error("403 Forbidden error. Token may be invalid or expired.");
-					localStorage.removeItem(googleSheetsTokenStorageKey);
 					throw new Error("Authorization failed. Please log in again.");
 				}
 
@@ -533,12 +568,11 @@ export function getFieldConversionTypes(column: GoogleSheetsColumn) {
 }
 
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
-	const token = localStorage.getItem(googleSheetsTokenStorageKey);
-	if (!token) throw new Error("Google Sheets API token is missing");
+	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 	const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`, {
 		headers: {
-			Authorization: `Bearer ${token}`,
+			Authorization: `Bearer ${googleSheetsAccessToken}`,
 		},
 	});
 
@@ -566,15 +600,14 @@ export function parseSheetData(data: any[][]): CollectionItem[] {
 }
 
 export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
-	const token = localStorage.getItem(googleSheetsTokenStorageKey);
-	if (!token) throw new Error("Google Sheets API token is missing");
+	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 	const response = await fetch(
 		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`,
 		{
 			method: "PUT",
 			headers: {
-				Authorization: `Bearer ${token}`,
+				Authorization: `Bearer ${googleSheetsAccessToken}`,
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
@@ -621,27 +654,26 @@ export function getColumnLetter(index: number): string {
 }
 
 export async function getSheetsList(spreadsheetId: string) {
-  const token = localStorage.getItem(googleSheetsTokenStorageKey);
-  if (!token) throw new Error("Google Sheets API token is missing");
+	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
-  try {
-    const response = await fetch(
-      `${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+	try {
+		const response = await fetch(
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
+			{
+				headers: {
+					Authorization: `Bearer ${googleSheetsAccessToken}`,
+				},
+			}
+		);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
 
-    const data = await response.json();
-    return data.sheets;
-  } catch (error) {
-    console.error("Error fetching sheets list:", error);
-    throw error;
-  }
+		const data = await response.json();
+		return data.sheets;
+	} catch (error) {
+		console.error("Error fetching sheets list:", error);
+		throw error;
+	}
 }
