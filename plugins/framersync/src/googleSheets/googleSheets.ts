@@ -60,9 +60,10 @@ export async function googleAPIFetch(url: string, method: string, route: string,
 			method,
 			headers: {
 				"Content-Type": "application/json",
+				"Accept": "application/json",
 				Authorization: `Bearer ${googleSheetsAccessToken}`,
 			},
-			body: JSON.stringify(body),
+			body: body ? JSON.stringify(body) : undefined,
 		}
 	);
 	// const data = await response.json();
@@ -687,24 +688,18 @@ export async function getSheetsList(spreadsheetId: string) {
 }
 
 export async function getFullSheet(spreadsheetId: string, sheetId: string) {
-	const sheet = await googleAPIFetch(
-		`${googleSheetsApiBaseUrl}/${spreadsheetId}/sheets/${sheetId}?fields=properties,data`,
+	const response = await googleAPIFetch(
+		`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true&fields=sheets(properties,data)`,
 		"GET",
 		PROXY
-	).then((response) => {
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
+	);
 
-		const doit = async () => {
-			const data = await response.text();
-			console.log(data)
-		}
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
 
-		doit()
-		return []
-		// return response.json();
-	});
+	const data = await response.json();
+	const sheet = data.sheets[0];
 
 	if (!sheet) {
 		throw new Error("Failed to fetch sheet data");
