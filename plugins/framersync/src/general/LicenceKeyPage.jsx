@@ -7,7 +7,7 @@ import classNames from "classnames";
 export function LicenseKeyPage({ closePage, checkout }) {
 	return (
 		<Window page="LicenceKey" className="flex-col">
-			<BackButton onClick={closePage} />
+			<BackButton onClick={closePage} className="absolute top-0 left-3" />
 			<LicenseKeyMenu closePage={closePage} checkout={checkout} className="flex-1" />
 		</Window>
 	);
@@ -84,7 +84,7 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 					</>
 				) : (
 					<>
-						<h1 className="font-bold text-base text-balance">Activate your Licence Key</h1>
+						<h1 className="font-bold text-base text-balance">Activated Licence Key!</h1>
 						<p className="px-3 text-balance mb-4">
 							If you have a FramerSync license, you can find your licence key in your order
 							confirmation email or on the{" "}
