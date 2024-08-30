@@ -189,6 +189,12 @@ export function MapFieldsPageTemplate({
 		}
 	};
 
+	const toggleEditMenuFieldConfig = (value) => {
+		if (value == "slug" || (typeof value == "object" && value?.hasOwnProperty("property"))) {
+			setEditMenuFieldConfig(editMenuFieldConfig === value ? null : value);
+		}
+	};
+
 	const createFieldConfigRow = (fieldConfig: CollectionFieldConfig) => {
 		return (
 			<FieldConfigRow
@@ -204,6 +210,7 @@ export function MapFieldsPageTemplate({
 				fieldNameOverrides={fieldNameOverrides}
 				fieldElementRefs={fieldElementRefs}
 				getPropertyTypeName={getPropertyTypeName}
+				toggleEditMenuFieldConfig={toggleEditMenuFieldConfig}
 			/>
 		);
 	};
@@ -212,12 +219,6 @@ export function MapFieldsPageTemplate({
 		updatePluginContext({
 			integrationContext: null,
 		});
-	};
-
-	const toggleEditMenuFieldConfig = (value) => {
-		if (value == "slug" || (typeof value == "object" && value?.hasOwnProperty("property"))) {
-			setEditMenuFieldConfig(editMenuFieldConfig === value ? null : value);
-		}
 	};
 
 	useEffect(() => {
@@ -835,6 +836,7 @@ function FieldConfigRow({
 	fieldNameOverrides,
 	fieldElementRefs,
 	getPropertyTypeName,
+	toggleEditMenuFieldConfig,
 }: {
 	fieldConfig: CollectionFieldConfig;
 }) {
