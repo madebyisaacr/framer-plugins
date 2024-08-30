@@ -24,7 +24,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
 	const { integrationContext } = pluginContext;
-	const { database } = integrationContext;
+	const { sheet } = integrationContext;
 
 	const existingFieldIds = new Set(
 		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
@@ -32,19 +32,27 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const fields: CollectionFieldConfig[] = [];
 
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
+	if (sheet && sheet.data && sheet.data[0].rowData) {
+		const headerRow = sheet.data[0].rowData[0].values;
 
-		const conversionTypes = getFieldConversionTypes(property);
+		headerRow.forEach((cell, index) => {
+			const property = {
+				id: `column_${index}`,
+				name: cell.formattedValue || `Column ${index + 1}`,
+				type: cell.effectiveFormat?.numberFormat?.type || "TEXT",
+				columnIndex: index
+			};
 
-		fields.push({
-			originalFieldName: property.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
-			unsupported: !conversionTypes.length,
-			property,
-			conversionTypes,
-			isPageLevelField: false,
+			const conversionTypes = getFieldConversionTypes(property);
+
+			fields.push({
+				originalFieldName: property.name,
+				isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+				unsupported: !conversionTypes.length,
+				property,
+				conversionTypes,
+				isPageLevelField: false,
+			});
 		});
 	}
 
@@ -96,7 +104,7 @@ export function MapFieldsPage({
 }) {
 	const { pluginContext } = usePluginContext();
 
-	const { database } = pluginContext.integrationContext;
+	const { spreadsheet } = pluginContext.integrationContext;
 
 	return (
 		<MapFieldsPageTemplate
@@ -108,8 +116,8 @@ export function MapFieldsPage({
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Sheet column"
 			slugFieldTitleText="Slug Field Column"
-			databaseName={database.title}
-			databaseUrl={database.url}
+			databaseName={spreadsheet.name}
+			databaseUrl={`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit`}
 			getFieldConversionMessage={getFieldConversionMessage}
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}

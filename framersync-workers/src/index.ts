@@ -355,28 +355,23 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
-	if ((request.method === 'GET' || request.method === 'POST') && command === Command.API && platform === Platform.Notion) {
-		// Forward the request to the Notion API
+	// API Proxy //
+	if ((request.method === 'GET' || request.method === 'POST') && command === Command.API) {
 		const url = requestUrl.searchParams.get('url');
-		const accessToken = requestUrl.searchParams.get('access_token');
 
 		if (!url) {
-			return new Response('Missing URL URL param', {
+			return new Response('Missing "url" URL param', {
 				status: 400,
 			});
 		}
 
-		const notionResponse = await fetch(url, {
+		const response = await fetch(url, {
 			method: request.method,
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-				'Notion-Version': '2022-06-28',
-				'Content-Type': 'application/json',
-			},
+			headers: request.headers,
 			body: request.body,
 		});
 
-		return new Response(notionResponse.body, {
+		return new Response(response.body, {
 			headers: {
 				'Content-Type': 'application/json',
 				...accessControlOrigin,

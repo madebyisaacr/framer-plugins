@@ -181,7 +181,7 @@ function DatabaseButton({
 							<div
 								key={subdatabase.id}
 								className={classNames(
-									"rounded h-6 flex-row items-center px-1",
+									"rounded h-6 flex-row items-center px-2",
 									selectedSubdatabase === subdatabase
 										? "bg-segmented-control text-tint dark:text-primary font-semibold"
 										: "text-secondary font-medium"

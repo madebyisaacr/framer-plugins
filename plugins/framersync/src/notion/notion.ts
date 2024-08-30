@@ -107,13 +107,8 @@ export function initNotionClient() {
 
 	notion = new Client({
 		fetch: async (url, fetchInit) => {
-			console.log("Fetching", url);
-
 			try {
-				const searchParams = new URLSearchParams();
-				searchParams.set("url", url);
-				searchParams.set("access_token", token);
-				const resp = await fetch(`${apiBaseUrl}/api/?${searchParams.toString()}`, fetchInit);
+				const resp = await fetch(`${apiBaseUrl}/api/?url=${encodeURIComponent(url)}`, fetchInit);
 
 				// If status is unauthorized, clear the token
 				// And we close the plugin (for now)

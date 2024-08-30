@@ -12,6 +12,9 @@ const apiBaseUrl =
 		? "http://localhost:8787/google-sheets"
 		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
+const LOCAL = "local";
+const PROXY = "proxy";
+
 let googleSheetsAccessToken: string | null = null;
 
 // Storage for the Google Sheets API key.
@@ -50,23 +53,36 @@ export type GoogleSheetsColumn = {
 
 const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
 
-export async function getIntegrationContext(integrationData: object, sheetName: string) {
-	const { spreadsheetId } = integrationData;
+export async function googleAPIFetch(url: string, method: string, route: string, body?: object) {
+	const response = await fetch(
+		route == PROXY ? `${apiBaseUrl}/api/?url=${encodeURIComponent(url)}` : url,
+		{
+			method,
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${googleSheetsAccessToken}`,
+			},
+			body: JSON.stringify(body),
+		}
+	);
+	// const data = await response.json();
+	return response;
+}
 
-	if (!spreadsheetId) {
+export async function getIntegrationContext(integrationData: object, sheetName: string) {
+	const { spreadsheetId, sheetId } = integrationData;
+
+	if (!spreadsheetId || !sheetId) {
 		return null;
 	}
 
 	try {
 		if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
-		const response = await fetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetName}&includeGridData=true`,
-			{
-				headers: {
-					Authorization: `Bearer ${googleSheetsAccessToken}`,
-				},
-			}
+		const response = await googleAPIFetch(
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true`,
+			"GET",
+			LOCAL
 		);
 
 		if (!response.ok) {
@@ -136,6 +152,7 @@ const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
  */
 export function getPossibleSlugFields(integrationContext: object) {
 	const { sheet } = integrationContext;
+	console.log("integrationContext", integrationContext);
 	assert(sheet && sheet.data && sheet.data[0].rowData);
 
 	const headerRow = sheet.data[0].rowData[0].values;
@@ -570,11 +587,11 @@ export function getFieldConversionTypes(column: GoogleSheetsColumn) {
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
-	const response = await fetch(`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`, {
-		headers: {
-			Authorization: `Bearer ${googleSheetsAccessToken}`,
-		},
-	});
+	const response = await googleAPIFetch(
+		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`,
+		"GET",
+		LOCAL
+	);
 
 	if (!response.ok) {
 		throw new Error(`HTTP error! status: ${response.status}`);
@@ -602,18 +619,11 @@ export function parseSheetData(data: any[][]): CollectionItem[] {
 export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
-	const response = await fetch(
+	const response = await googleAPIFetch(
 		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`,
-		{
-			method: "PUT",
-			headers: {
-				Authorization: `Bearer ${googleSheetsAccessToken}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				values: data,
-			}),
-		}
+		"PUT",
+		LOCAL,
+		{ values: data }
 	);
 
 	if (!response.ok) {
@@ -657,16 +667,14 @@ export async function getSheetsList(spreadsheetId: string) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 	try {
-		const response = await fetch(
+		const response = await googleAPIFetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
-			{
-				headers: {
-					Authorization: `Bearer ${googleSheetsAccessToken}`,
-				},
-			}
+			"GET",
+			LOCAL
 		);
 
 		if (!response.ok) {
+			console.log(response)
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
@@ -676,4 +684,31 @@ export async function getSheetsList(spreadsheetId: string) {
 		console.error("Error fetching sheets list:", error);
 		throw error;
 	}
+}
+
+export async function getFullSheet(spreadsheetId: string, sheetId: string) {
+	const sheet = await googleAPIFetch(
+		`${googleSheetsApiBaseUrl}/${spreadsheetId}/sheets/${sheetId}?fields=properties,data`,
+		"GET",
+		PROXY
+	).then((response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const doit = async () => {
+			const data = await response.text();
+			console.log(data)
+		}
+
+		doit()
+		return []
+		// return response.json();
+	});
+
+	if (!sheet) {
+		throw new Error("Failed to fetch sheet data");
+	}
+
+	return sheet;
 }

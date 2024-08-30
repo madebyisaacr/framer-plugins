@@ -1,20 +1,23 @@
 import { usePluginContext } from "../general/PluginContext";
 import SelectDatabasePageTemplate from "../general/SelectDatabaseTemplate";
-import { useSpreadsheetsQuery, getSheetsList } from "./googleSheets";
+import { useSpreadsheetsQuery, getSheetsList, getFullSheet } from "./googleSheets";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
 
 	const { data, refetch, isRefetching, isLoading } = useSpreadsheetsQuery();
 
-	const onSubmit = (spreadsheetId: string) => {
-		const spreadsheet = data?.find((sheet) => sheet.id === spreadsheetId);
-		if (!spreadsheet) {
+	const onSubmit = async (spreadsheetId: string, sheet: object) => {
+		const spreadsheet = data?.find((spreadsheet) => spreadsheet.id === spreadsheetId);
+		if (!spreadsheet || !sheet) {
 			return;
 		}
 
+		const fullSheet = await getFullSheet(spreadsheetId, sheet.id);
+		console.log("fullSheet", fullSheet);
+
 		updatePluginContext({
-			integrationContext: { database: spreadsheet },
+			integrationContext: { spreadsheet, sheet: fullSheet, spreadsheetId, sheetId: fullSheet.id },
 		});
 	};
 

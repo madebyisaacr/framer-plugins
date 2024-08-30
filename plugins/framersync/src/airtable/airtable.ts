@@ -124,7 +124,6 @@ export async function refreshAirtableToken() {
 	}
 }
 
-// DONE
 export async function airtableFetch(url: string, body?: object) {
 	const response = await fetch(`https://api.airtable.com/v0/${url}${objectToUrlParams(body)}`, {
 		method: "GET",
@@ -138,14 +137,12 @@ export async function airtableFetch(url: string, body?: object) {
 }
 
 // The order in which we display slug fields
-// DONE
 const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
 
 /**
  * Given an Airtable base returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
-// DONE
 export function getPossibleSlugFields(integrationContext: object) {
 	const { table } = integrationContext;
 	assert(table);
@@ -172,7 +169,6 @@ export function getPossibleSlugFields(integrationContext: object) {
 }
 
 // Authorize the plugin with Airtable.
-// DONE
 export async function authorize() {
 	const response = await fetch(`${apiBaseUrl}/authorize/`, {
 		method: "POST",
@@ -214,7 +210,6 @@ export async function authorize() {
  * Given an Airtable Base field object returns a CollectionField object
  * That maps the Airtable field to the Framer CMS collection property type
  */
-// DONE
 export function getCollectionFieldForProperty(
 	property: object,
 	name: string,
@@ -239,7 +234,6 @@ export function getCollectionFieldForProperty(
 	};
 }
 
-// DONE
 export function getPropertyValue(
 	property: object,
 	value: any,
@@ -581,7 +575,6 @@ export function useSynchronizeDatabaseMutation(
 	});
 }
 
-// DONE
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
 	if (!rawIgnoredFields) {
 		return [];
@@ -647,7 +640,6 @@ export function hasFieldConfigurationChanged(
 	return false;
 }
 
-// // DONE
 export function isUnchangedSinceLastSync(
 	lastEditedTime: string,
 	lastSyncedTime: string | null

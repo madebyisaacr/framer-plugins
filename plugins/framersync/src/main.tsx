@@ -194,7 +194,6 @@ function App() {
 	};
 
 	const onIntegrationSelected = async (integrationId: string) => {
-		console.log("onIntegrationSelected", integrationId);
 		const authenticatedContext = await createPluginContext(integrationId);
 		updatePluginContext(authenticatedContext);
 	};
