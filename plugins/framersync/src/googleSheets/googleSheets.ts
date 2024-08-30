@@ -619,3 +619,29 @@ export function getColumnLetter(index: number): string {
 	}
 	return columnLetter;
 }
+
+export async function getSheetsList(spreadsheetId: string) {
+  const token = localStorage.getItem(googleSheetsTokenStorageKey);
+  if (!token) throw new Error("Google Sheets API token is missing");
+
+  try {
+    const response = await fetch(
+      `${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.sheets;
+  } catch (error) {
+    console.error("Error fetching sheets list:", error);
+    throw error;
+  }
+}

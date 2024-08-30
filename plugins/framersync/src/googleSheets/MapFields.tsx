@@ -53,7 +53,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 function getInitialSlugFieldId(
 	context: PluginContext,
-	fieldOptions: NotionProperty[]
+	fieldOptions: object[]
 ): string | null {
 	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
 
@@ -106,8 +106,8 @@ export function MapFieldsPage({
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}
-			propertyLabelText="Notion property"
-			slugFieldTitleText="Slug Field Property"
+			propertyLabelText="Sheet column"
+			slugFieldTitleText="Slug Field Column"
 			databaseName={database.title}
 			databaseUrl={database.url}
 			getFieldConversionMessage={getFieldConversionMessage}
@@ -127,9 +127,7 @@ function getFieldConversionMessage(fieldType: string, propertyType: string, unsu
 				text,
 				title: unsupported
 					? `${propertyType} is not supported`
-					: `${propertyType == "page-icon" ? "Page Icon" : propertyType} → ${
-							cmsFieldTypeNames[fieldType]
-					  }`,
+					: `${propertyType} → ${cmsFieldTypeNames[fieldType]}`,
 		  }
 		: null;
 }
