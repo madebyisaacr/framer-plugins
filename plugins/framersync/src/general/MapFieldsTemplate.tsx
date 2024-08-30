@@ -189,90 +189,23 @@ export function MapFieldsPageTemplate({
 		}
 	};
 
-	function FieldConfigRow({ fieldConfig }: { fieldConfig: CollectionFieldConfig }) {
-		const property = fieldConfig.property;
-		const id = property?.id;
-		const unsupported = fieldConfig.unsupported;
-		const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
-
-		return (
-			<Fragment key={fieldConfig.originalFieldName}>
-				<StaticInput
-					ref={(el) => (fieldElementRefs[id] = el)}
-					disabled={isDisabled}
-					leftText={getPropertyTypeName(property.type)}
-					className={classNames("pl-6", property && !unsupported && "cursor-pointer")}
-					onClick={unsupported ? null : () => selectField(id)}
-				>
-					<label
-						className={classNames(
-							"absolute left-0 inset-y-0 w-6 flex items-center justify-center",
-							property && !unsupported && "cursor-pointer"
-						)}
-					>
-						<input
-							type="checkbox"
-							id={`${id}-checkbox`}
-							disabled={!property}
-							checked={!!property && !isDisabled}
-							className={classNames(
-								(disabledFieldIds.has(id) || !property || unsupported) &&
-									"!bg-[#b4b4b4] dark:!bg-[#5b5b5b]",
-								"pointer-events-none"
-							)}
-							onChange={() => {
-								assert(property);
-								handleFieldToggle(id);
-							}}
-						/>
-					</label>
-					{fieldConfig.originalFieldName}
-					{fieldConfig.isNewField && !unsupported && (
-						<div
-							className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
-							style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
-						>
-							New
-						</div>
-					)}
-				</StaticInput>
-				<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
-					<IconChevron />
-				</div>
-				{!fieldTypes[id] ? (
-					<UnsupportedFieldBlock
-						{...getFieldConversionMessage(fieldTypes[id], property.type, true)}
-					/>
-				) : (
-					<>
-						<input
-							type="text"
-							className={classNames("w-full", isDisabled && "opacity-50")}
-							disabled={isDisabled}
-							placeholder={fieldConfig.originalFieldName}
-							value={fieldNameOverrides[id] ?? ""}
-							onFocus={() => selectField(id)}
-							onChange={(e) => {
-								assert(property);
-								handleFieldNameChange(id, e.target.value);
-							}}
-						></input>
-						<FieldTypeSelector
-							fieldType={fieldTypes[id]}
-							availableFieldTypes={fieldConfig.conversionTypes}
-							disabled={isDisabled}
-							onChange={(value) => handleFieldTypeChange(id, value)}
-							onClick={() => selectField(id)}
-						/>
-					</>
-				)}
-				{!unsupported && <EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />}
-			</Fragment>
-		);
-	}
-
 	const createFieldConfigRow = (fieldConfig: CollectionFieldConfig) => {
-		return <FieldConfigRow key={fieldConfig.property.id} fieldConfig={fieldConfig} />;
+		return (
+			<FieldConfigRow
+				key={fieldConfig.property.id}
+				fieldConfig={fieldConfig}
+				fieldTypes={fieldTypes}
+				disabledFieldIds={disabledFieldIds}
+				selectField={selectField}
+				handleFieldToggle={handleFieldToggle}
+				getFieldConversionMessage={getFieldConversionMessage}
+				handleFieldNameChange={handleFieldNameChange}
+				handleFieldTypeChange={handleFieldTypeChange}
+				fieldNameOverrides={fieldNameOverrides}
+				fieldElementRefs={fieldElementRefs}
+				getPropertyTypeName={getPropertyTypeName}
+			/>
+		);
 	};
 
 	const onBackButtonClick = () => {
@@ -347,7 +280,9 @@ export function MapFieldsPageTemplate({
 										>
 											{databaseName}
 										</a>
-										{databaseLabel && <span className="text-tertiary font-medium">{databaseLabel}</span>}
+										{databaseLabel && (
+											<span className="text-tertiary font-medium">{databaseLabel}</span>
+										)}
 									</div>
 								</div>
 							</div>
@@ -885,5 +820,101 @@ function EditButton({ onClick }) {
 			</svg>
 			Edit
 		</Button>
+	);
+}
+
+function FieldConfigRow({
+	fieldConfig,
+	fieldTypes,
+	disabledFieldIds,
+	selectField,
+	handleFieldToggle,
+	getFieldConversionMessage,
+	handleFieldNameChange,
+	handleFieldTypeChange,
+	fieldNameOverrides,
+	fieldElementRefs,
+	getPropertyTypeName,
+}: {
+	fieldConfig: CollectionFieldConfig;
+}) {
+	const property = fieldConfig.property;
+	const id = property?.id;
+	const unsupported = fieldConfig.unsupported;
+	const isDisabled = !fieldTypes[id] || disabledFieldIds.has(id);
+
+	return (
+		<Fragment key={fieldConfig.originalFieldName}>
+			<StaticInput
+				ref={(el) => (fieldElementRefs[id] = el)}
+				disabled={isDisabled}
+				leftText={getPropertyTypeName(property.type)}
+				className={classNames("pl-6", property && !unsupported && "cursor-pointer")}
+				onClick={unsupported ? null : () => selectField(id)}
+			>
+				<label
+					className={classNames(
+						"absolute left-0 inset-y-0 w-6 flex items-center justify-center",
+						property && !unsupported && "cursor-pointer"
+					)}
+				>
+					<input
+						type="checkbox"
+						id={`${id}-checkbox`}
+						disabled={!property}
+						checked={!!property && !isDisabled}
+						className={classNames(
+							(disabledFieldIds.has(id) || !property || unsupported) &&
+								"!bg-[#b4b4b4] dark:!bg-[#5b5b5b]",
+							"pointer-events-none"
+						)}
+						onChange={() => {
+							assert(property);
+							handleFieldToggle(id);
+						}}
+					/>
+				</label>
+				{fieldConfig.originalFieldName}
+				{fieldConfig.isNewField && !unsupported && (
+					<div
+						className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
+						style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
+					>
+						New
+					</div>
+				)}
+			</StaticInput>
+			<div className={classNames("flex items-center justify-center", isDisabled && "opacity-50")}>
+				<IconChevron />
+			</div>
+			{!fieldTypes[id] ? (
+				<UnsupportedFieldBlock
+					{...getFieldConversionMessage(fieldTypes[id], property.type, true)}
+				/>
+			) : (
+				<>
+					<input
+						type="text"
+						className={classNames("w-full", isDisabled && "opacity-50")}
+						disabled={isDisabled}
+						placeholder={fieldConfig.originalFieldName}
+						value={fieldNameOverrides[id] ?? ""}
+						onFocus={() => selectField(id)}
+						onChange={(e) => {
+							assert(property);
+							handleFieldNameChange(id, e.target.value);
+						}}
+					></input>
+					<FieldTypeSelector
+						fieldType={fieldTypes[id]}
+						availableFieldTypes={fieldConfig.conversionTypes}
+						disabled={isDisabled}
+						onChange={(value) => handleFieldTypeChange(id, value)}
+						onClick={() => selectField(id)}
+					/>
+				</>
+			)}
+			{!unsupported && <EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />}
+		</Fragment>
 	);
 }
