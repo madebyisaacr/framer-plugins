@@ -81,9 +81,9 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 		if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 		const response = await googleAPIFetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true`,
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true&fields=sheets(properties,data)`,
 			"GET",
-			LOCAL
+			PROXY
 		);
 
 		if (!response.ok) {
@@ -646,25 +646,6 @@ export function parseSheetData(data: any[][]): CollectionItem[] {
 			slug: slugify(row[0] || `Row ${index + 1}`),
 		};
 	});
-}
-
-export async function updateSheetData(spreadsheetId: string, sheetName: string, data: any[][]) {
-	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
-
-	const response = await googleAPIFetch(
-		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}?valueInputOption=USER_ENTERED`,
-		"PUT",
-		LOCAL,
-		{ values: data }
-	);
-
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
-	}
-}
-
-export function convertFramerItemToSheetRow(item: CollectionItem, headers: string[]): any[] {
-	return headers.map((header) => item.fieldData[header] || "");
 }
 
 export function getColumnLetter(index: number): string {
