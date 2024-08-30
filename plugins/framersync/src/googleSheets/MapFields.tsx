@@ -147,6 +147,7 @@ export function MapFieldsPage({
 			slugFieldTitleText="Slug Field Column"
 			databaseName={spreadsheet.name}
 			databaseUrl={`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit`}
+			databaseLabel="Google Sheet"
 			getFieldConversionMessage={getFieldConversionMessage}
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}

@@ -153,7 +153,6 @@ const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
  */
 export function getPossibleSlugFields(integrationContext: object) {
 	const { sheet } = integrationContext;
-	console.log("integrationContext", integrationContext);
 	assert(sheet && sheet.data && sheet.data[0].rowData);
 
 	const headerRow = sheet.data[0].rowData[0].values;
@@ -163,7 +162,7 @@ export function getPossibleSlugFields(integrationContext: object) {
 		if (slugFieldTypes.includes(getCellPropertyType(cell)) && cell.formattedValue) {
 			options.push({
 				name: cell.formattedValue,
-				id: `column_${index}`
+				id: `column_${index}`,
 			});
 		}
 	});
@@ -174,8 +173,10 @@ export function getPossibleSlugFields(integrationContext: object) {
 	}
 
 	options.sort((a, b) => {
-		const aType = headerRow[parseInt(a.id.split('_')[1])].effectiveFormat?.numberFormat?.type || "TEXT";
-		const bType = headerRow[parseInt(b.id.split('_')[1])].effectiveFormat?.numberFormat?.type || "TEXT";
+		const aType =
+			headerRow[parseInt(a.id.split("_")[1])].effectiveFormat?.numberFormat?.type || "TEXT";
+		const bType =
+			headerRow[parseInt(b.id.split("_")[1])].effectiveFormat?.numberFormat?.type || "TEXT";
 		return getOrderIndex(aType) - getOrderIndex(bType);
 	});
 
@@ -193,8 +194,6 @@ export async function authorize() {
 
 	const { readKey, url } = await response.json();
 
-	console.log(url, readKey);
-
 	window.open(url, "_blank");
 
 	return new Promise<void>((resolve) => {
@@ -208,7 +207,6 @@ export async function authorize() {
 				const tokenInfo = await resp.json();
 
 				if (tokenInfo) {
-					console.log("tokenInfo", tokenInfo);
 					const { access_token, refresh_token } = tokenInfo;
 
 					clearInterval(interval);
@@ -281,7 +279,8 @@ async function processItem(
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
-	lastSyncedTime: string | null
+	lastSyncedTime: string | null,
+	existingSlugs: Set<string>
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
@@ -301,7 +300,7 @@ async function processItem(
 	}
 
 	row.values.forEach((cell, index) => {
-		if (index.toString() === slugFieldId) {
+		if (`column_${index.toString()}` === slugFieldId) {
 			const resolvedSlug = getCellValue(cell);
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				return;
@@ -316,14 +315,15 @@ async function processItem(
 			return;
 		}
 
-		const fieldValue = getCellValue(cell);
-		if (fieldValue === null || fieldValue === undefined) {
-			status.warnings.push({
-				rowIndex,
-				fieldId: field.id,
-				message: `Value is missing for field ${field.name}`,
-			});
-			return;
+		let fieldValue = getCellValue(cell);
+		const noValue = fieldValue === null || fieldValue === undefined;
+
+		if (field.type === "string") {
+			fieldValue = noValue ? "" : String(fieldValue);
+		} else if (field.type === "number") {
+			fieldValue = noValue ? 0 : Number(fieldValue);
+		} else if (field.type === "boolean") {
+			fieldValue = noValue ? false : Boolean(fieldValue);
 		}
 
 		fieldData[field.id] = fieldValue;
@@ -337,10 +337,19 @@ async function processItem(
 		return null;
 	}
 
+	// Handle duplicate slugs
+	let uniqueSlug = slugValue;
+	let counter = 1;
+	while (existingSlugs.has(uniqueSlug)) {
+		counter++;
+		uniqueSlug = `${slugValue}-${counter}`;
+	}
+	existingSlugs.add(uniqueSlug);
+
 	return {
 		id: rowIndex.toString(),
 		fieldData,
-		slug: slugValue,
+		slug: uniqueSlug,
 	};
 }
 
@@ -360,9 +369,19 @@ async function processAllItems(
 		info: [],
 		warnings: [],
 	};
+	const existingSlugs = new Set<string>();
 	const promises = data.map((row, index) =>
 		limit(() =>
-			processItem(row, index, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate)
+			processItem(
+				row,
+				index,
+				fieldsByKey,
+				slugFieldId,
+				status,
+				unsyncedItemIds,
+				lastSyncedDate,
+				existingSlugs
+			)
 		)
 	);
 	const results = await Promise.all(promises);
@@ -394,9 +413,13 @@ export async function synchronizeDatabase(
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
 	// Filter out empty rows before processing
-	const data = sheet.data[0].rowData!.slice(1).filter(row => 
-		row.values && row.values.some(cell => cell.formattedValue !== undefined && cell.formattedValue !== '')
-	);
+	const data = sheet.data[0]
+		.rowData!.slice(1)
+		.filter(
+			(row) =>
+				row.values &&
+				row.values.some((cell) => cell.formattedValue !== undefined && cell.formattedValue !== "")
+		);
 
 	const { collectionItems, status } = await processAllItems(
 		data,
