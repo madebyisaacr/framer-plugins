@@ -47,31 +47,6 @@ let lastSyncedTime: string | null = null;
 let slugFieldId: string | null = null;
 let databaseName: string | null = null;
 
-async function initializeCollectionData() {
-	if (framer.mode === "syncManagedCollection" || framer.mode === "configureManagedCollection") {
-		collection = await framer.getManagedCollection();
-		[
-			collectionFields,
-			collectionIntegrationId,
-			integrationDataJson,
-			ignoredFieldIdsJson,
-			lastSyncedTime,
-			slugFieldId,
-			databaseName,
-		] = await Promise.all([
-			collection.getFields(),
-			collection.getPluginData(PluginDataKey.integrationId),
-			collection.getPluginData(PluginDataKey.integrationData),
-			collection.getPluginData(PluginDataKey.ignoredFieldIds),
-			collection.getPluginData(PluginDataKey.lastSyncedTime),
-			collection.getPluginData(PluginDataKey.slugFieldId),
-			collection.getPluginData(PluginDataKey.databaseName),
-		]);
-	}
-}
-
-initializeCollectionData();
-
 function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
 	if (pluginContext.type !== "update") return false;
 
@@ -230,6 +205,25 @@ async function runPlugin() {
 		renderPlugin(<CanvasPage />);
 		return;
 	}
+
+	collection = await framer.getManagedCollection();
+	[
+		collectionFields,
+		collectionIntegrationId,
+		integrationDataJson,
+		ignoredFieldIdsJson,
+		lastSyncedTime,
+		slugFieldId,
+		databaseName,
+	] = await Promise.all([
+		collection.getFields(),
+		collection.getPluginData(PluginDataKey.integrationId),
+		collection.getPluginData(PluginDataKey.integrationData),
+		collection.getPluginData(PluginDataKey.ignoredFieldIds),
+		collection.getPluginData(PluginDataKey.lastSyncedTime),
+		collection.getPluginData(PluginDataKey.slugFieldId),
+		collection.getPluginData(PluginDataKey.databaseName),
+	]);
 
 	try {
 		let pluginContext: PluginContext = await createPluginContext();
