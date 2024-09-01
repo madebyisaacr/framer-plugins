@@ -296,4 +296,14 @@ const allFieldSettings = [
 		fieldType: "date",
 		time: true,
 	},
+	{
+		propertyType: "select",
+		fieldType: "enum",
+		noneOption: true,
+	},
+	{
+		propertyType: "multi_select",
+		fieldType: "enum",
+		noneOption: true,
+	},
 ];

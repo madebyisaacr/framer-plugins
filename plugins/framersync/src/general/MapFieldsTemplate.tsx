@@ -726,7 +726,9 @@ function EditFieldMenu({
 			if (setting.time) {
 				newFieldSettings.time = true;
 			}
-			// Add more settings here as needed
+			if (setting.noneOption) {
+				newFieldSettings.noneOption = "None";
+			}
 		});
 
 		setFieldSettings(newFieldSettings);
@@ -782,6 +784,17 @@ function EditFieldMenu({
 						<p className="text-primary font-semibold">{fieldConversionMessage.title}</p>
 						{fieldConversionMessage.text}
 					</div>
+				)}
+				{fieldSettings.hasOwnProperty("noneOption") && (
+					<PropertyControl title="None Option" disabled={disabled}>
+						<input
+							type="text"
+							className="w-full"
+							value={fieldSettings.noneOption}
+							placeholder="None"
+							onChange={(e) => setFieldSettings({ ...fieldSettings, noneOption: e.target.value })}
+						/>
+					</PropertyControl>
 				)}
 				{fieldSettings.hasOwnProperty("multipleFields") && (
 					<>

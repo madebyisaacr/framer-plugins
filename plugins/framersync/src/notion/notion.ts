@@ -407,7 +407,7 @@ async function processItem(
 			status.warnings.push({
 				url: item.url,
 				fieldId: field.id,
-				message: `Value is missing for field ${field.name}`,
+				message: `Value missing for field ${field.name}`,
 			});
 			continue;
 		}
