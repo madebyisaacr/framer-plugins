@@ -531,36 +531,89 @@ function FieldTypeSelector({
 	fieldType,
 	availableFieldTypes,
 	disabled = false,
+	segmentedControl = false,
 	onChange = (value) => {},
 }) {
-	return (
-		<div className="relative cursor-pointer" onClick={onClick}>
-			{availableFieldTypes?.length > 1 ? (
-				<select
-					disabled={disabled}
-					value={fieldType}
-					onChange={(e) => onChange(e.target.value)}
-					className="pl-[34px] w-full"
-				>
-					{availableFieldTypes?.map((type) => (
-						<option key={type} value={type}>
-							{cmsFieldTypeNames[type]}
-						</option>
-					))}
-				</select>
-			) : (
+	if (availableFieldTypes.length === 1) {
+		return (
+			<div className="relative cursor-pointer" onClick={onClick}>
 				<StaticInput disabled={disabled} className="pl-[34px]">
 					{cmsFieldTypeNames[fieldType]}
 				</StaticInput>
-			)}
-			<div
-				className={classNames(
-					"text-tint absolute top-[4px] left-[4px] pointer-events-none",
-					disabled && "opacity-50"
-				)}
-			>
-				{cmsFieldIcons[fieldType]}
+				<FieldTypeIcon fieldType={fieldType} disabled={disabled} />
 			</div>
+		);
+	} else if (segmentedControl) {
+		const transition = { type: "spring", stiffness: "900", damping: "60" };
+		const currentItemIndex = availableFieldTypes.indexOf(fieldType);
+
+		return (
+			<div onClick={onClick} className="relative flex flex-col p-0.5 gap-0.5 bg-secondary rounded">
+				{currentItemIndex >= 0 && (
+					<div className="absolute inset-0.5">
+						<motion.div
+							animate={{
+								top: `${currentItemIndex * 32}px`,
+							}}
+							className="absolute inset-x-0 rounded-[6px] h-6 bg-segmented-control"
+							style={{
+								boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
+							}}
+							initial={false}
+							transition={transition}
+						/>
+					</div>
+				)}
+				{availableFieldTypes.map((type) => (
+					<div
+						key={type}
+						onClick={() => onChange(type)}
+						className={classNames(
+							"relative w-full pl-[34px] pr-1 h-6 cursor-pointer flex flex-col justify-center transition-colors",
+							fieldType === type ? "text-primary font-semibold" : "text-secondary"
+						)}
+					>
+						{cmsFieldTypeNames[type]}
+						<FieldTypeIcon
+							fieldType={type}
+							disabled={disabled}
+							className={`transition-opacity ${fieldType === type ? "opacity-100" : "opacity-70"}`}
+						/>
+					</div>
+				))}
+			</div>
+		);
+	}
+
+	return (
+		<div className="relative cursor-pointer" onClick={onClick}>
+			<select
+				disabled={disabled}
+				value={fieldType}
+				onChange={(e) => onChange(e.target.value)}
+				className="pl-[34px] w-full"
+			>
+				{availableFieldTypes?.map((type) => (
+					<option key={type} value={type}>
+						{cmsFieldTypeNames[type]}
+					</option>
+				))}
+			</select>
+			<FieldTypeIcon fieldType={fieldType} disabled={disabled} />
+		</div>
+	);
+}
+
+function FieldTypeIcon({ fieldType, disabled = false, className = "" }) {
+	return (
+		<div
+			className={classNames(
+				"text-tint absolute top-[4px] left-[4px] pointer-events-none",
+				disabled && "opacity-50",
+				className
+			)}
+		>
+			{cmsFieldIcons[fieldType]}
 		</div>
 	);
 }
@@ -716,6 +769,7 @@ function EditFieldMenu({
 						fieldType={fieldTypes[id]}
 						availableFieldTypes={fieldConfig.conversionTypes}
 						onChange={(value) => handleFieldTypeChange(id, value)}
+						segmentedControl
 					/>
 				</PropertyControl>
 				{fieldConversionMessage && (
@@ -788,14 +842,14 @@ function PropertyControl({ title, children, disabled = false }) {
 	return (
 		<div
 			className={classNames(
-				"grid gap-2 w-full items-center transition-opacity",
+				"grid gap-2 w-full transition-opacity",
 				disabled && "opacity-50 pointer-events-none"
 			)}
 			style={{
 				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
 			}}
 		>
-			<span className="text-secondary pl-2">{title}</span>
+			<span className="text-secondary pl-2 h-6 flex items-center">{title}</span>
 			<div className="col-span-2">{children}</div>
 		</div>
 	);
