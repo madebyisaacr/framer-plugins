@@ -549,7 +549,9 @@ export async function synchronizeDatabase(
 	);
 
 	console.log("Submitting database");
-	console.table(collectionItems);
+	console.table(
+		collectionItems.map((item) => ({ ...item, fieldData: JSON.stringify(item.fieldData) }))
+	);
 
 	try {
 		const itemsToDelete = Array.from(unsyncedItemIds);

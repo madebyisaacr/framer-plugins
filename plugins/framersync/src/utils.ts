@@ -114,20 +114,13 @@ export function useIsDocumentVisibile() {
 	return isVisible;
 }
 
-export function convertISOToDDMMYYYY(isoString: string) {
-  // Create a Date object from the ISO string
-  const date = new Date(isoString);
-  
-  // Check if the date is valid
-  if (isNaN(date.getTime())) {
-    return "Invalid Date";
-  }
-  
-  // Get day, month, and year
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-  const year = date.getFullYear();
+export function removeTimeFromISO(isoString: string) {
+	// Create a Date object from the ISO string
+	const date = new Date(isoString);
 
-  // Return the formatted date string
-  return `${day}-${month}-${year}`;
+	// Set the time to midnight (00:00:00.000)
+	date.setHours(0, 0, 0, 0);
+
+	// Return the formatted date string
+	return date.toISOString();
 }

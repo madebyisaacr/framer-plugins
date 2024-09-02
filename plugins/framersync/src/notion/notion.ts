@@ -13,7 +13,7 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify, convertISOToDDMMYYYY } from "../utils";
+import { assert, formatDate, isDefined, isString, slugify, removeTimeFromISO } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
@@ -426,6 +426,9 @@ async function processItem(
 		}
 
 		const fieldValue = getPropertyValue(property, field.type, fieldSettings[property.id]);
+		if (property.type === "last_edited_time") {
+			console.log(item.id)
+		}
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -564,7 +567,9 @@ export async function synchronizeDatabase(
 	);
 
 	console.log("Submitting database");
-	console.table(collectionItems);
+	console.table(
+		collectionItems.map((item) => ({ ...item, fieldData: JSON.stringify(item.fieldData) }))
+	);
 
 	try {
 		const itemsToDelete = Array.from(unsyncedItemIds);
@@ -727,8 +732,7 @@ export function getFieldConversionTypes(property: NotionProperty) {
 }
 
 function dateValue(value: string, fieldSettings: Record<string, any>) {
-	console.log("dateValue", value, fieldSettings);
-	return !fieldSettings.time ? convertISOToDDMMYYYY(value) : value;
+	return !fieldSettings.time ? removeTimeFromISO(value) : value;
 }
 
 function getIntegrationData(pluginContext: PluginContext) {
