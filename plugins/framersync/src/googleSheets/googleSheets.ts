@@ -22,13 +22,13 @@ const googleSheetsRefreshTokenKey = "googleSheetsRefreshToken";
 
 const propertyConversionTypes = {
 	BOOLEAN: ["boolean"],
-	TEXT: ["string"],
-	NUMBER: ["number"],
-	DATE: ["date"],
+	TEXT: ["string", "formattedText"],
+	NUMBER: ["number", "string"],
+	DATE: ["date", "string"],
 	TIME: ["string"],
-	DATETIME: ["date"],
-	FORMULA: ["string", "number", "boolean", "date"],
-	IMAGE: ["image"],
+	DATETIME: ["date", "string"],
+	FORMULA: ["string", "number", "boolean", "date", "link"],
+	IMAGE: ["image", "link"],
 	HYPERLINK: ["link", "string"],
 };
 

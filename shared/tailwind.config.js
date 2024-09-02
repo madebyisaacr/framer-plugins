@@ -30,6 +30,7 @@ export default {
 			divider: "var(--framer-color-divider)",
 			"divider-secondary": "var(--color-divider-secondary)",
 			tint: "var(--framer-color-tint)",
+			error: "var(--color-error)",
 		},
 		spacing: {
 			px: "1px",

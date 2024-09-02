@@ -105,6 +105,8 @@ export function MapFieldsPageTemplate({
 		return result;
 	}, [fieldConfigList]);
 
+	const slugFieldConfig = slugFieldId ? fieldConfigById[slugFieldId] : null;
+
 	const handleFieldToggle = (key: string) => {
 		setDisabledFieldIds((current) => {
 			const nextSet = new Set(current);
@@ -313,7 +315,13 @@ export function MapFieldsPageTemplate({
 									>
 										<div
 											className="absolute -inset-0.5 rounded-lg"
-											style={{ boxShadow: "0 0 0 2px var(--framer-color-tint)" }}
+											style={{
+												boxShadow: `0 0 0 2px var(${
+													editMenuFieldConfig == "slug" && !slugFieldConfig
+														? "--color-error"
+														: "--framer-color-tint"
+												})`,
+											}}
 										/>
 									</div>
 								)}
@@ -344,19 +352,24 @@ export function MapFieldsPageTemplate({
 										onClick={() => toggleEditMenuFieldConfig("slug")}
 										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
 									>
+										{!slugFieldConfig && editMenuFieldConfig !== "slug" && (
+											<div className="absolute inset-0 rounded-[inherit] border border-error" />
+										)}
 										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
 											<input type="checkbox" readOnly checked={true} className="opacity-40" />
 										</div>
 										<div className="flex-1 flex-row items-center gap-1.5">
 											{columnLetters && (
-												<ColumnLetter>
-													{fieldConfigById[slugFieldId]?.property?.columnLetter}
-												</ColumnLetter>
+												<ColumnLetter>{slugFieldConfig?.property?.columnLetter}</ColumnLetter>
 											)}
-											{fieldConfigById[slugFieldId]?.property?.name}
+											{slugFieldConfig ? (
+												slugFieldConfig?.property?.name
+											) : (
+												<span className="text-error">No slug field</span>
+											)}
 										</div>
 										<span className="text-tertiary">
-											{getPropertyTypeName(fieldConfigById[slugFieldId]?.property?.type)}
+											{getPropertyTypeName(slugFieldConfig?.property?.type)}
 										</span>
 									</div>
 									<div className="flex items-center justify-center">
@@ -412,45 +425,57 @@ export function MapFieldsPageTemplate({
 										<span className="text-tertiary pr-2">Type</span>
 									</div>
 									<div className="flex-col gap-0.5 flex-1">
-										{slugFields.map((field) => (
-											<label
-												key={field.property.id}
-												className={classNames(
-													"items-center flex-row gap-2 rounded px-2 h-6 cursor-pointer",
-													slugFieldId === field.property.id && "bg-secondary"
-												)}
-											>
-												<input
-													type="checkbox"
-													name="slugField"
-													value={field.property.id}
-													checked={slugFieldId === field.property.id}
-													onChange={(e) => setSlugFieldId(e.target.value)}
-													className="size-2.5"
-												/>
-												{columnLetters && (
-													<ColumnLetter
-														className={classNames(
-															"-mr-0.5",
-															slugFieldId === field.property.id ? "opacity-100" : "opacity-60"
-														)}
-													>
-														{field.property?.columnLetter}
-													</ColumnLetter>
-												)}
-												<span
+										{slugFields.length > 0 ? (
+											slugFields.map((field) => (
+												<label
+													key={field.property.id}
 													className={classNames(
-														"flex-1",
-														slugFieldId === field.property.id ? "text-primary" : "text-secondary"
+														"items-center flex-row gap-2 rounded px-2 h-6 cursor-pointer",
+														slugFieldId === field.property.id && "bg-secondary"
 													)}
 												>
-													{field.property.name}
+													<input
+														type="checkbox"
+														name="slugField"
+														value={field.property.id}
+														checked={slugFieldId === field.property.id}
+														onChange={(e) => setSlugFieldId(e.target.value)}
+														className="size-2.5"
+													/>
+													{columnLetters && (
+														<ColumnLetter
+															className={classNames(
+																"-mr-0.5",
+																slugFieldId === field.property.id ? "opacity-100" : "opacity-60"
+															)}
+														>
+															{field.property?.columnLetter}
+														</ColumnLetter>
+													)}
+													<span
+														className={classNames(
+															"flex-1",
+															slugFieldId === field.property.id ? "text-primary" : "text-secondary"
+														)}
+													>
+														{field.property.name}
+													</span>
+													<span className="text-tertiary">
+														{getPropertyTypeName(field.property.type)}
+													</span>
+												</label>
+											))
+										) : (
+											<div className="w-full p-3 rounded flex flex-col gap-1 relative">
+												<div className="absolute inset-0 rounded bg-error opacity-10" />
+												<div className="absolute inset-0 rounded border-2 border-error" />
+												<span className="text-primary font-semibold">No valid slug fields</span>
+												<span className="text-secondary">
+													None of the fields in the {databaseLabel} can be used as a slug. Add a
+													text or formula field to use as a slug to import the collection.
 												</span>
-												<span className="text-tertiary">
-													{getPropertyTypeName(field.property.type)}
-												</span>
-											</label>
-										))}
+											</div>
+										)}
 									</div>
 									<div className="flex-col gap-1 p-3 bg-secondary rounded text-secondary">
 										<p className="text-primary font-semibold">What is a slug field?</p>
@@ -1056,7 +1081,7 @@ function ColumnLetter({ children, className = "" }) {
 	return (
 		<div
 			className={classNames(
-				"bg-segmented-control rounded-sm py-[2px] px-1 min-w-[18px] text-[10px] font-semibold text-center transition-colors segmented-control-shadow",
+				"bg-segmented-control rounded-sm px-1 min-w-[18px] h-[18px] text-[10px] font-semibold transition-colors segmented-control-shadow flex flex-col items-center justify-center",
 				className
 			)}
 		>
