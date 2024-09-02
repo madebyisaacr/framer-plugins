@@ -8,11 +8,7 @@ import BackButton from "../components/BackButton";
 import { GoogleSheetsLogo, FramerLogo } from "../assets/AppIcons";
 import { useIsDocumentVisibile } from "../utils";
 
-interface AuthenticationProps {
-	onAuthenticated: () => void;
-}
-
-export function AuthenticatePage({ onAuthenticated }: AuthenticationProps) {
+export function AuthenticatePage({ onAuthenticated }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const [isLoading, setIsLoading] = useState(false);

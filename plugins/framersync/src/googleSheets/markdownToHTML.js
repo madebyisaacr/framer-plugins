@@ -1,3 +1,3 @@
-export function markdownToHTML(markdown: string) {
+export function markdownToHTML(markdown) {
 	return markdown;
 }

@@ -2,5 +2,5 @@
     "id": "Kd2XEn",
     "name": "FramerSync",
     "modes": ["configureManagedCollection", "syncManagedCollection", "canvas"],
-    "icon": "/notion.png"
+    "icon": "/framerSyncIcon.svg"
 }
