@@ -327,7 +327,7 @@ export function MapFieldsPageTemplate({
 								<div
 									className="grid gap-2 w-full items-center justify-center"
 									style={{
-										gridTemplateColumns: `1.5fr 8px 1fr 150px auto`,
+										gridTemplateColumns: `1.5fr 5px 1fr 150px auto`,
 									}}
 								>
 									<div className="flex-row justify-between">
@@ -386,7 +386,10 @@ export function MapFieldsPageTemplate({
 										availableFieldTypes={["slug"]}
 										onClick={() => toggleEditMenuFieldConfig("slug")}
 									/>
-									<EditButton onClick={() => toggleEditMenuFieldConfig("slug")} />
+									<EditButton
+										onClick={() => toggleEditMenuFieldConfig("slug")}
+										text={slugFieldConfig ? "Edit" : "Error"}
+									/>
 									{pageLevelFields.map(createFieldConfigRow)}
 									{newFields.length + otherFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
@@ -788,8 +791,8 @@ function EditFieldMenu({
 			return false;
 		});
 
-		const list = Object.values(FieldSettings).filter(key => 
-			filteredSettings.some(setting => setting[key])
+		const list = Object.values(FieldSettings).filter((key) =>
+			filteredSettings.some((setting) => setting[key])
 		);
 
 		return list;
@@ -965,7 +968,7 @@ function PropertyControl({ title, children }) {
 	);
 }
 
-function EditButton({ onClick }) {
+function EditButton({ onClick, text = "Edit" }) {
 	return (
 		<Button type="button" onClick={onClick}>
 			<svg
@@ -980,10 +983,20 @@ function EditButton({ onClick }) {
 				strokeLinejoin="round"
 				className="-mr-0.5"
 			>
-				<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
-				<path d="M13.5 6.5l4 4" />
+				{text == "Edit" ? (
+					<>
+						<path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+						<path d="M13.5 6.5l4 4" />
+					</>
+				) : text == "Error" ? (
+					<>
+						<path d="M12 9v4" />
+						<path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+						<path d="M12 16h.01" />
+					</>
+				) : null}
 			</svg>
-			Edit
+			{text}
 		</Button>
 	);
 }
