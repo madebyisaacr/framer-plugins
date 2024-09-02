@@ -22,6 +22,7 @@ export function LemonSqueezyProvider({ children }) {
 	function openCheckout() {
 		window.open(checkoutURL, "_blank");
 	}
+	// framer.setPluginData(PluginDataLicenseKey, null);
 
 	async function validateLicenseKey() {
 		const licenseKey = await framer.getPluginData(PluginDataLicenseKey);

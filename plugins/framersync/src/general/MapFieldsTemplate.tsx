@@ -142,7 +142,7 @@ export function MapFieldsPageTemplate({
 		}));
 	};
 
-	const onImportClick = () => {
+	const onImportClick = (isLicenseKeyValid: boolean) => {
 		if (isLoading) return;
 
 		const fields: any[] = [];
@@ -175,10 +175,10 @@ export function MapFieldsPageTemplate({
 				databaseName,
 				fieldSettings,
 			},
-			licenseKeyValid ? onSubmit : updatePluginData
+			isLicenseKeyValid ? onSubmit : updatePluginData
 		);
 
-		if (!licenseKeyValid) {
+		if (!isLicenseKeyValid) {
 			setShowLicenseKeyMenu(true);
 		}
 	};
@@ -221,6 +221,12 @@ export function MapFieldsPageTemplate({
 			integrationContext: null,
 		});
 	};
+
+	const onLicenseKeyActivated = () => {
+		console.log("onLicenseKeyActivated 2");
+		setShowLicenseKeyMenu(false);
+		onImportClick(true);
+	}
 
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
@@ -454,7 +460,7 @@ export function MapFieldsPageTemplate({
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-							<Button primary onClick={onImportClick} disabled={!slugFieldId}>
+							<Button primary onClick={() => onImportClick(licenseKeyValid)} disabled={!slugFieldId}>
 								{pluginContext.type === "update" ? "Save & Import Collection" : "Import Collection"}
 							</Button>
 						</div>
@@ -486,6 +492,7 @@ export function MapFieldsPageTemplate({
 								closePage={() => setShowLicenseKeyMenu(false)}
 								paywall
 								databaseLabel={databaseLabel}
+								onActivated={onLicenseKeyActivated}
 							/>
 							<XIcon
 								onClick={() => setShowLicenseKeyMenu(false)}

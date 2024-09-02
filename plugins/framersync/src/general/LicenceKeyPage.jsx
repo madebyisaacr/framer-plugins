@@ -13,7 +13,13 @@ export function LicenseKeyPage({ closePage, checkout }) {
 	);
 }
 
-export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, className = "" }) {
+export function LicenseKeyMenu({
+	checkout,
+	databaseLabel = "",
+	paywall = false,
+	className = "",
+	onActivated = null,
+}) {
 	const [licenseKey, setLicenseKey] = useState("");
 	const [isActivating, setIsActivating] = useState(false);
 	const [isValidated, setIsValidated] = useState(false);
@@ -55,6 +61,7 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 			if (activated) {
 				setIsValidated(true);
 				setLicenseKey("");
+				onActivated?.();
 			} else {
 				setError("The license key is not valid.");
 			}
@@ -65,7 +72,7 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 		}
 	}
 
-	const activateHeadingText = isValidated ? "Activated License Key!" : "Activate License Key";
+	const activateHeadingText = isValidated ? "Activated License Key!" : "Activate Your License Key";
 
 	return (
 		<div className={classNames("flex-col justify-center px-3 pb-3 gap-2 w-full", className)}>

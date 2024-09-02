@@ -13,7 +13,7 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify } from "../utils";
+import { assert, formatDate, isDefined, isString, slugify, convertISOToDDMMYYYY } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
@@ -267,6 +267,8 @@ export function getPropertyValue(
 ): unknown | undefined {
 	const value = property[property.type];
 
+	fieldSettings = fieldSettings || {};
+
 	switch (property.type) {
 		case "checkbox":
 		case "url":
@@ -319,7 +321,7 @@ export function getPropertyValue(
 					return null;
 			}
 		case "date":
-			return dateValue(value, fieldSettings);
+			return dateValue(value.start, fieldSettings);
 		case "files":
 			if (fieldSettings.multipleFields) {
 				return value.map((file) => file[file.type].url);
@@ -725,7 +727,8 @@ export function getFieldConversionTypes(property: NotionProperty) {
 }
 
 function dateValue(value: string, fieldSettings: Record<string, any>) {
-	return !fieldSettings.time ? value?.split("T")[0] : value;
+	console.log("dateValue", value, fieldSettings);
+	return !fieldSettings.time ? convertISOToDDMMYYYY(value) : value;
 }
 
 function getIntegrationData(pluginContext: PluginContext) {

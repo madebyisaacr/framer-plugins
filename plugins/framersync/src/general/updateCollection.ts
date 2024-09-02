@@ -27,6 +27,8 @@ export async function updateCollection(
 	if (itemsToDelete.length > 0) {
 		await collection.removeItems(itemsToDelete);
 	}
+
+	collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString());
 }
 
 export async function updateCollectionPluginData(
@@ -44,7 +46,6 @@ export async function updateCollectionPluginData(
 		collection.setPluginData(PluginDataKey.integrationId, integrationId),
 		collection.setPluginData(PluginDataKey.ignoredFieldIds, JSON.stringify(ignoredFieldIds)),
 		collection.setPluginData(PluginDataKey.integrationData, JSON.stringify(integrationData)),
-		collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString()),
 		collection.setPluginData(PluginDataKey.slugFieldId, slugFieldId),
 		collection.setPluginData(
 			PluginDataKey.databaseName,

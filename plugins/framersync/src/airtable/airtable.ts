@@ -253,6 +253,8 @@ export function getPropertyValue(
 		return null;
 	}
 
+	fieldSettings = fieldSettings || {};
+
 	switch (property.type) {
 		case "currency":
 		case "email":
