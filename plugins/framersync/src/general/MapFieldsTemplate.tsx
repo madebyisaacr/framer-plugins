@@ -327,7 +327,7 @@ export function MapFieldsPageTemplate({
 										<span className="text-ellipsis text-nowrap overflow-hidden capitalize font-semibold">
 											{propertyLabelText}
 										</span>
-										<span className="text-tertiary text-ellipsis text-nowrap overflow-hidden">
+										<span className="text-tertiary text-ellipsis text-nowrap overflow-hidden pr-2">
 											Type
 										</span>
 									</div>
@@ -355,6 +355,9 @@ export function MapFieldsPageTemplate({
 											)}
 											{fieldConfigById[slugFieldId]?.property?.name}
 										</div>
+										<span className="text-tertiary">
+											{getPropertyTypeName(fieldConfigById[slugFieldId]?.property?.type)}
+										</span>
 									</div>
 									<div className="flex items-center justify-center">
 										<IconChevron />
@@ -443,7 +446,9 @@ export function MapFieldsPageTemplate({
 												>
 													{field.property.name}
 												</span>
-												<span className="text-tertiary">{getPropertyTypeName(field.type)}</span>
+												<span className="text-tertiary">
+													{getPropertyTypeName(field.property.type)}
+												</span>
 											</label>
 										))}
 									</div>
@@ -1007,9 +1012,7 @@ function FieldConfigRow({
 				{columnLetters && <ColumnLetter>{fieldConfig.property.columnLetter}</ColumnLetter>}
 				{fieldConfig.originalFieldName}
 				{fieldConfig.isNewField && !unsupported && (
-					<div
-						className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold segmented-control-shadow"
-					>
+					<div className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold segmented-control-shadow">
 						New
 					</div>
 				)}
@@ -1063,7 +1066,8 @@ function ColumnLetter({ children, className = "" }) {
 }
 
 function getInitialSlugFieldId(pluginContext: PluginContext, fieldConfigList: object[]) {
-	if (pluginContext.type === "update" && pluginContext.slugFieldId) return pluginContext.slugFieldId;
+	if (pluginContext.type === "update" && pluginContext.slugFieldId)
+		return pluginContext.slugFieldId;
 
 	return fieldConfigList[0]?.property?.id ?? null;
 }
