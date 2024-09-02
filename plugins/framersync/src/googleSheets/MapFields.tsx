@@ -1,4 +1,3 @@
-import { assert } from "../utils";
 import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
@@ -6,6 +5,7 @@ import {
 	getFieldConversionTypes,
 	getCellPropertyType,
 	updatePluginData,
+	getColumnLetter,
 } from "./googleSheets";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
@@ -70,7 +70,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				id: `column_${index}`,
 				name: cell.formattedValue,
 				type: columnType,
-				columnIndex: index
+				columnIndex: index,
+				columnLetter: getColumnLetter(index),
 			};
 
 			const conversionTypes = getFieldConversionTypes(columnType);
@@ -154,6 +155,7 @@ export function MapFieldsPage({
 			getPropertyTypeName={getPropertyTypeName}
 			allFieldSettings={allFieldSettings}
 			getCollectionFieldForProperty={getCollectionFieldForProperty}
+			columnLetters
 		/>
 	);
 }

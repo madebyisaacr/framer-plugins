@@ -61,6 +61,7 @@ export function MapFieldsPageTemplate({
 	coverImage = null,
 	databaseIcon = null,
 	databaseLabel = null,
+	columnLetters = false,
 }: {
 	onSubmit: () => void;
 	isLoading: boolean;
@@ -215,6 +216,7 @@ export function MapFieldsPageTemplate({
 				fieldElementRefs={fieldElementRefs}
 				getPropertyTypeName={getPropertyTypeName}
 				toggleEditMenuFieldConfig={toggleEditMenuFieldConfig}
+				columnLetters={columnLetters}
 			/>
 		);
 	};
@@ -346,7 +348,14 @@ export function MapFieldsPageTemplate({
 										<div className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center">
 											<input type="checkbox" readOnly checked={true} className="opacity-40" />
 										</div>
-										{slugFields.find((field) => field.id === slugFieldId)?.name || slugFieldId}
+										<div className="flex-1 flex-row items-center gap-1.5">
+											{columnLetters && (
+												<ColumnLetter>
+													{fieldConfigById[slugFieldId]?.property?.columnLetter}
+												</ColumnLetter>
+											)}
+											{slugFields.find((field) => field.id === slugFieldId)?.name || slugFieldId}
+										</div>
 									</div>
 									<div className="flex items-center justify-center">
 										<IconChevron />
@@ -417,7 +426,24 @@ export function MapFieldsPageTemplate({
 													onChange={(e) => setSlugFieldId(e.target.value)}
 													className="size-2.5"
 												/>
-												<span className="flex-1">{field.name}</span>
+												{columnLetters && (
+													<ColumnLetter
+														className={classNames(
+															"-mr-0.5",
+															slugFieldId === field.id ? "opacity-100" : "opacity-60"
+														)}
+													>
+														{fieldConfigById[field.id]?.property?.columnLetter}
+													</ColumnLetter>
+												)}
+												<span
+													className={classNames(
+														"flex-1",
+														slugFieldId === field.id ? "text-primary" : "text-secondary"
+													)}
+												>
+													{field.name}
+												</span>
 												<span className="text-tertiary">{getPropertyTypeName(field.type)}</span>
 											</label>
 										))}
@@ -937,6 +963,7 @@ function FieldConfigRow({
 	fieldElementRefs,
 	getPropertyTypeName,
 	toggleEditMenuFieldConfig,
+	columnLetters = false,
 }: {
 	fieldConfig: CollectionFieldConfig;
 }) {
@@ -976,6 +1003,7 @@ function FieldConfigRow({
 						}}
 					/>
 				</label>
+				{columnLetters && <ColumnLetter>{fieldConfig.property.columnLetter}</ColumnLetter>}
 				{fieldConfig.originalFieldName}
 				{fieldConfig.isNewField && !unsupported && (
 					<div
@@ -1018,5 +1046,19 @@ function FieldConfigRow({
 			)}
 			{!unsupported && <EditButton onClick={() => toggleEditMenuFieldConfig(fieldConfig)} />}
 		</Fragment>
+	);
+}
+
+function ColumnLetter({ children, className = "" }) {
+	return (
+		<div
+			className={classNames(
+				"bg-segmented-control rounded-sm py-[2px] px-1 min-w-[18px] text-[10px] font-semibold text-center transition-colors",
+				className
+			)}
+			style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
+		>
+			{children}
+		</div>
 	);
 }
