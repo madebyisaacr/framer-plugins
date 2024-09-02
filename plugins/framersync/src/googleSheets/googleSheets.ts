@@ -103,7 +103,8 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 			sheetId,
 		};
 	} catch (error) {
-		throw error;
+		console.error("Error getting integration context", error);
+		return null;
 	}
 }
 

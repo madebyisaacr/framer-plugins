@@ -104,26 +104,17 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 		const integrationData = JSON.parse(integrationDataJson);
 
 		let integrationContext: object | null = null;
+		let hasChangedFields: boolean = false;
 		try {
 			integrationContext = await integration.getIntegrationContext(integrationData, databaseName);
+			hasChangedFields = integration.hasFieldConfigurationChanged(
+				collectionFields,
+				integrationContext,
+				ignoredFieldIds
+			);
 		} catch (error) {
 			console.error("Error getting integration context", error);
 		}
-
-		if (integrationContext instanceof Error) {
-			return {
-				type: "error",
-				message: integrationContext.message,
-				authenticatedIntegrations: [],
-				integrationId: integration ? integrationId : null,
-			};
-		}
-
-		const hasChangedFields = integration.hasFieldConfigurationChanged(
-			collectionFields,
-			integrationContext,
-			ignoredFieldIds
-		);
 
 		return {
 			type: "update",
