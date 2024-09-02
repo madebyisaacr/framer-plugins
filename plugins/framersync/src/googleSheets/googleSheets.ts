@@ -184,9 +184,11 @@ export async function authorize() {
 
 	window.open(url, "_blank");
 
-	return new Promise<void>((resolve) => {
+	let intervalId;
+
+	const promise = new Promise<void>((resolve) => {
 		// Poll for the authorization status
-		const interval = setInterval(async () => {
+		intervalId = setInterval(async () => {
 			const resp = await fetch(`${apiBaseUrl}/poll/?readKey=${readKey}`, {
 				method: "POST",
 			});
@@ -197,7 +199,7 @@ export async function authorize() {
 				if (tokenInfo) {
 					const { access_token, refresh_token } = tokenInfo;
 
-					clearInterval(interval);
+					clearInterval(intervalId);
 					googleSheetsAccessToken = access_token;
 					localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
 				}
@@ -206,6 +208,8 @@ export async function authorize() {
 			}
 		}, 2500);
 	});
+
+	return { promise, cancel: () => clearInterval(intervalId) };
 }
 
 /**

@@ -5,7 +5,6 @@ import { PluginContext, usePluginContext } from "../general/PluginContext";
 import Window from "../general/Window";
 import BackButton from "../components/BackButton";
 import { FramerLogo } from "../assets/AppIcons";
-import { useIsDocumentVisibile } from "../utils";
 
 export function AuthenticatePageTemplate({
 	onAuthenticated,
@@ -18,8 +17,9 @@ export function AuthenticatePageTemplate({
 	const { pluginContext, updatePluginContext } = usePluginContext();
 
 	const [isLoading, setIsLoading] = useState(false);
-	const isDocumentVisible = useIsDocumentVisibile();
+	const isDocumentVisible = useIsDocumentVisible();
 	const notifiedForContextRef = useRef<PluginContext | null>(null);
+	const authPollCancelRef = useRef(null);
 
 	useEffect(() => {
 		// after authentication the user may not have returned to Framer yet.
@@ -33,14 +33,29 @@ export function AuthenticatePageTemplate({
 		framer.notify(pluginContext.message, { variant: "error" });
 	}, [pluginContext, isDocumentVisible]);
 
-	const handleAuth = () => {
+	useEffect(() => {
+		return () => {
+			if (authPollCancelRef.current) {
+				authPollCancelRef.current();
+			}
+		};
+	}, []);
+
+	const handleAuth = async () => {
 		setIsLoading(true);
 
-		authorize()
-			.then(onAuthenticated)
-			.finally(() => {
-				setIsLoading(false);
-			});
+		const result = await authorize();
+
+		const { promise, cancel } = result;
+
+		if (authPollCancelRef.current) {
+			authPollCancelRef.current();
+		}
+		authPollCancelRef.current = cancel;
+
+		promise.then(onAuthenticated).finally(() => {
+			setIsLoading(false);
+		});
 	};
 
 	const onBackButtonClick = () => {
@@ -83,9 +98,7 @@ export function AuthenticatePageTemplate({
 				) : (
 					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex-col flex-1">
 						{steps.map((step, index) => (
-							<li key={index}>
-								{index + 1}. {step}
-							</li>
+							<li key={index}>{step}</li>
 						))}
 					</ol>
 				)}
@@ -95,4 +108,21 @@ export function AuthenticatePageTemplate({
 			</Button>
 		</Window>
 	);
+}
+
+export function useIsDocumentVisible() {
+	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
+
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			setIsVisible(document.visibilityState === "visible");
+		};
+
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+		};
+	}, []);
+
+	return isVisible;
 }
