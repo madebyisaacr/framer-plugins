@@ -89,6 +89,7 @@ export function MapFieldsPageTemplate({
 	const [fieldTypes, setFieldTypes] = useState(
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
+	const [fieldSettings, setFieldSettings] = useState({});
 
 	const [fieldElementRefs, setFieldElementRefs] = useState<Record<string, HTMLDivElement>>({});
 
@@ -430,6 +431,8 @@ export function MapFieldsPageTemplate({
 								handleFieldTypeChange={handleFieldTypeChange}
 								getFieldConversionMessage={getFieldConversionMessage}
 								allFieldSettings={allFieldSettings}
+								fieldSettings={fieldSettings}
+								setFieldSettings={setFieldSettings}
 								getPropertyTypeName={getPropertyTypeName}
 							/>
 						) : (
@@ -681,6 +684,8 @@ function EditFieldMenu({
 	fieldConfig,
 	fieldTypes,
 	fieldNames,
+	fieldSettings,
+	setFieldSettings,
 	disabledFieldIds,
 	setFieldImportEnabled,
 	handleFieldNameChange,
@@ -694,6 +699,7 @@ function EditFieldMenu({
 	const fieldType = fieldTypes[id];
 	const fieldName = fieldNames[id] || fieldConfig.property.name;
 	const disabled = disabledFieldIds.has(id);
+	const settings = fieldSettings[id] || {};
 
 	const fieldConversionMessage = getFieldConversionMessage(
 		fieldType,
@@ -701,8 +707,8 @@ function EditFieldMenu({
 		fieldConfig.unsupported
 	);
 
-	const getApplicableSettings = () => {
-		return allFieldSettings.filter((setting) => {
+	const applicableSettings = useMemo(() => {
+		const filteredSettings = allFieldSettings.filter((setting) => {
 			if (setting.propertyType === propertyType) {
 				if (setting.fieldType) {
 					return setting.fieldType === fieldType;
@@ -711,28 +717,23 @@ function EditFieldMenu({
 			}
 			return false;
 		});
-	};
 
-	const [fieldSettings, setFieldSettings] = useState({});
+		const list: string[] = [];
 
-	useEffect(() => {
-		const applicableSettings = getApplicableSettings();
-		const newFieldSettings = {};
-
-		applicableSettings.forEach((setting) => {
+		filteredSettings.forEach((setting) => {
 			if (setting.multipleFields) {
-				newFieldSettings.multipleFields = true;
+				list.push("multipleFields");
 			}
 			if (setting.time) {
-				newFieldSettings.time = true;
+				list.push("time");
 			}
 			if (setting.noneOption) {
-				newFieldSettings.noneOption = "None";
+				list.push("noneOption");
 			}
 		});
 
-		setFieldSettings(newFieldSettings);
-	}, [propertyType, fieldType]);
+		return list;
+	}, [propertyType, fieldType, allFieldSettings]);
 
 	return (
 		<div className="size-full flex-col">
@@ -785,28 +786,36 @@ function EditFieldMenu({
 						{fieldConversionMessage.text}
 					</div>
 				)}
-				{fieldSettings.hasOwnProperty("noneOption") && (
+				{applicableSettings.includes("noneOption") && (
 					<PropertyControl title="None Option" disabled={disabled}>
 						<input
 							type="text"
 							className="w-full"
-							value={fieldSettings.noneOption}
+							value={settings.noneOption ?? ""}
 							placeholder="None"
-							onChange={(e) => setFieldSettings({ ...fieldSettings, noneOption: e.target.value })}
+							onChange={(e) =>
+								setFieldSettings({
+									...fieldSettings,
+									[id]: { ...settings, noneOption: e.target.value },
+								})
+							}
 						/>
 					</PropertyControl>
 				)}
-				{fieldSettings.hasOwnProperty("multipleFields") && (
+				{applicableSettings.includes("multipleFields") && (
 					<>
 						<PropertyControl title="Multiple Fields" disabled={disabled}>
 							<SegmentedControl
 								id={"multipleFields"}
 								items={[true, false]}
 								itemTitles={["Yes", "No"]}
-								currentItem={fieldSettings.multipleFields}
+								currentItem={settings.multipleFields ?? true}
 								tint
 								onChange={(value) => {
-									setFieldSettings({ ...fieldSettings, multipleFields: value });
+									setFieldSettings({
+										...fieldSettings,
+										[id]: { ...settings, multipleFields: value },
+									});
 								}}
 							/>
 						</PropertyControl>
@@ -819,9 +828,9 @@ function EditFieldMenu({
 							{
 								allFieldSettings.find(
 									(setting) => setting.propertyType === fieldConfig.property.type
-								)?.multipleFields?.[fieldSettings.multipleFields ? "true" : "false"]
+								)?.multipleFields?.[settings.multipleFields ? "true" : "false"]
 							}
-							{fieldSettings.multipleFields && (
+							{settings.multipleFields && (
 								<p>
 									<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
 									{fieldName} 2, {fieldName} 3, ...
@@ -830,17 +839,20 @@ function EditFieldMenu({
 						</div>
 					</>
 				)}
-				{fieldSettings.hasOwnProperty("time") && (
+				{applicableSettings.includes("time") && (
 					<>
 						<PropertyControl title="Include Time" disabled={disabled}>
 							<SegmentedControl
 								id={"timeOption"}
 								items={[true, false]}
 								itemTitles={["Yes", "No"]}
-								currentItem={fieldSettings.time}
+								currentItem={settings.time ?? true}
 								tint
 								onChange={(value) => {
-									setFieldSettings({ ...fieldSettings, time: value });
+									setFieldSettings({
+										...fieldSettings,
+										[id]: { ...settings, time: value },
+									});
 								}}
 							/>
 						</PropertyControl>
