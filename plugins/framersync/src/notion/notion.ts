@@ -287,7 +287,7 @@ export function getPropertyValue(
 			if (fieldSettings.multipleFields) {
 				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
 			} else {
-				return value[0]?.name ?? null;
+				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
 			}
 		case "people":
 			return value.map((person) => person.id).join(", ");

@@ -291,17 +291,17 @@ export function getPropertyValue(
 			return value.name || null;
 		case "formula":
 			const isArray = Array.isArray(value);
-
 			switch (fieldType) {
 				case "string":
 				case "link":
 				case "image":
-				case "date":
 					return isArray ? value.join(", ") : String(value);
 				case "number":
 					return isArray ? value.join(", ") : Number(value);
+				case "date":
+					return isArray ? value.join(", ") : dateValue(String(value), fieldSettings);
 				case "boolean":
-					return isArray ? value.map((a) => (a ? "Yes" : "No")).join(", ") : value ? "Yes" : "No";
+					return value;
 				default:
 					return null;
 			}
@@ -309,8 +309,13 @@ export function getPropertyValue(
 			return value.map((item) => String(item)).join(", ");
 		case "multipleCollaborators":
 		case "multipleSelects":
-			return value.map((item) => item.name).join(", ");
+			if (fieldSettings.multipleFields) {
+				return value.map((item) => (fieldType === "enum" ? item.id : item.name));
+			} else {
+				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
+			}
 		case "singleSelect":
+			return fieldType === "enum" ? value.id : value.name;
 		case "externalSyncSource":
 			return value.name;
 		case "duration":
