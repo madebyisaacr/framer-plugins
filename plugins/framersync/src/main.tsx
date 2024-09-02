@@ -215,6 +215,7 @@ async function runPlugin() {
 		lastSyncedTime,
 		slugFieldId,
 		databaseName,
+		fieldSettings,
 	] = await Promise.all([
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
@@ -223,6 +224,7 @@ async function runPlugin() {
 		collection.getPluginData(PluginDataKey.lastSyncedTime),
 		collection.getPluginData(PluginDataKey.slugFieldId),
 		collection.getPluginData(PluginDataKey.databaseName),
+		collection.getPluginData(PluginDataKey.fieldSettings),
 	]);
 
 	try {

@@ -9,6 +9,7 @@ export const PluginDataKey = createObject([
 	"lastSyncedTime",
 	"slugFieldId",
 	"databaseName",
+	"fieldSettings",
 ]);
 
 export async function updateCollection(
@@ -18,7 +19,8 @@ export async function updateCollection(
 	integrationData: object,
 	databaseName: string | null
 ) {
-	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId } = pluginContext;
+	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, fieldSettings } =
+		pluginContext;
 	const collection = await framer.getManagedCollection();
 
 	await collection.setFields(collectionFields);
@@ -38,5 +40,6 @@ export async function updateCollection(
 			PluginDataKey.databaseName,
 			databaseName || pluginContext.databaseName || null
 		),
+		collection.setPluginData(PluginDataKey.fieldSettings, JSON.stringify(fieldSettings)),
 	]);
 }

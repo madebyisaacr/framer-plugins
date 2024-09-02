@@ -26,6 +26,7 @@ export interface PluginContextUpdate {
 	slugFieldId: string | null;
 	databaseName: string;
 	authenticatedIntegrations: Integration[];
+	fieldSettings: Record<string, object>;
 }
 
 export interface PluginContextError {

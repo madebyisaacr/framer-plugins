@@ -89,7 +89,7 @@ export function MapFieldsPageTemplate({
 	const [fieldTypes, setFieldTypes] = useState(
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
-	const [fieldSettings, setFieldSettings] = useState({});
+	const [fieldSettings, setFieldSettings] = useState(pluginContext.fieldSettings || {});
 
 	const [fieldElementRefs, setFieldElementRefs] = useState<Record<string, HTMLDivElement>>({});
 
@@ -178,6 +178,7 @@ export function MapFieldsPageTemplate({
 				slugFieldId,
 				ignoredFieldIds: Array.from(disabledFieldIds),
 				databaseName,
+				fieldSettings,
 			},
 			onSubmit
 		);
@@ -748,7 +749,7 @@ function EditFieldMenu({
 				</div>
 				<PropertyControl title="Import Field">
 					<SegmentedControl
-						id={"import"}
+						id={`import-${id}`}
 						items={[true, false]}
 						itemTitles={["Yes", "No"]}
 						currentItem={!disabled}
@@ -806,7 +807,7 @@ function EditFieldMenu({
 					<>
 						<PropertyControl title="Multiple Fields" disabled={disabled}>
 							<SegmentedControl
-								id={"multipleFields"}
+								id={`multipleFields-${id}`}
 								items={[true, false]}
 								itemTitles={["Yes", "No"]}
 								currentItem={settings.multipleFields ?? true}
@@ -843,7 +844,7 @@ function EditFieldMenu({
 					<>
 						<PropertyControl title="Include Time" disabled={disabled}>
 							<SegmentedControl
-								id={"timeOption"}
+								id={`timeOption-${id}`}
 								items={[true, false]}
 								itemTitles={["Yes", "No"]}
 								currentItem={settings.time ?? true}

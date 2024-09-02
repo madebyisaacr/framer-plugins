@@ -30,10 +30,12 @@ const apiBaseUrl =
 // Storage for the notion API key.
 const notionBearerStorageKey = "notionBearerToken";
 
+const noneOptionID = "##NONE##";
+
 const propertyConversionTypes = {
 	checkbox: ["boolean"],
 	title: ["string"],
-	multi_select: ["string"],
+	multi_select: ["enum", "string"],
 	phone_number: ["string"],
 	email: ["string"],
 	created_time: ["date"],
@@ -215,16 +217,23 @@ export async function authorize() {
 export function getCollectionFieldForProperty(
 	property: NotionProperty,
 	name: string,
-	type: string
+	type: string,
+	fieldSettings: Record<string, any>
 ): CollectionField | null {
 	if (type == "enum") {
 		let cases: any[] = [];
 
-		if (property.type == "select") {
-			cases = property.select.options.map((option) => ({
-				id: option.id,
-				name: option.name,
-			}));
+		if (property.type == "select" || property.type == "multi_select") {
+			cases = [
+				{
+					id: noneOptionID,
+					name: fieldSettings.noneOption ?? "None",
+				},
+				...property[property.type].options.map((option) => ({
+					id: option.id,
+					name: option.name,
+				})),
+			];
 		} else if (property.type == "status") {
 			cases = property.status.options.map((option) => ({
 				id: option.id,
@@ -253,19 +262,21 @@ export function richTextToPlainText(richText: RichTextItemResponse[]) {
 
 export function getPropertyValue(
 	property: PageObjectResponse["properties"][string],
-	fieldType: string
+	fieldType: string,
+	fieldSettings: Record<string, any>
 ): unknown | undefined {
 	const value = property[property.type];
 
 	switch (property.type) {
 		case "checkbox":
-		case "created_time":
-		case "last_edited_time":
 		case "url":
 		case "number":
 		case "phone_number":
 		case "email":
 			return value;
+		case "created_time":
+		case "last_edited_time":
+			return dateValue(value, fieldSettings);
 		case "title":
 		case "rich_text":
 			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
@@ -273,7 +284,11 @@ export function getPropertyValue(
 		case "last_edited_by":
 			return value?.id;
 		case "multi_select":
-			return value.map((option) => option.name).join(", ");
+			if (fieldSettings.multipleFields) {
+				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
+			} else {
+				return value[0]?.name ?? null;
+			}
 		case "people":
 			return value.map((person) => person.id).join(", ");
 		case "formula":
@@ -285,7 +300,7 @@ export function getPropertyValue(
 				case "number":
 					return Number(value[value.type] ?? 0);
 				case "date":
-					return value.type == "date" ? value.date : null;
+					return value.type == "date" ? dateValue(value.date, fieldSettings) : null;
 				case "boolean":
 					return value.type == "boolean" ? value.boolean : !!value;
 				default:
@@ -295,19 +310,24 @@ export function getPropertyValue(
 			switch (value.type) {
 				case "array":
 					const item = value.array[0];
-					return item ? getPropertyValue(item, fieldType) : null;
+					return item ? getPropertyValue(item, fieldType, fieldSettings) : null;
 				case "number":
 					return value.number;
 				case "date":
-					return value.date;
+					return dateValue(value.date, fieldSettings);
 				default:
 					return null;
 			}
 		case "date":
-			return value?.start;
+			return dateValue(value, fieldSettings);
 		case "files":
-			return value[0]?.[value[0].type].url ?? null;
+			if (fieldSettings.multipleFields) {
+				return value.map((file) => file[file.type].url);
+			} else {
+				return value[0] ? value[0][value[0].type].url : null;
+			}
 		case "select":
+			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;
 		case "status":
 			return fieldType == "enum" ? value?.id : value?.name;
 		case "unique_id":
@@ -362,7 +382,8 @@ async function processItem(
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
-	lastSyncedTime: string | null
+	lastSyncedTime: string | null,
+	fieldSettings: Record<string, any>
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
@@ -388,7 +409,7 @@ async function processItem(
 		assert(property);
 
 		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, "string");
+			const resolvedSlug = getPropertyValue(property, "string", {});
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
@@ -402,7 +423,7 @@ async function processItem(
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(property, field.type);
+		const fieldValue = getPropertyValue(property, field.type, fieldSettings[property.id]);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -468,7 +489,8 @@ async function processAllItems(
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
-	lastSyncedDate: string | null
+	lastSyncedDate: string | null,
+	fieldSettings: Record<string, object>
 ) {
 	const limit = pLimit(concurrencyLimit);
 	const status: SyncStatus = {
@@ -478,7 +500,15 @@ async function processAllItems(
 	};
 	const promises = data.map((item) =>
 		limit(() =>
-			processItem(item, fieldsByKey, slugFieldId, status, unsyncedItemIds, lastSyncedDate)
+			processItem(
+				item,
+				fieldsByKey,
+				slugFieldId,
+				status,
+				unsyncedItemIds,
+				lastSyncedDate,
+				fieldSettings
+			)
 		)
 	);
 	const results = await Promise.all(promises);
@@ -494,8 +524,14 @@ async function processAllItems(
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
-	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
-		pluginContext;
+	const {
+		integrationContext,
+		collectionFields,
+		ignoredFieldIds,
+		lastSyncedTime,
+		slugFieldId,
+		fieldSettings,
+	} = pluginContext;
 	const { database } = integrationContext;
 
 	assert(isFullDatabase(database));
@@ -521,7 +557,8 @@ export async function synchronizeDatabase(
 		fieldsById,
 		slugFieldId,
 		unsyncedItemIds,
-		lastSyncedTime
+		lastSyncedTime,
+		fieldSettings
 	);
 
 	console.log("Submitting database");
@@ -679,4 +716,8 @@ export function isUnchangedSinceLastSync(
 
 export function getFieldConversionTypes(property: NotionProperty) {
 	return propertyConversionTypes[property.type] || [];
+}
+
+function dateValue(value: string, fieldSettings: Record<string, any>) {
+	return !fieldSettings.time ? value?.split("T")[0] : value;
 }
