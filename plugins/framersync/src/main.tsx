@@ -19,7 +19,7 @@ import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import CanvasPage from "./general/CanvasPage";
-import { LemonSqueezyProvider } from "./general/LemonSqueezy";
+import { LemonSqueezyProvider, validateLicenseKey } from "./general/LemonSqueezy";
 
 export const integrations = {
 	notion: Notion,
@@ -48,13 +48,14 @@ let slugFieldId: string | null = null;
 let databaseName: string | null = null;
 let fieldSettings: Record<string, object> | null = null;
 
-function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
+async function shouldSyncImmediately(pluginContext: PluginContext): Promise<boolean> {
 	if (pluginContext.type !== "update") return false;
 
 	if (!pluginContext.integrationId) return false;
 	if (!pluginContext.integrationContext) return false;
 	if (!pluginContext.slugFieldId) return false;
 	if (pluginContext.hasChangedFields) return false;
+	if (!(await validateLicenseKey())) return false;
 
 	return true;
 }
@@ -243,7 +244,8 @@ async function runPlugin() {
 			};
 		}
 
-		if (framer.mode === "syncManagedCollection" && shouldSyncImmediately(pluginContext)) {
+		const syncImmediately = await shouldSyncImmediately(pluginContext);
+		if (framer.mode === "syncManagedCollection" && syncImmediately) {
 			assert(pluginContext.slugFieldId);
 
 			const result = await integration.synchronizeDatabase(pluginContext);

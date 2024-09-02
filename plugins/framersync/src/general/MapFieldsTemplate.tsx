@@ -14,6 +14,7 @@ import { useLemonSqueezy } from "./LemonSqueezy.jsx";
 import { LicenseKeyMenu } from "./LicenceKeyPage.jsx";
 import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
+import { framer } from "framer-plugin";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -69,7 +70,9 @@ export function MapFieldsPageTemplate({
 	const { integrationContext } = pluginContext;
 	const { licenseKeyValid } = useLemonSqueezy();
 
-	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(false);
+	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(
+		framer.mode === "syncManagedCollection" && !licenseKeyValid
+	);
 
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);

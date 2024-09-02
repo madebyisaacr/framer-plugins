@@ -24,39 +24,10 @@ export function LemonSqueezyProvider({ children }) {
 	}
 	// framer.setPluginData(PluginDataLicenseKey, null);
 
-	async function validateLicenseKey() {
-		const licenseKey = await framer.getPluginData(PluginDataLicenseKey);
-		const instanceId = await framer.getPluginData(PluginDataInstanceId);
-
-		if (!licenseKey || !instanceId) return false;
-
-		if (licenseKey.toLowerCase() === "a") {
-			setLicenseKeyValid(true);
-			return true;
-		}
-
-		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-			body: JSON.stringify({
-				license_key: licenseKey,
-				instance_id: instanceId,
-			}),
-		});
-
-		const data = await response.json();
-
-		if (!data.valid) {
-			await framer.setPluginData(PluginDataLicenseKey, null);
-			await framer.setPluginData(PluginDataInstanceId, null);
-		}
-
-		setLicenseKeyValid(data.valid);
-
-		return data.valid;
+	async function validateLicenseKeyFunction() {
+		const valid = await validateLicenseKey();
+		setLicenseKeyValid(valid);
+		return valid;
 	}
 
 	async function activateLicenseKey(licenseKey) {
@@ -92,7 +63,7 @@ export function LemonSqueezyProvider({ children }) {
 	}
 
 	useEffect(() => {
-		validateLicenseKey().then((valid) => {
+		validateLicenseKeyFunction().then((valid) => {
 			setLicenseKeyValid(valid);
 			setIsLoading(false);
 		});
@@ -102,7 +73,7 @@ export function LemonSqueezyProvider({ children }) {
 		<LemonSqueezyContext.Provider
 			value={{
 				openCheckout,
-				validateLicenseKey,
+				validateLicenseKey: validateLicenseKeyFunction,
 				activateLicenseKey,
 				licenseKeyValid,
 				setLicenseKeyValid,
@@ -112,4 +83,37 @@ export function LemonSqueezyProvider({ children }) {
 			{children}
 		</LemonSqueezyContext.Provider>
 	);
+}
+
+export async function validateLicenseKey() {
+	const licenseKey = await framer.getPluginData(PluginDataLicenseKey);
+	const instanceId = await framer.getPluginData(PluginDataInstanceId);
+
+	if (!licenseKey || !instanceId) return false;
+
+	if (licenseKey.toLowerCase() === "a") {
+		return true;
+	}
+
+	const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+		body: JSON.stringify({
+			license_key: licenseKey,
+			instance_id: instanceId,
+		}),
+	});
+
+	const data = await response.json();
+
+	if (data.valid) {
+		return true;
+	} else {
+		await framer.setPluginData(PluginDataLicenseKey, null);
+		await framer.setPluginData(PluginDataInstanceId, null);
+		return false;
+	}
 }
