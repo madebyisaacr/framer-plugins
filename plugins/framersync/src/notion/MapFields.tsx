@@ -8,6 +8,7 @@ import {
 	pageContentField,
 	richTextToPlainText,
 	getFieldConversionTypes,
+	updatePluginData,
 } from "./notion";
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
@@ -208,7 +209,6 @@ export function MapFieldsPage({
 	error: Error | null;
 }) {
 	const { pluginContext } = usePluginContext();
-
 	const { database } = pluginContext.integrationContext;
 
 	assert(isFullDatabase(database));
@@ -221,6 +221,7 @@ export function MapFieldsPage({
 			onSubmit={onSubmit}
 			isLoading={isLoading}
 			error={error}
+			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}

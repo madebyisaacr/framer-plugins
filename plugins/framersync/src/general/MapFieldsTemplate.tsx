@@ -1,5 +1,5 @@
 import { assert } from "../utils.js";
-import { Fragment, useMemo, useState, useEffect, forwardRef } from "react";
+import { Fragment, useMemo, useState, useEffect, forwardRef, useRef } from "react";
 import classNames from "classnames";
 import { IconChevron } from "../components/Icons.js";
 import Button from "@shared/Button";
@@ -45,6 +45,7 @@ export function MapFieldsPageTemplate({
 	onSubmit,
 	isLoading,
 	error,
+	updatePluginData,
 	getPossibleSlugFields,
 	getInitialSlugFieldId,
 	createFieldConfig,
@@ -91,7 +92,7 @@ export function MapFieldsPageTemplate({
 	);
 	const [fieldSettings, setFieldSettings] = useState(pluginContext.fieldSettings || {});
 
-	const [fieldElementRefs, setFieldElementRefs] = useState<Record<string, HTMLDivElement>>({});
+	const fieldElementRefs = useRef({});
 
 	const fieldConfigById = useMemo(() => {
 		const result = {};
@@ -144,11 +145,6 @@ export function MapFieldsPageTemplate({
 	const onImportClick = () => {
 		if (isLoading) return;
 
-		if (!licenseKeyValid) {
-			setShowLicenseKeyMenu(true);
-			return;
-		}
-
 		const fields: any[] = [];
 
 		for (const fieldConfig of fieldConfigList) {
@@ -171,8 +167,6 @@ export function MapFieldsPageTemplate({
 			);
 		}
 
-		assert(slugFieldId);
-
 		updatePluginContext(
 			{
 				collectionFields: fields,
@@ -181,8 +175,12 @@ export function MapFieldsPageTemplate({
 				databaseName,
 				fieldSettings,
 			},
-			onSubmit
+			licenseKeyValid ? onSubmit : updatePluginData
 		);
+
+		if (!licenseKeyValid) {
+			setShowLicenseKeyMenu(true);
+		}
 	};
 
 	const selectField = (id: string) => {
@@ -295,7 +293,7 @@ export function MapFieldsPageTemplate({
 									<div
 										className="absolute inset-x-0 w-full h-6 pointer-events-none"
 										style={{
-											top: fieldElementRefs[
+											top: fieldElementRefs.current[
 												editMenuFieldConfig == "slug" ? "slug" : editMenuFieldConfig.property.id
 											]?.offsetTop,
 										}}
@@ -329,7 +327,7 @@ export function MapFieldsPageTemplate({
 									</span>
 									<div />
 									<div
-										ref={(el) => (fieldElementRefs["slug"] = el)}
+										ref={(el) => (fieldElementRefs.current["slug"] = el)}
 										onClick={() => toggleEditMenuFieldConfig("slug")}
 										className="w-full relative pl-6 pr-2 rounded bg-secondary h-6 flex-row items-center cursor-pointer hover:bg-tertiary transition-colors"
 									>
@@ -929,7 +927,7 @@ function FieldConfigRow({
 	return (
 		<Fragment key={fieldConfig.originalFieldName}>
 			<StaticInput
-				ref={(el) => (fieldElementRefs[id] = el)}
+				ref={(el) => (fieldElementRefs.current[id] = el)}
 				disabled={isDisabled}
 				leftText={getPropertyTypeName(property.type)}
 				className={classNames("pl-6", property && !unsupported && "cursor-pointer")}

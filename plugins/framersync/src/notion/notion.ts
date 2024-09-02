@@ -18,7 +18,7 @@ import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 import { PluginContext } from "../general/PluginContext";
-import { updateCollection } from "../general/updateCollection";
+import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 
 export type FieldId = string;
 
@@ -571,7 +571,7 @@ export async function synchronizeDatabase(
 			pluginContext,
 			collectionItems,
 			itemsToDelete,
-			{ databaseId: database.id },
+			getIntegrationData(pluginContext),
 			databaseName
 		);
 
@@ -610,6 +610,12 @@ export function useSynchronizeDatabaseMutation(
 			return synchronizeDatabase(pluginContext);
 		},
 	});
+}
+
+export async function updatePluginData(pluginContext: PluginContext) {
+	const { databaseName } = pluginContext;
+	const integrationData = getIntegrationData(pluginContext);
+	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 }
 
 export function useDatabasesQuery() {
@@ -720,4 +726,11 @@ export function getFieldConversionTypes(property: NotionProperty) {
 
 function dateValue(value: string, fieldSettings: Record<string, any>) {
 	return !fieldSettings.time ? value?.split("T")[0] : value;
+}
+
+function getIntegrationData(pluginContext: PluginContext) {
+	const { integrationContext } = pluginContext;
+	const { database } = integrationContext;
+
+	return { databaseId: database.id };
 }

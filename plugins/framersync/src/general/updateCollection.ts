@@ -19,16 +19,26 @@ export async function updateCollection(
 	integrationData: object,
 	databaseName: string | null
 ) {
-	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, fieldSettings } =
-		pluginContext;
 	const collection = await framer.getManagedCollection();
 
-	await collection.setFields(collectionFields);
+	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 
 	await collection.addItems(collectionItems);
 	if (itemsToDelete.length > 0) {
 		await collection.removeItems(itemsToDelete);
 	}
+}
+
+export async function updateCollectionPluginData(
+	pluginContext: PluginContext,
+	integrationData: object,
+	databaseName: string | null
+) {
+	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, fieldSettings } =
+		pluginContext;
+
+	const collection = await framer.getManagedCollection();
+	await collection.setFields(collectionFields);
 
 	await Promise.all([
 		collection.setPluginData(PluginDataKey.integrationId, integrationId),
@@ -40,6 +50,9 @@ export async function updateCollection(
 			PluginDataKey.databaseName,
 			databaseName || pluginContext.databaseName || null
 		),
-		collection.setPluginData(PluginDataKey.fieldSettings, JSON.stringify(fieldSettings)),
+		collection.setPluginData(
+			PluginDataKey.fieldSettings,
+			fieldSettings ? JSON.stringify(fieldSettings) : null
+		),
 	]);
 }
