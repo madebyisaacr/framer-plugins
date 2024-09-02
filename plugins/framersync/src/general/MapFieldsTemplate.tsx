@@ -226,7 +226,7 @@ export function MapFieldsPageTemplate({
 		console.log("onLicenseKeyActivated 2");
 		setShowLicenseKeyMenu(false);
 		onImportClick(true);
-	}
+	};
 
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
@@ -460,7 +460,11 @@ export function MapFieldsPageTemplate({
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-							<Button primary onClick={() => onImportClick(licenseKeyValid)} disabled={!slugFieldId}>
+							<Button
+								primary
+								onClick={() => onImportClick(licenseKeyValid)}
+								disabled={!slugFieldId}
+							>
 								{pluginContext.type === "update" ? "Save & Import Collection" : "Import Collection"}
 							</Button>
 						</div>
@@ -746,7 +750,7 @@ function EditFieldMenu({
 		<div className="size-full flex-col">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
-				<p className="mb-1">{getPropertyTypeName(fieldConfig.property.type)}</p>
+				<p className="mb-1 text-tertiary">{getPropertyTypeName(fieldConfig.property.type)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
 			<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
@@ -765,118 +769,122 @@ function EditFieldMenu({
 						}}
 					/>
 				</PropertyControl>
-				<PropertyControl title="Name" disabled={disabled}>
-					<input
-						type="text"
-						className="w-full"
-						value={fieldNames[id] || ""}
-						placeholder={fieldConfig.property.name}
-						onChange={(e) => handleFieldNameChange(id, e.target.value)}
-					/>
-				</PropertyControl>
-				<PropertyControl title="Field Type" disabled={disabled}>
-					<FieldTypeSelector
-						fieldType={fieldTypes[id]}
-						availableFieldTypes={fieldConfig.conversionTypes}
-						onChange={(value) => handleFieldTypeChange(id, value)}
-						segmentedControl
-					/>
-				</PropertyControl>
-				{fieldConversionMessage && (
-					<div
-						className={classNames(
-							"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
-							disabled && "opacity-50"
-						)}
-					>
-						<p className="text-primary font-semibold">{fieldConversionMessage.title}</p>
-						{fieldConversionMessage.text}
-					</div>
-				)}
-				{applicableSettings.includes("noneOption") && (
-					<PropertyControl title="None Option" disabled={disabled}>
+				<div
+					className={classNames(
+						"flex-col gap-2 w-full transition-opacity",
+						disabled && "opacity-50 pointer-events-none"
+					)}
+				>
+					<PropertyControl title="Name">
 						<input
 							type="text"
 							className="w-full"
-							value={settings?.noneOption ?? "None"}
-							placeholder="None"
-							onChange={(e) =>
-								setFieldSettings({
-									...fieldSettings,
-									[id]: { ...settings, noneOption: e.target.value },
-								})
-							}
+							value={fieldNames[id] || ""}
+							placeholder={fieldConfig.property.name}
+							onChange={(e) => handleFieldNameChange(id, e.target.value)}
 						/>
 					</PropertyControl>
-				)}
-				{applicableSettings.includes("multipleFields") && (
-					<>
-						<PropertyControl title="Multiple Fields" disabled={disabled}>
-							<SegmentedControl
-								id={`multipleFields-${id}`}
-								items={[true, false]}
-								itemTitles={["Yes", "No"]}
-								currentItem={settings.multipleFields ?? true}
-								tint
-								onChange={(value) => {
-									setFieldSettings({
-										...fieldSettings,
-										[id]: { ...settings, multipleFields: value },
-									});
-								}}
-							/>
-						</PropertyControl>
+					<PropertyControl title="Field Type">
+						<FieldTypeSelector
+							fieldType={fieldTypes[id]}
+							availableFieldTypes={fieldConfig.conversionTypes}
+							onChange={(value) => handleFieldTypeChange(id, value)}
+							segmentedControl
+						/>
+					</PropertyControl>
+					{fieldConversionMessage && (
 						<div
 							className={classNames(
 								"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
 								disabled && "opacity-50"
 							)}
 						>
-							{
-								allFieldSettings.find(
-									(setting) => setting.propertyType === fieldConfig.property.type
-								)?.multipleFields?.[settings.multipleFields ? "true" : "false"]
-							}
-							{settings.multipleFields && (
-								<p>
-									<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
-									{fieldName} 2, {fieldName} 3, ...
-								</p>
-							)}
+							<p className="text-primary font-semibold">{fieldConversionMessage.title}</p>
+							{fieldConversionMessage.text}
 						</div>
-					</>
-				)}
-				{applicableSettings.includes("time") && (
-					<>
-						<PropertyControl title="Include Time" disabled={disabled}>
-							<SegmentedControl
-								id={`timeOption-${id}`}
-								items={[true, false]}
-								itemTitles={["Yes", "No"]}
-								currentItem={settings.time ?? true}
-								tint
-								onChange={(value) => {
+					)}
+					{applicableSettings.includes("noneOption") && (
+						<PropertyControl title="None Option">
+							<input
+								type="text"
+								className="w-full"
+								value={settings?.noneOption ?? "None"}
+								placeholder="None"
+								onChange={(e) =>
 									setFieldSettings({
 										...fieldSettings,
-										[id]: { ...settings, time: value },
-									});
-								}}
+										[id]: { ...settings, noneOption: e.target.value },
+									})
+								}
 							/>
 						</PropertyControl>
-					</>
-				)}
+					)}
+					{applicableSettings.includes("multipleFields") && (
+						<>
+							<PropertyControl title="Multiple Fields">
+								<SegmentedControl
+									id={`multipleFields-${id}`}
+									items={[true, false]}
+									itemTitles={["Yes", "No"]}
+									currentItem={settings.multipleFields ?? true}
+									tint
+									onChange={(value) => {
+										setFieldSettings({
+											...fieldSettings,
+											[id]: { ...settings, multipleFields: value },
+										});
+									}}
+								/>
+							</PropertyControl>
+							<div
+								className={classNames(
+									"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
+									disabled && "opacity-50"
+								)}
+							>
+								{
+									allFieldSettings.find(
+										(setting) => setting.propertyType === fieldConfig.property.type
+									)?.multipleFields?.[settings.multipleFields ? "true" : "false"]
+								}
+								{settings.multipleFields && (
+									<p>
+										<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
+										{fieldName} 2, {fieldName} 3, ...
+									</p>
+								)}
+							</div>
+						</>
+					)}
+					{applicableSettings.includes("time") && (
+						<>
+							<PropertyControl title="Include Time">
+								<SegmentedControl
+									id={`timeOption-${id}`}
+									items={[true, false]}
+									itemTitles={["Yes", "No"]}
+									currentItem={settings.time ?? true}
+									tint
+									onChange={(value) => {
+										setFieldSettings({
+											...fieldSettings,
+											[id]: { ...settings, time: value },
+										});
+									}}
+								/>
+							</PropertyControl>
+						</>
+					)}
+				</div>
 			</div>
 		</div>
 	);
 }
 
-function PropertyControl({ title, children, disabled = false }) {
+function PropertyControl({ title, children }) {
 	return (
 		<div
-			className={classNames(
-				"grid gap-2 w-full transition-opacity",
-				disabled && "opacity-50 pointer-events-none"
-			)}
+			className="grid gap-2 w-full"
 			style={{
 				gridTemplateColumns: "minmax(0,1.5fr) repeat(2,minmax(62px,1fr))",
 			}}
