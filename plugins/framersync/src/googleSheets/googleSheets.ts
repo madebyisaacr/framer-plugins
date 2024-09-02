@@ -4,6 +4,8 @@ import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
+import { FieldSettings } from "../general/FieldSettings";
+import { markdownToHTML } from "./markdownToHTML";
 
 export type FieldId = string;
 
@@ -155,7 +157,7 @@ const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
  * a slug. And a suggested field id to use as a slug.
  */
 export function getPossibleSlugFields(fieldConfigList: object[]) {
-	const options: object[] = fieldConfigList.filter(fieldConfig => 
+	const options: object[] = fieldConfigList.filter((fieldConfig) =>
 		slugFieldTypes.includes(fieldConfig.property.type)
 	);
 
@@ -222,17 +224,59 @@ export function getCollectionFieldForProperty(
 	};
 }
 
-export function getCellValue(cell: GoogleSheetsColumn): unknown {
-	if (cell.effectiveValue?.boolValue !== undefined) {
-		return cell.effectiveValue.boolValue;
-	} else if (cell.effectiveValue?.numberValue !== undefined) {
-		return cell.effectiveValue.numberValue;
-	} else if (cell.effectiveValue?.stringValue !== undefined) {
-		return cell.effectiveValue.stringValue;
-	} else if (cell.formattedValue) {
-		return cell.formattedValue;
+export function getCellValue(
+	cell: GoogleSheetsColumn,
+	fieldType: string,
+	fieldSettings: Record<string, any>
+): unknown {
+	const cellValue = cell.effectiveValue
+	const formattedValue = cell.formattedValue
+
+	let value: any = null;
+
+	if (cellValue?.boolValue !== undefined) {
+		value = fieldType === "boolean" ? cellValue.boolValue : String(cellValue.boolValue);
+	} else if (cellValue?.numberValue !== undefined) {
+		value = fieldType === "number" ? cellValue.numberValue : String(cellValue.numberValue);
+	} else if (cellValue?.stringValue !== undefined) {
+		if (fieldType === "date") {
+			value = new Date(cellValue.stringValue);
+		} else {
+			value = cellValue.stringValue;
+		}
+	} else if (formattedValue) {
+		if (fieldType === "number") {
+			const parsed = parseFloat(formattedValue);
+			value = isNaN(parsed) ? 0 : parsed;
+		} else if (fieldType === "boolean") {
+			value = formattedValue.toLowerCase() === "true" || formattedValue.toLowerCase() === "yes";
+		} else if (fieldType === "date") {
+			value = new Date(formattedValue);
+		} else {
+			value = formattedValue;
+		}
 	}
-	return null;
+
+	if (value !== null && value !== undefined) {
+		if (fieldType === "formattedText") {
+			const format = fieldSettings[FieldSettings.ImportMarkdownOrHTML] || "none";
+			return format === "markdown" ? markdownToHTML(value) : value;
+		}
+
+		return value;
+	}
+
+	// Default values based on field type
+	switch (fieldType) {
+		case "number":
+			return 0;
+		case "boolean":
+			return false;
+		case "date":
+			return null;
+		default:
+			return "";
+	}
 }
 
 export interface SynchronizeMutationOptions {
