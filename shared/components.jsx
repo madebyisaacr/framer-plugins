@@ -57,42 +57,53 @@ export function SegmentedControl({
 	onChange,
 	className = "",
 	tint = false,
+	vertical = false,
 }) {
 	const transition = { type: "spring", stiffness: "900", damping: "60" };
 
 	const currentItemIndex = items?.indexOf(currentItem) ?? 0;
 
 	const dividers = [];
-	for (let i = 0; i < items?.length - 1; i++) {
-		dividers.push(
-			<motion.div
-				key={`${id}-divider-${i}`}
-				animate={{
-					opacity: i === currentItemIndex || i + 1 === currentItemIndex ? 0 : 1,
-				}}
-				className="absolute w-px h-[16px] top-[7px] bg-divider-secondary"
-				style={{
-					left: `${(i + 1) * (100 / items?.length)}%`,
-				}}
-				initial={false}
-				transition={transition}
-			/>
-		);
+	if (!vertical) {
+		for (let i = 0; i < items?.length - 1; i++) {
+			dividers.push(
+				<motion.div
+					key={`${id}-divider-${i}`}
+					animate={{
+						opacity: i === currentItemIndex || i + 1 === currentItemIndex ? 0 : 1,
+					}}
+					className="absolute w-px h-[16px] top-[7px] bg-divider-secondary"
+					style={{
+						left: `${(i + 1) * (100 / items?.length)}%`,
+					}}
+					initial={false}
+					transition={transition}
+				/>
+			);
+		}
 	}
 
 	return (
 		<div
-			className={`relative flex flex-row items-stretch bg-secondary p-0.5 rounded min-h-6 ${className}`}
+			className={classNames(
+				"relative flex bg-secondary p-0.5 rounded",
+				className,
+				vertical ? "flex-col" : "flex-row h-6 min-h-6"
+			)}
 		>
 			{currentItemIndex >= 0 && (
 				<div className="absolute inset-0.5">
 					<motion.div
 						animate={{
-							left: `${(100 / items?.length) * currentItemIndex}%`,
+							left: vertical ? 0 : `${(100 / items?.length) * currentItemIndex}%`,
+							top: vertical ? `${currentItemIndex * 30}px` : 0,
 						}}
-						className="absolute rounded-[6px] h-full bg-segmented-control"
+						className={classNames(
+							"absolute rounded-[6px] bg-segmented-control",
+							vertical ? "h-6" : "h-full"
+						)}
 						style={{
-							width: `${100 / items?.length}%`,
+							width: vertical ? "100%" : `${100 / items?.length}%`,
 							boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
 						}}
 						initial={false}
@@ -106,9 +117,14 @@ export function SegmentedControl({
 					key={`${id}-${item}`}
 					onClick={() => onChange(item)}
 					className={classNames(
-						"relative flex flex-1 items-center justify-center cursor-pointer transition-colors",
+						"relative flex flex-row flex-1 items-center cursor-pointer transition-colors",
 						index === currentItemIndex ? "font-semibold" : "",
-						index === currentItemIndex ? (tint ? "text-tint dark:text-primary" : "text-primary") : "text-tertiary"
+						index === currentItemIndex
+							? tint
+								? "text-tint dark:text-primary"
+								: "text-primary"
+							: "text-tertiary",
+						vertical ? "min-h-6 pl-2" : "h-full justify-center"
 					)}
 				>
 					<span className="z-[1]">{itemTitles ? itemTitles[index] : item}</span>

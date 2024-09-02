@@ -19,6 +19,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
+import { FieldSettings } from "../general/FieldSettings";
 
 export type FieldId = string;
 
@@ -277,7 +278,7 @@ export function getPropertyValue(
 		case "last_edited_by":
 			return value?.id;
 		case "multi_select":
-			if (fieldSettings.multipleFields) {
+			if (fieldSettings[FieldSettings.MultipleFields]) {
 				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
 			} else {
 				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
@@ -314,7 +315,7 @@ export function getPropertyValue(
 		case "date":
 			return dateValue(value.start, fieldSettings);
 		case "files":
-			if (fieldSettings.multipleFields) {
+			if (fieldSettings[FieldSettings.MultipleFields]) {
 				return value.map((file) => file[file.type].url);
 			} else {
 				return value[0] ? value[0][value[0].type].url : null;

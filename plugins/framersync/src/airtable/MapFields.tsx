@@ -10,6 +10,7 @@ import {
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate.js";
+import { FieldSettings } from "../general/FieldSettings.js";
 
 const propertyTypeNames = {
 	aiText: "AI Text",
@@ -48,34 +49,34 @@ const propertyTypeNames = {
 };
 const fieldConversionMessages = {};
 const allFieldSettings = [
-	{ propertyType: "createdTime", time: true },
-	{ propertyType: "dateTime", time: true },
-	{ propertyType: "lastModifiedTime", time: true },
-	{ propertyType: "formula", fieldType: "date", time: true },
+	{ propertyType: "createdTime", [FieldSettings.Time]: true },
+	{ propertyType: "dateTime", [FieldSettings.Time]: true },
+	{ propertyType: "lastModifiedTime", [FieldSettings.Time]: true },
+	{ propertyType: "formula", fieldType: "date", [FieldSettings.Time]: true },
 	{
 		propertyType: "multipleAttachments",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "The attachments options will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first attachment will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "multipleLookupValues",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "The lookup values will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first lookup value will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "multipleCollaborators",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "The collaborators' names will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first collaborator's name will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "multipleSelects",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "The multi-select options will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first option will be imported as a CMS field, and the rest will be ignored.",
 		},

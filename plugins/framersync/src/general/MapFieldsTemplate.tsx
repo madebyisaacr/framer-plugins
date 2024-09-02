@@ -15,6 +15,7 @@ import { LicenseKeyMenu } from "./LicenceKeyPage.jsx";
 import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
 import { framer } from "framer-plugin";
+import { FieldSettings } from "./FieldSettings.js";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -469,7 +470,7 @@ export function MapFieldsPageTemplate({
 											<div className="w-full p-3 rounded flex flex-col gap-1 relative">
 												<div className="absolute inset-0 rounded bg-error opacity-10" />
 												<div className="absolute inset-0 rounded border-2 border-error" />
-												<span className="text-primary font-semibold">No valid slug fields</span>
+												<span className="text-primary font-semibold">No available slug fields</span>
 												<span className="text-secondary">
 													None of the fields in the {databaseLabel} can be used as a slug. Add a
 													text or formula field to use as a slug to import the collection.
@@ -789,19 +790,9 @@ function EditFieldMenu({
 			return false;
 		});
 
-		const list: string[] = [];
-
-		filteredSettings.forEach((setting) => {
-			if (setting.multipleFields) {
-				list.push("multipleFields");
-			}
-			if (setting.time) {
-				list.push("time");
-			}
-			if (setting.noneOption) {
-				list.push("noneOption");
-			}
-		});
+		const list = Object.values(FieldSettings).filter(key => 
+			filteredSettings.some(setting => setting[key])
+		);
 
 		return list;
 	}, [propertyType, fieldType, allFieldSettings]);
@@ -866,35 +857,35 @@ function EditFieldMenu({
 							{fieldConversionMessage.text}
 						</div>
 					)}
-					{applicableSettings.includes("noneOption") && (
+					{applicableSettings.includes(FieldSettings.NoneOption) && (
 						<PropertyControl title="None Option">
 							<input
 								type="text"
 								className="w-full"
-								value={settings?.noneOption ?? "None"}
+								value={settings?.[FieldSettings.NoneOption] ?? "None"}
 								placeholder="None"
 								onChange={(e) =>
 									setFieldSettings({
 										...fieldSettings,
-										[id]: { ...settings, noneOption: e.target.value },
+										[id]: { ...settings, [FieldSettings.NoneOption]: e.target.value },
 									})
 								}
 							/>
 						</PropertyControl>
 					)}
-					{applicableSettings.includes("multipleFields") && (
+					{applicableSettings.includes(FieldSettings.MultipleFields) && (
 						<>
 							<PropertyControl title="Multiple Fields">
 								<SegmentedControl
 									id={`multipleFields-${id}`}
 									items={[true, false]}
 									itemTitles={["Yes", "No"]}
-									currentItem={settings.multipleFields ?? true}
+									currentItem={settings[FieldSettings.MultipleFields] ?? true}
 									tint
 									onChange={(value) => {
 										setFieldSettings({
 											...fieldSettings,
-											[id]: { ...settings, multipleFields: value },
+											[id]: { ...settings, [FieldSettings.MultipleFields]: value },
 										});
 									}}
 								/>
@@ -908,9 +899,11 @@ function EditFieldMenu({
 								{
 									allFieldSettings.find(
 										(setting) => setting.propertyType === fieldConfig.property.type
-									)?.multipleFields?.[settings.multipleFields ? "true" : "false"]
+									)?.[FieldSettings.MultipleFields]?.[
+										settings[FieldSettings.MultipleFields] ? "true" : "false"
+									]
 								}
-								{settings.multipleFields && (
+								{settings[FieldSettings.MultipleFields] && (
 									<p>
 										<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
 										{fieldName} 2, {fieldName} 3, ...
@@ -919,24 +912,40 @@ function EditFieldMenu({
 							</div>
 						</>
 					)}
-					{applicableSettings.includes("time") && (
-						<>
-							<PropertyControl title="Include Time">
-								<SegmentedControl
-									id={`timeOption-${id}`}
-									items={[true, false]}
-									itemTitles={["Yes", "No"]}
-									currentItem={settings.time ?? true}
-									tint
-									onChange={(value) => {
-										setFieldSettings({
-											...fieldSettings,
-											[id]: { ...settings, time: value },
-										});
-									}}
-								/>
-							</PropertyControl>
-						</>
+					{applicableSettings.includes(FieldSettings.Time) && (
+						<PropertyControl title="Include Time">
+							<SegmentedControl
+								id={`timeOption-${id}`}
+								items={[true, false]}
+								itemTitles={["Yes", "No"]}
+								currentItem={settings?.[FieldSettings.Time] ?? true}
+								tint
+								onChange={(value) => {
+									setFieldSettings({
+										...fieldSettings,
+										[id]: { ...settings, [FieldSettings.Time]: value },
+									});
+								}}
+							/>
+						</PropertyControl>
+					)}
+					{applicableSettings.includes(FieldSettings.ImportMarkdownOrHTML) && (
+						<PropertyControl title="Text Format">
+							<SegmentedControl
+								id={`importMarkdownOrHTML-${id}`}
+								items={["none", "markdown", "html"]}
+								itemTitles={["None", "Markdown", "HTML"]}
+								currentItem={settings?.[FieldSettings.ImportMarkdownOrHTML] ?? "none"}
+								tint
+								vertical
+								onChange={(value) => {
+									setFieldSettings({
+										...fieldSettings,
+										[id]: { ...settings, [FieldSettings.ImportMarkdownOrHTML]: value },
+									});
+								}}
+							/>
+						</PropertyControl>
 					)}
 				</div>
 			</div>

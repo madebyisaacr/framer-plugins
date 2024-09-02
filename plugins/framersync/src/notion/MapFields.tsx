@@ -15,6 +15,7 @@ import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import getDatabaseIcon from "./getDatabaseIcon";
+import { FieldSettings } from "../general/FieldSettings";
 
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
@@ -263,48 +264,48 @@ function getPropertyTypeName(propertyType: string) {
 const allFieldSettings = [
 	{
 		propertyType: "multi_select",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "The multi-select options will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first option will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "files",
-		multipleFields: {
+		[FieldSettings.MultipleFields]: {
 			true: "If any items in Notion have multiple files, they will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first file will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "created_time",
-		time: true,
+		[FieldSettings.Time]: true,
 	},
 	{
 		propertyType: "date",
-		time: true,
+		[FieldSettings.Time]: true,
 	},
 	{
 		propertyType: "last_edited_time",
-		time: true,
+		[FieldSettings.Time]: true,
 	},
 	{
 		propertyType: "formula",
 		fieldType: "date",
-		time: true,
+		[FieldSettings.Time]: true,
 	},
 	{
 		propertyType: "rollup",
 		fieldType: "date",
-		time: true,
+		[FieldSettings.Time]: true,
 	},
 	{
 		propertyType: "select",
 		fieldType: "enum",
-		noneOption: true,
+		[FieldSettings.NoneOption]: true,
 	},
 	{
 		propertyType: "multi_select",
 		fieldType: "enum",
-		noneOption: true,
+		[FieldSettings.NoneOption]: true,
 	},
 ];

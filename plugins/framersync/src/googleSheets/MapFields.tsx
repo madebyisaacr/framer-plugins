@@ -10,17 +10,18 @@ import {
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import { FieldSettings } from "../general/FieldSettings";
 
 const propertyTypeNames = {
-  BOOLEAN: "Boolean",
-  TEXT: "Text",
-  NUMBER: "Number",
-  DATE: "Date",
-  TIME: "Time",
-  DATETIME: "Date & Time",
-  FORMULA: "Formula",
-  IMAGE: "Image",
-  HYPERLINK: "Link"
+	BOOLEAN: "Boolean",
+	TEXT: "Text",
+	NUMBER: "Number",
+	DATE: "Date",
+	TIME: "Time",
+	DATETIME: "Date & Time",
+	FORMULA: "Formula",
+	IMAGE: "Image",
+	HYPERLINK: "Link",
 };
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
@@ -168,5 +169,7 @@ function getPropertyTypeName(propertyType: string) {
 	return propertyTypeNames[propertyType];
 }
 
-const allFieldSettings = [];
+const allFieldSettings = [
+	{ propertyType: "TEXT", fieldType: "formattedText", [FieldSettings.ImportMarkdownOrHTML]: true },
+];
 const fieldConversionMessages = {};
