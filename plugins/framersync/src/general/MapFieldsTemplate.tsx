@@ -793,7 +793,7 @@ function EditFieldMenu({
 						<input
 							type="text"
 							className="w-full"
-							value={settings.noneOption ?? ""}
+							value={settings?.noneOption ?? "None"}
 							placeholder="None"
 							onChange={(e) =>
 								setFieldSettings({

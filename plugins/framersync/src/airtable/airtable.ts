@@ -226,7 +226,7 @@ export function getCollectionFieldForProperty(
 			cases: [
 				{
 					id: noneOptionID,
-					name: fieldSettings.noneOption ?? "None",
+					name: fieldSettings?.noneOption ?? "None",
 				},
 				...property.options.choices.map((option) => ({
 					id: option.id,
@@ -282,9 +282,9 @@ export function getPropertyValue(
 		case "multipleRecordLinks":
 			return null;
 		case "barcode":
-			return value.text;
+			return value.text || "";
 		case "button":
-			return value.url;
+			return value.url || null;
 		case "singleCollaborator":
 		case "createdBy":
 		case "lastModifiedBy":

@@ -46,6 +46,7 @@ let ignoredFieldIdsJson: string | null = null;
 let lastSyncedTime: string | null = null;
 let slugFieldId: string | null = null;
 let databaseName: string | null = null;
+let fieldSettings: Record<string, object> | null = null;
 
 function shouldSyncImmediately(pluginContext: PluginContext): pluginContext is PluginContextUpdate {
 	if (pluginContext.type !== "update") return false;

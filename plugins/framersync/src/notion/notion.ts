@@ -227,7 +227,7 @@ export function getCollectionFieldForProperty(
 			cases = [
 				{
 					id: noneOptionID,
-					name: fieldSettings.noneOption ?? "None",
+					name: fieldSettings?.noneOption ?? "None",
 				},
 				...property[property.type].options.map((option) => ({
 					id: option.id,
