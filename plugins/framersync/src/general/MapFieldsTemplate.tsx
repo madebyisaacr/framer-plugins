@@ -472,6 +472,7 @@ export function MapFieldsPageTemplate({
 								fieldSettings={fieldSettings}
 								setFieldSettings={setFieldSettings}
 								getPropertyTypeName={getPropertyTypeName}
+								columnLetters={columnLetters}
 							/>
 						) : (
 							<div className="flex-1 flex-col items-center justify-center text-secondary gap-1">
@@ -736,6 +737,7 @@ function EditFieldMenu({
 	getFieldConversionMessage,
 	allFieldSettings,
 	getPropertyTypeName,
+	columnLetters = false,
 }) {
 	const id = fieldConfig.property.id;
 	const propertyType = fieldConfig.property.type;
@@ -782,7 +784,10 @@ function EditFieldMenu({
 		<div className="size-full flex-col">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
-				<p className="mb-1 text-tertiary">{getPropertyTypeName(fieldConfig.property.type)}</p>
+				<p className="mb-1 text-tertiary">
+					{getPropertyTypeName(fieldConfig.property.type)}
+					{columnLetters && ` • Column ${fieldConfig.property.columnLetter}`}
+				</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
 			<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
