@@ -426,9 +426,6 @@ async function processItem(
 		}
 
 		const fieldValue = getPropertyValue(property, field.type, fieldSettings[property.id]);
-		if (property.type === "last_edited_time") {
-			console.log(item.id)
-		}
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,

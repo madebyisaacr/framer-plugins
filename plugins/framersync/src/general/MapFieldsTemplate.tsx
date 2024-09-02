@@ -224,8 +224,11 @@ export function MapFieldsPageTemplate({
 
 	const onLicenseKeyActivated = () => {
 		console.log("onLicenseKeyActivated 2");
-		setShowLicenseKeyMenu(false);
-		onImportClick(true);
+
+		setTimeout(() => {
+			setShowLicenseKeyMenu(false);
+			onImportClick(true);
+		}, 600);
 	};
 
 	useEffect(() => {
