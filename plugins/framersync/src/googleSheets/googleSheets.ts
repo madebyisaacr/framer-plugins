@@ -219,7 +219,8 @@ export async function authorize() {
 export function getCollectionFieldForProperty(
 	column: GoogleSheetsColumn,
 	name: string,
-	type: string
+	type: string,
+	fieldSettings: Record<string, any>
 ): CollectionField | null {
 	return {
 		type: type,
@@ -233,8 +234,8 @@ export function getCellValue(
 	fieldType: string,
 	fieldSettings: Record<string, any>
 ): unknown {
-	const cellValue = cell.effectiveValue
-	const formattedValue = cell.formattedValue
+	const cellValue = cell.effectiveValue;
+	const formattedValue = cell.formattedValue;
 
 	let value: any = null;
 
@@ -314,7 +315,8 @@ async function processItem(
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
 	lastSyncedTime: string | null,
-	existingSlugs: Set<string>
+	existingSlugs: Set<string>,
+	fieldSettings: Record<string, any>
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
@@ -335,7 +337,7 @@ async function processItem(
 
 	row.values.forEach((cell, index) => {
 		if (index.toString() === slugFieldId) {
-			const resolvedSlug = getCellValue(cell);
+			const resolvedSlug = getCellValue(cell, "string", {});
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				return;
 			}
@@ -349,7 +351,7 @@ async function processItem(
 			return;
 		}
 
-		let fieldValue = getCellValue(cell);
+		let fieldValue = getCellValue(cell, field.type, fieldSettings[field.id]);
 		const noValue = fieldValue === null || fieldValue === undefined;
 
 		if (field.type === "string") {
@@ -395,7 +397,8 @@ async function processAllItems(
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
-	lastSyncedDate: string | null
+	lastSyncedDate: string | null,
+	fieldSettings: Record<string, any>
 ) {
 	const limit = pLimit(concurrencyLimit);
 	const status: SyncStatus = {
@@ -414,7 +417,8 @@ async function processAllItems(
 				status,
 				unsyncedItemIds,
 				lastSyncedDate,
-				existingSlugs
+				existingSlugs,
+				fieldSettings
 			)
 		)
 	);
@@ -431,8 +435,14 @@ async function processAllItems(
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
-	const { integrationContext, collectionFields, ignoredFieldIds, lastSyncedTime, slugFieldId } =
-		pluginContext;
+	const {
+		integrationContext,
+		collectionFields,
+		ignoredFieldIds,
+		lastSyncedTime,
+		slugFieldId,
+		fieldSettings,
+	} = pluginContext;
 	const { sheet, spreadsheetId, sheetId } = integrationContext;
 
 	assert(sheet && sheet.data && sheet.data[0].rowData);
@@ -460,7 +470,8 @@ export async function synchronizeDatabase(
 		fieldsById,
 		slugFieldId,
 		unsyncedItemIds,
-		lastSyncedTime
+		lastSyncedTime,
+		fieldSettings
 	);
 
 	console.log("Submitting sheet");

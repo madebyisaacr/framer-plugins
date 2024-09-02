@@ -2,6 +2,9 @@ const PrefixTags = {
 	"#": "h1",
 	"##": "h2",
 	"###": "h3",
+	"####": "h4",
+	"#####": "h5",
+	"######": "h6",
 	"[ ]": "ul",
 	"[x]": "ul",
 	"-": "ul",
@@ -9,15 +12,22 @@ const PrefixTags = {
 	">": "blockquote",
 };
 
-export function richTextToHTML(richText: string) {
+export function markdownToHTML(richText: string) {
 	let lines: string[] = [];
 	let listStack: { type: string; level: number }[] = [];
 	let currentListType: string | null = null;
 	let inCodeBlock = false;
 	let codeBlockContent: string[] = [];
+	let codeBlockLanguage: string | null = null;
 
 	for (const line of richText.split("\n")) {
-		if (line.trim() === "```") {
+		// Dividers
+		if (/^(\*{3,}|-{3,}|_{3,})\s*$/.test(line.trim())) {
+			lines.push("<hr>");
+			continue;
+		}
+
+		if (line.trim().startsWith("```")) {
 			if (inCodeBlock) {
 				const identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
 				const props = {
@@ -27,7 +37,7 @@ export function richTextToHTML(richText: string) {
 					},
 					language: {
 						type: "enum",
-						value: "JSX",
+						value: codeBlockLanguage || "JSX",
 					},
 				};
 
@@ -37,6 +47,13 @@ export function richTextToHTML(richText: string) {
 					)}'></template>`
 				);
 				codeBlockContent = [];
+				codeBlockLanguage = null;
+			} else {
+				const languageMatch = line.trim().match(/^```(\w+)/);
+				codeBlockLanguage = languageMatch ? languageMatch[1] : null;
+				if (codeBlockLanguage && !framerCodeLanguages.includes(codeBlockLanguage)) {
+					codeBlockLanguage = "JSX";
+				}
 			}
 			inCodeBlock = !inCodeBlock;
 			continue;
@@ -47,7 +64,16 @@ export function richTextToHTML(richText: string) {
 			continue;
 		}
 
-		const [tag, text, isNumbered, indentLevel] = getTextAndTag(line, false);
+		// Add support for markdown images
+		const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+		if (imageMatch) {
+			const altText = imageMatch[1];
+			const imageUrl = imageMatch[2];
+			lines.push(`<img src="${imageUrl}" alt="${altText}">`);
+			continue;
+		}
+
+		const [tag, text, isNumbered, indentLevel] = getTextAndTag(line);
 
 		// Close lists if needed
 		while (listStack.length > 0 && listStack[listStack.length - 1].level > indentLevel) {
@@ -94,28 +120,7 @@ export function richTextToHTML(richText: string) {
 	return lines.join("\n");
 }
 
-export function richTextToPlainText(richText: string) {
-	let lines: string[] = [];
-	let inCodeBlock = false;
-
-	for (const line of richText.split("\n")) {
-		if (line.trim() === "```") {
-			inCodeBlock = !inCodeBlock;
-			continue;
-		}
-
-		if (inCodeBlock) {
-			lines.push(line);
-		} else {
-			const [tag, text] = getTextAndTag(line, true);
-			lines.push(text);
-		}
-	}
-
-	return lines.join("\n");
-}
-
-function getTextAndTag(text: string, removeMarkdown: boolean) {
+function getTextAndTag(text: string) {
 	const indentMatch = text.match(/^(\s*)/);
 	const indentLevel = indentMatch ? Math.floor(indentMatch[1].length / 4) : 0;
 	text = text.trim();
@@ -123,20 +128,22 @@ function getTextAndTag(text: string, removeMarkdown: boolean) {
 	for (const prefix in PrefixTags) {
 		if (text.startsWith(prefix + " ")) {
 			const newText = text.slice(prefix.length + 1);
-			return [PrefixTags[prefix], markdownToText(newText, removeMarkdown), false, indentLevel];
+			return [PrefixTags[prefix], markdownToText(newText), false, indentLevel];
 		}
 	}
 
 	// Check for numbered list
 	const numberedListMatch = text.match(/^(\d+)\.\s(.+)/);
 	if (numberedListMatch) {
-		return [null, markdownToText(numberedListMatch[2], removeMarkdown), true, indentLevel];
+		return [null, markdownToText(numberedListMatch[2]), true, indentLevel];
 	}
 
-	return [null, markdownToText(text, removeMarkdown), false, indentLevel];
+	return [null, markdownToText(text), false, indentLevel];
 }
 
-function markdownToText(line: string, removeMarkdown: boolean) {
+function markdownToText(line: string) {
+	const removeMarkdown = false;
+
 	// Convert bold
 	line = line.replace(
 		/(\*\*|__)((?:\\[\s\S]|[^\\])+?)\1/g,
@@ -155,5 +162,48 @@ function markdownToText(line: string, removeMarkdown: boolean) {
 	// Convert inline code
 	line = line.replace(/`((?:\\[\s\S]|[^\\])+?)`/g, removeMarkdown ? "$1" : "<code>$1</code>");
 
+	// Remove image syntax from text
+	line = line.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, removeMarkdown ? "$1" : "");
+
+	// Convert URLs and email addresses in angle brackets
+	line = line.replace(/<(https?:\/\/[^\s>]+)>/g, removeMarkdown ? "$1" : '<a href="$1">$1</a>');
+	line = line.replace(/<([^\s>]+@[^\s>]+)>/g, removeMarkdown ? "$1" : '<a href="mailto:$1">$1</a>');
+
 	return line;
 }
+
+const framerCodeLanguages = [
+	"Angular",
+	"C",
+	"C#",
+	"C++",
+	"CSS",
+	"Go",
+	"Haskell",
+	"HTML",
+	"Java",
+	"JavaScript",
+	"JSX",
+	"Julia",
+	"Kotlin",
+	"Less",
+	"Lua",
+	"Markdown",
+	"MATLAB",
+	"Nginx",
+	"Objective-C",
+	"Perl",
+	"PHP",
+	"Python",
+	"Ruby",
+	"Rust",
+	"Scala",
+	"SCSS",
+	"Shell",
+	"SQL",
+	"Swift",
+	"TSX",
+	"TypeScript",
+	"Vue",
+	"YAML",
+]
