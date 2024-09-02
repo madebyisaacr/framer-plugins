@@ -5,6 +5,7 @@ import {
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	propertyConversionTypes,
+	updatePluginData,
 } from "./airtable.js";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
@@ -183,6 +184,7 @@ export function MapFieldsPage({
 			onSubmit={onSubmit}
 			isLoading={isLoading}
 			error={error}
+			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}

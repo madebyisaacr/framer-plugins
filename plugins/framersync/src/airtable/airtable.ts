@@ -4,7 +4,7 @@ import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./richText";
 import { PluginContext } from "../general/PluginContext";
-import { updateCollection } from "../general/updateCollection";
+import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 
 type FieldId = string;
 
@@ -555,7 +555,7 @@ export async function synchronizeDatabase(
 			pluginContext,
 			collectionItems,
 			itemsToDelete,
-			{ baseId: baseId, tableId: tableId },
+			getIntegrationData(pluginContext),
 			databaseName
 		);
 
@@ -594,6 +594,12 @@ export function useSynchronizeDatabaseMutation(
 			return synchronizeDatabase(pluginContext);
 		},
 	});
+}
+
+export async function updatePluginData(pluginContext: PluginContext) {
+	const { databaseName } = pluginContext;
+	const integrationData = getIntegrationData(pluginContext);
+	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 }
 
 function getIgnoredFieldIds(rawIgnoredFields: string | null) {
@@ -693,4 +699,10 @@ function objectToUrlParams(obj) {
 
 function dateValue(value: string, fieldSettings: Record<string, any>) {
 	return !fieldSettings.time ? value?.split("T")[0] : value;
+}
+
+function getIntegrationData(pluginContext: PluginContext) {
+	const { integrationContext } = pluginContext;
+	const { baseId, tableId } = integrationContext;
+	return { baseId, tableId };
 }

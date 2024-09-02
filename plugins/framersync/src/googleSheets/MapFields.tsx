@@ -5,6 +5,7 @@ import {
 	hasFieldConfigurationChanged,
 	getFieldConversionTypes,
 	getCellPropertyType,
+	updatePluginData,
 } from "./googleSheets";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
@@ -140,6 +141,7 @@ export function MapFieldsPage({
 			onSubmit={onSubmit}
 			isLoading={isLoading}
 			error={error}
+			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}

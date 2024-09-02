@@ -3,7 +3,7 @@ import { assert, formatDate, isDefined, isString, slugify } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { PluginContext } from "../general/PluginContext";
-import { updateCollection } from "../general/updateCollection";
+import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 
 export type FieldId = string;
 
@@ -441,7 +441,7 @@ export async function synchronizeDatabase(
 			pluginContext,
 			collectionItems,
 			itemsToDelete,
-			{ spreadsheetId, sheetId },
+			getIntegrationData(pluginContext),
 			sheetName
 		);
 
@@ -480,6 +480,12 @@ export function useSynchronizeDatabaseMutation(
 			return synchronizeDatabase(pluginContext);
 		},
 	});
+}
+
+export async function updatePluginData(pluginContext: PluginContext) {
+	const { databaseName } = pluginContext;
+	const integrationData = getIntegrationData(pluginContext);
+	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 }
 
 export function useSpreadsheetsQuery() {
@@ -720,4 +726,10 @@ export function getCellPropertyType(cellValue: object) {
 	}
 
 	return columnType;
+}
+
+function getIntegrationData(pluginContext: PluginContext) {
+	const { integrationContext } = pluginContext;
+	const { spreadsheetId, sheetId } = integrationContext;
+	return { spreadsheetId, sheetId };
 }
