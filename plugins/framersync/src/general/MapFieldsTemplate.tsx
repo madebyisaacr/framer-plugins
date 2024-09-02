@@ -48,7 +48,6 @@ export function MapFieldsPageTemplate({
 	error,
 	updatePluginData,
 	getPossibleSlugFields,
-	getInitialSlugFieldId,
 	createFieldConfig,
 	propertyLabelText,
 	slugFieldTitleText,
@@ -78,12 +77,12 @@ export function MapFieldsPageTemplate({
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
 
-	const slugFields = useMemo(() => getPossibleSlugFields(integrationContext), [integrationContext]);
-	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
-		getInitialSlugFieldId(pluginContext, slugFields)
-	);
 	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
 		createFieldConfig(pluginContext)
+	);
+	const slugFields = useMemo(() => getPossibleSlugFields(fieldConfigList), [fieldConfigList]);
+	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
+		getInitialSlugFieldId(pluginContext, slugFields)
 	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
 		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
@@ -354,7 +353,7 @@ export function MapFieldsPageTemplate({
 													{fieldConfigById[slugFieldId]?.property?.columnLetter}
 												</ColumnLetter>
 											)}
-											{slugFields.find((field) => field.id === slugFieldId)?.name || slugFieldId}
+											{fieldConfigById[slugFieldId]?.property?.name}
 										</div>
 									</div>
 									<div className="flex items-center justify-center">
@@ -412,17 +411,17 @@ export function MapFieldsPageTemplate({
 									<div className="flex-col gap-0.5 flex-1">
 										{slugFields.map((field) => (
 											<label
-												key={field.id}
+												key={field.property.id}
 												className={classNames(
 													"items-center flex-row gap-2 rounded px-2 h-6 cursor-pointer",
-													slugFieldId === field.id && "bg-secondary"
+													slugFieldId === field.property.id && "bg-secondary"
 												)}
 											>
 												<input
 													type="checkbox"
 													name="slugField"
-													value={field.id}
-													checked={slugFieldId === field.id}
+													value={field.property.id}
+													checked={slugFieldId === field.property.id}
 													onChange={(e) => setSlugFieldId(e.target.value)}
 													className="size-2.5"
 												/>
@@ -430,19 +429,19 @@ export function MapFieldsPageTemplate({
 													<ColumnLetter
 														className={classNames(
 															"-mr-0.5",
-															slugFieldId === field.id ? "opacity-100" : "opacity-60"
+															slugFieldId === field.property.id ? "opacity-100" : "opacity-60"
 														)}
 													>
-														{fieldConfigById[field.id]?.property?.columnLetter}
+														{field.property?.columnLetter}
 													</ColumnLetter>
 												)}
 												<span
 													className={classNames(
 														"flex-1",
-														slugFieldId === field.id ? "text-primary" : "text-secondary"
+														slugFieldId === field.property.id ? "text-primary" : "text-secondary"
 													)}
 												>
-													{field.name}
+													{field.property.name}
 												</span>
 												<span className="text-tertiary">{getPropertyTypeName(field.type)}</span>
 											</label>
@@ -602,10 +601,7 @@ function FieldTypeSelector({
 							animate={{
 								top: `${currentItemIndex * 32}px`,
 							}}
-							className="absolute inset-x-0 rounded-[6px] h-6 bg-segmented-control"
-							style={{
-								boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
-							}}
+							className="absolute inset-x-0 rounded-[6px] h-6 bg-segmented-control segmented-control-shadow"
 							initial={false}
 							transition={transition}
 						/>
@@ -1012,8 +1008,7 @@ function FieldConfigRow({
 				{fieldConfig.originalFieldName}
 				{fieldConfig.isNewField && !unsupported && (
 					<div
-						className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold"
-						style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
+						className="bg-segmented-control rounded-sm px-[6px] py-[2px] text-[10px] font-semibold segmented-control-shadow"
 					>
 						New
 					</div>
@@ -1058,12 +1053,17 @@ function ColumnLetter({ children, className = "" }) {
 	return (
 		<div
 			className={classNames(
-				"bg-segmented-control rounded-sm py-[2px] px-1 min-w-[18px] text-[10px] font-semibold text-center transition-colors",
+				"bg-segmented-control rounded-sm py-[2px] px-1 min-w-[18px] text-[10px] font-semibold text-center transition-colors segmented-control-shadow",
 				className
 			)}
-			style={{ boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)" }}
 		>
 			{children}
 		</div>
 	);
+}
+
+function getInitialSlugFieldId(pluginContext: PluginContext, fieldConfigList: object[]) {
+	if (pluginContext.type === "update" && pluginContext.slugFieldId) return pluginContext.slugFieldId;
+
+	return fieldConfigList[0]?.property?.id ?? null;
 }

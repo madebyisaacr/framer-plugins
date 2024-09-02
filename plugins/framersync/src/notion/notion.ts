@@ -149,20 +149,11 @@ const slugFieldTypes: NotionProperty["type"][] = [
  * Given a Notion Database returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
-export function getPossibleSlugFields(integrationContext: object) {
-	const { database } = integrationContext;
-	assert(isFullDatabase(database));
+export function getPossibleSlugFields(fieldConfigList: object[]) {
+	const options: object[] = fieldConfigList.filter((fieldConfig) =>
+		slugFieldTypes.includes(fieldConfig.property.type)
+	);
 
-	const options: NotionProperty[] = [];
-
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
-
-		if (slugFieldTypes.includes(property.type)) {
-			options.push(property);
-		}
-	}
 	function getOrderIndex(type: NotionProperty["type"]): number {
 		const index = slugFieldTypes.indexOf(type);
 		return index === -1 ? slugFieldTypes.length : index;

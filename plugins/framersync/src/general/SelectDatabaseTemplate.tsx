@@ -183,13 +183,9 @@ function DatabaseButton({
 								className={classNames(
 									"rounded h-6 flex-row items-center px-2",
 									selectedSubdatabase === subdatabase
-										? "bg-segmented-control text-tint dark:text-primary font-semibold"
+										? "bg-segmented-control text-tint dark:text-primary font-semibold segmented-control-shadow"
 										: "text-secondary font-medium"
 								)}
-								style={{
-									boxShadow:
-										selectedSubdatabase === subdatabase ? "0 2px 4px 0 rgba(0,0,0,0.15)" : null,
-								}}
 								onClick={() => {
 									setSelectedSubdatabase(subdatabase);
 								}}

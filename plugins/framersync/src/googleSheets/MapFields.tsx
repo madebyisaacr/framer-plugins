@@ -90,15 +90,6 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 	return fields.sort(sortField);
 }
 
-function getInitialSlugFieldId(
-	context: PluginContext,
-	fieldOptions: object[]
-): string | null {
-	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
-
-	return fieldOptions[0]?.id ?? null;
-}
-
 function getLastSyncedTime(
 	pluginContext: PluginContext,
 	database,
@@ -144,7 +135,6 @@ export function MapFieldsPage({
 			error={error}
 			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
-			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Sheet column"
 			slugFieldTitleText="Slug Field Column"

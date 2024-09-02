@@ -25,7 +25,7 @@ const propertyConversionTypes = {
 	TEXT: ["string"],
 	NUMBER: ["number"],
 	DATE: ["date"],
-	TIME: ["date"],
+	TIME: ["string"],
 	DATETIME: ["date"],
 	FORMULA: ["string", "number", "boolean", "date"],
 	IMAGE: ["image"],
@@ -153,34 +153,17 @@ const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
  * Given a Google Sheets worksheet returns a list of possible fields that can be used as
  * a slug. And a suggested field id to use as a slug.
  */
-export function getPossibleSlugFields(integrationContext: object) {
-	const { sheet } = integrationContext;
-	assert(sheet && sheet.data && sheet.data[0].rowData);
-
-	const headerRow = sheet.data[0].rowData[0].values;
-	const options: { name: string; id: string }[] = [];
-
-	headerRow.forEach((cell, index) => {
-		if (slugFieldTypes.includes(getCellPropertyType(cell)) && cell.formattedValue) {
-			options.push({
-				name: cell.formattedValue,
-				id: `column_${index}`,
-			});
-		}
-	});
+export function getPossibleSlugFields(fieldConfigList: object[]) {
+	const options: object[] = fieldConfigList.filter(fieldConfig => 
+		slugFieldTypes.includes(fieldConfig.property.type)
+	);
 
 	function getOrderIndex(type: string): number {
 		const index = slugFieldTypes.indexOf(type);
 		return index === -1 ? slugFieldTypes.length : index;
 	}
 
-	options.sort((a, b) => {
-		const aType =
-			headerRow[parseInt(a.id.split("_")[1])].effectiveFormat?.numberFormat?.type || "TEXT";
-		const bType =
-			headerRow[parseInt(b.id.split("_")[1])].effectiveFormat?.numberFormat?.type || "TEXT";
-		return getOrderIndex(aType) - getOrderIndex(bType);
-	});
+	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
 
 	return options;
 }

@@ -189,7 +189,7 @@ export function MapFieldsPage({
 			getInitialSlugFieldId={getInitialSlugFieldId}
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Airtable field"
-			slugFieldTitleText="Slug Field Column"
+			slugFieldTitleText="Slug Field"
 			databaseName={table.name}
 			databaseUrl={`https://airtable.com/${baseId}/${tableId}`}
 			getFieldConversionMessage={getFieldConversionMessage}
