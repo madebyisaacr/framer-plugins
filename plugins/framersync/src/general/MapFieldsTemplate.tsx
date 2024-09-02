@@ -165,7 +165,8 @@ export function MapFieldsPageTemplate({
 				getCollectionFieldForProperty(
 					fieldConfig.property,
 					fieldNameOverrides[fieldConfig.property.id] || fieldConfig.property.name,
-					fieldTypes[fieldConfig.property.id]
+					fieldTypes[fieldConfig.property.id],
+					fieldSettings[fieldConfig.property.id]
 				)
 			);
 		}

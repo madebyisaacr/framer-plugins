@@ -18,6 +18,8 @@ let airtableAccessToken: string | null = null;
 // Storage for the Airtable API key refresh token.
 const airtableRefreshTokenKey = "airtableRefreshToken";
 
+const noneOptionID = "##NONE##";
+
 // Maximum number of concurrent requests to Airtable API
 // This is to prevent rate limiting.
 // TODO: Is this necessary with Airtable?
@@ -46,7 +48,7 @@ export const propertyConversionTypes: Record<string, string[]> = {
 	multilineText: ["string"],
 	multipleLookupValues: [],
 	multipleCollaborators: [],
-	multipleSelects: [], // ["enum", "string"],
+	multipleSelects: ["enum", "string"],
 	number: ["number"],
 	percent: ["number"],
 	phoneNumber: ["string"],
@@ -213,17 +215,24 @@ export async function authorize() {
 export function getCollectionFieldForProperty(
 	property: object,
 	name: string,
-	type: string
+	type: string,
+	fieldSettings: Record<string, any>
 ): CollectionField | null {
 	if (type == "enum") {
 		return {
 			type,
 			id: property.id,
 			name,
-			cases: property.options.choices.map((option) => ({
-				id: option.id,
-				name: option.name,
-			})),
+			cases: [
+				{
+					id: noneOptionID,
+					name: fieldSettings.noneOption ?? "None",
+				},
+				...property.options.choices.map((option) => ({
+					id: option.id,
+					name: option.name,
+				})),
+			],
 		};
 	}
 
@@ -237,22 +246,19 @@ export function getCollectionFieldForProperty(
 export function getPropertyValue(
 	property: object,
 	value: any,
-	fieldType: string
+	fieldType: string,
+	fieldSettings: Record<string, any>
 ): unknown | undefined {
 	if (property === null || property === undefined || value === null || value === undefined) {
 		return null;
 	}
 
 	switch (property.type) {
-		case "createdTime":
 		case "currency":
-		case "date":
-		case "dateTime":
 		case "email":
 		case "autoNumber":
 		case "count":
 		case "checkbox":
-		case "lastModifiedTime":
 		case "number":
 		case "percent":
 		case "phoneNumber":
@@ -262,6 +268,11 @@ export function getPropertyValue(
 		case "multilineText":
 		case "url":
 			return value;
+		case "date":
+		case "dateTime":
+		case "createdTime":
+		case "lastModifiedTime":
+			return dateValue(value, fieldSettings);
 		case "richText":
 			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
 		case "aiText":
@@ -369,7 +380,8 @@ async function processItem(
 	slugFieldId: string,
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
-	lastSyncedTime: string | null
+	lastSyncedTime: string | null,
+	fieldSettings: Record<string, any>
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
@@ -398,7 +410,7 @@ async function processItem(
 		const property = properties[fieldId];
 
 		if (fieldId === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, value, "string");
+			const resolvedSlug = getPropertyValue(property, value, "string", {});
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				continue;
 			}
@@ -412,7 +424,7 @@ async function processItem(
 			continue;
 		}
 
-		const fieldValue = getPropertyValue(property, value, field.type);
+		const fieldValue = getPropertyValue(property, value, field.type, fieldSettings[property.id]);
 		if (!fieldValue) {
 			status.warnings.push({
 				url: item.url,
@@ -449,7 +461,8 @@ async function processAllItems(
 	fieldsById: FieldsById,
 	slugFieldId: string,
 	unsyncedItemIds: Set<FieldId>,
-	lastSyncedDate: string | null
+	lastSyncedDate: string | null,
+	fieldSettings: Record<string, any>
 ) {
 	const limit = pLimit(concurrencyLimit);
 	const status: SyncStatus = {
@@ -466,7 +479,8 @@ async function processAllItems(
 				slugFieldId,
 				status,
 				unsyncedItemIds,
-				lastSyncedDate
+				lastSyncedDate,
+				fieldSettings
 			)
 		)
 	);
@@ -490,6 +504,7 @@ export async function synchronizeDatabase(
 		lastSyncedTime,
 		slugFieldId,
 		databaseName,
+		fieldSettings,
 	} = pluginContext;
 	const { baseId, tableId, table } = integrationContext;
 
@@ -522,7 +537,8 @@ export async function synchronizeDatabase(
 		fieldsById,
 		slugFieldId,
 		unsyncedItemIds,
-		lastSyncedTime
+		lastSyncedTime,
+		fieldSettings
 	);
 
 	console.log("Submitting database");
@@ -668,4 +684,8 @@ function objectToUrlParams(obj) {
 			return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
 		})
 		.join("&")}`;
+}
+
+function dateValue(value: string, fieldSettings: Record<string, any>) {
+	return !fieldSettings.time ? value?.split("T")[0] : value;
 }
