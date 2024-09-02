@@ -3,6 +3,10 @@ import { assert } from "../utils";
 import { richTextToPlainText } from "./notion";
 
 export function richTextToHTML(texts: RichTextItemResponse[]) {
+	if (!texts.length) {
+		return null;
+	}
+
 	return texts
 		.map(({ plain_text, annotations, href }) => {
 			let html = plain_text;
@@ -49,29 +53,43 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 		assert(block);
 		const item = block[block.type];
 
+		let blockContent = "";
+
 		switch (block.type) {
 			case "paragraph":
-				htmlContent += `<p>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</p>`;
+				const paragraphContent = richTextToHTML(item.rich_text);
+				if (paragraphContent !== null) {
+					blockContent = `<p>${paragraphContent}${childrenToHtml(block)}</p>`;
+				}
 				break;
 			case "heading_1":
-				htmlContent += `<h1>${richTextToHTML(item.rich_text)}</h1>`;
+				const h1Content = richTextToHTML(item.rich_text);
+				if (h1Content !== null) {
+					blockContent = `<h1>${h1Content}</h1>`;
+				}
 				break;
 			case "heading_2":
-				htmlContent += `<h2>${richTextToHTML(item.rich_text)}</h2>`;
+				const h2Content = richTextToHTML(item.rich_text);
+				if (h2Content !== null) {
+					blockContent = `<h2>${h2Content}</h2>`;
+				}
 				break;
 			case "heading_3":
-				htmlContent += `<h3>${richTextToHTML(item.rich_text)}</h3>`;
+				const h3Content = richTextToHTML(item.rich_text);
+				if (h3Content !== null) {
+					blockContent = `<h3>${h3Content}</h3>`;
+				}
 				break;
 			case "divider":
-				htmlContent += "<hr >";
+				blockContent = "<hr >";
 				break;
 			case "image":
 				switch (item.type) {
 					case "external":
-						htmlContent += `<img src="${item.external.url}" alt="${item.caption[0]?.plain_text}" />`;
+						blockContent = `<img src="${item.external.url}" alt="${item.caption[0]?.plain_text}" />`;
 						break;
 					case "file":
-						htmlContent += `<img src="${item.file.url}" alt="${item.caption[0]?.plain_text}" />`;
+						blockContent = `<img src="${item.file.url}" alt="${item.caption[0]?.plain_text}" />`;
 						break;
 				}
 				break;
@@ -79,43 +97,64 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 			case "numbered_list_item":
 			case "to_do":
 				const tag = block.type === "numbered_list_item" ? "ol" : "ul";
+				const listItemContent = richTextToHTML(item.rich_text);
+				if (listItemContent !== null) {
+					// Start the list if it's the first item of its type or the previous item isn't a list of the same type
+					if (i === 0 || blocks[i - 1].type !== block.type) blockContent += `<${tag}>`;
 
-				// Start the list if it's the first item of its type or the previous item isn't a list of the same type
-				if (i === 0 || blocks[i - 1].type !== block.type) htmlContent += `<${tag}>`;
+					blockContent += `<li>${listItemContent}${childrenToHtml(block)}</li>`;
 
-				htmlContent += `<li>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</li>`;
-
-				// If next block is not the same type, close the list
-				if (i === blocks.length - 1 || blocks[i + 1].type !== block.type) {
-					htmlContent += `</${tag}>`;
+					// If next block is not the same type, close the list
+					if (i === blocks.length - 1 || blocks[i + 1].type !== block.type) {
+						blockContent += `</${tag}>`;
+					}
 				}
 				break;
 			case "code":
-				htmlContent += componentBlockToHtml("CodeBlock", item);
+				blockContent = componentBlockToHtml("CodeBlock", item);
 				break;
 			case "quote":
-				htmlContent += `<blockquote>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</blockquote>`;
+				const quoteContent = richTextToHTML(item.rich_text);
+				if (quoteContent !== null) {
+					blockContent = `<blockquote>${quoteContent}${childrenToHtml(block)}</blockquote>`;
+				}
 				break;
 			case "callout":
-				htmlContent += `<aside>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</aside>`;
+				const calloutContent = richTextToHTML(item.rich_text);
+				if (calloutContent !== null) {
+					blockContent = `<aside>${calloutContent}${childrenToHtml(block)}</aside>`;
+				}
 				break;
 			case "toggle":
-				htmlContent += `<p>${richTextToHTML(item.rich_text)}${childrenToHtml(block)}</p>`;
+				const toggleContent = richTextToHTML(item.rich_text);
+				if (toggleContent !== null) {
+					blockContent = `<p>${toggleContent}${childrenToHtml(block)}</p>`;
+				}
 				break;
-			case "bookmark":
-				htmlContent += `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${richTextToHTML(item.caption)}</a>`;
-				break;
+			// case "bookmark":
+			// 	const captionContent = richTextToHTML(item.caption);
+			// 	if (captionContent !== null) {
+			// 		blockContent = `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${captionContent}</a>`;
+			// 	} else {
+			// 		blockContent = `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>`;
+			// 	}
+			// 	break;
 			case "equation":
-				htmlContent += `<p>${item.expression}</p>`;
+				blockContent = `<p>${item.expression}</p>`;
 				break;
 			case "video":
-				htmlContent += componentBlockToHtml("YouTube", item);
+				blockContent = componentBlockToHtml("YouTube", item);
 				break;
 			default:
 				// TODO: More block types can be added here!
 				break;
 		}
+
+		if (blockContent) {
+			htmlContent += blockContent;
+		}
 	}
+	console.log("htmlContent", htmlContent);
 
 	return htmlContent;
 }

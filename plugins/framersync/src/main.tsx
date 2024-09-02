@@ -46,7 +46,7 @@ let ignoredFieldIdsJson: string | null = null;
 let lastSyncedTime: string | null = null;
 let slugFieldId: string | null = null;
 let databaseName: string | null = null;
-let fieldSettings: Record<string, object> | null = null;
+let fieldSettingsJson: string | null = null;
 
 async function shouldSyncImmediately(pluginContext: PluginContext): Promise<boolean> {
 	if (pluginContext.type !== "update") return false;
@@ -102,6 +102,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 	try {
 		const ignoredFieldIds = jsonStringToArray(ignoredFieldIdsJson);
 		const integrationData = JSON.parse(integrationDataJson);
+		const fieldSettings = fieldSettingsJson ? JSON.parse(fieldSettingsJson) : {};
 
 		let integrationContext: object | null = null;
 		let hasChangedFields: boolean = false;
@@ -126,6 +127,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			lastSyncedTime,
 			slugFieldId,
 			databaseName,
+			fieldSettings,
 			hasChangedFields,
 			authenticatedIntegrations,
 		};
@@ -213,7 +215,7 @@ async function runPlugin() {
 		lastSyncedTime,
 		slugFieldId,
 		databaseName,
-		fieldSettings,
+		fieldSettingsJson,
 	] = await Promise.all([
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
