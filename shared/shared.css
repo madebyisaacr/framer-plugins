@@ -4,16 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-	--color-error: #f87171;
-}
-
 [data-framer-theme="light"] {
 	--color-bg-secondary: var(--framer-color-bg-tertiary);
 	--color-bg-tertiary: var(--framer-color-bg-secondary);
 	--color-segmented-control: #fff;
 	--color-divider-secondary: #e6e6e6;
 	--color-bg-modal: #FFF;
+	--color-error: #E25;
 }
 
 [data-framer-theme="dark"] {
@@ -22,6 +19,7 @@ html {
 	--color-segmented-control: #555;
 	--color-divider-secondary: #444;
 	--color-bg-modal: #181818;
+	--color-error: #E7315E;
 }
 
 *::-webkit-scrollbar {
@@ -30,4 +28,8 @@ html {
 
 select {
 	background-color: var(--color-bg-secondary);
+}
+
+.segmented-control-shadow {
+	box-shadow: 0 2px 4px 0 rgba(0,0,0,0.15);
 }

@@ -96,6 +96,7 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 		}
 
 		const data = await response.json();
+
 		return {
 			sheet: data.sheets[0],
 			spreadsheetId,
@@ -134,10 +135,9 @@ export async function refreshGoogleSheetsToken() {
 		});
 
 		const responseJson = await response.json();
-		const { access_token, refresh_token } = responseJson;
+		const { access_token } = responseJson;
 
 		googleSheetsAccessToken = access_token;
-		localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
 		return true;
 	} catch (error) {
 		localStorage.removeItem(googleSheetsRefreshTokenKey);
@@ -285,7 +285,7 @@ async function processItem(
 	}
 
 	row.values.forEach((cell, index) => {
-		if (`column_${index.toString()}` === slugFieldId) {
+		if (index.toString() === slugFieldId) {
 			const resolvedSlug = getCellValue(cell);
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				return;
@@ -659,7 +659,6 @@ export async function getSheetsList(spreadsheetId: string) {
 		);
 
 		if (!response.ok) {
-			console.log(response);
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 

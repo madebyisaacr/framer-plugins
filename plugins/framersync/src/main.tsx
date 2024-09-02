@@ -102,16 +102,20 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 	try {
 		const ignoredFieldIds = jsonStringToArray(ignoredFieldIdsJson);
 		const integrationData = JSON.parse(integrationDataJson);
-		const integrationContext = await integration.getIntegrationContext(
-			integrationData,
-			databaseName
-		);
+
+		let integrationContext: object | null = null;
+		try {
+			integrationContext = await integration.getIntegrationContext(integrationData, databaseName);
+		} catch (error) {
+			console.error("Error getting integration context", error);
+		}
 
 		if (integrationContext instanceof Error) {
 			return {
 				type: "error",
 				message: integrationContext.message,
 				authenticatedIntegrations: [],
+				integrationId: integration ? integrationId : null,
 			};
 		}
 
@@ -139,6 +143,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			type: "error",
 			message: "Failed to get plugin context. Please try again.",
 			authenticatedIntegrations: [],
+			integrationId: integration ? integrationId : null,
 		};
 	}
 }

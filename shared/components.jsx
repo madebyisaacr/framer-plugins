@@ -99,12 +99,11 @@ export function SegmentedControl({
 							top: vertical ? `${currentItemIndex * 30}px` : 0,
 						}}
 						className={classNames(
-							"absolute rounded-[6px] bg-segmented-control",
+							"absolute rounded-[6px] bg-segmented-control segmented-control-shadow",
 							vertical ? "h-6" : "h-full"
 						)}
 						style={{
 							width: vertical ? "100%" : `${100 / items?.length}%`,
-							boxShadow: "0 2px 4px 0 rgba(0,0,0,0.15)",
 						}}
 						initial={false}
 						transition={transition}

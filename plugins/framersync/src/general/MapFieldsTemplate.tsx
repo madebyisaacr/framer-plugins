@@ -230,8 +230,6 @@ export function MapFieldsPageTemplate({
 	};
 
 	const onLicenseKeyActivated = () => {
-		console.log("onLicenseKeyActivated 2");
-
 		setTimeout(() => {
 			setShowLicenseKeyMenu(false);
 			onImportClick(true);

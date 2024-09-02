@@ -55,17 +55,17 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 			</div>
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton
-					icon={<NotionLogo size={45} />}
+					icon={<NotionLogo size={40} />}
 					title="Notion"
 					onClick={() => onIntegrationSelected("notion")}
 				/>
 				<AppButton
-					icon={<AirtableLogo size={45} />}
+					icon={<AirtableLogo size={40} />}
 					title="Airtable"
 					onClick={() => onIntegrationSelected("airtable")}
 				/>
 				<AppButton
-					icon={<GoogleSheetsLogo size={45} />}
+					icon={<GoogleSheetsLogo size={40} />}
 					title="Google Sheets"
 					onClick={() => onIntegrationSelected("google-sheets")}
 				/>

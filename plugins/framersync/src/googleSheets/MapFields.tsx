@@ -68,7 +68,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			}
 
 			const property = {
-				id: `column_${index}`,
+				id: index.toString(),
 				name: cell.formattedValue,
 				type: columnType,
 				columnIndex: index,
