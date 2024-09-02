@@ -3,6 +3,12 @@ import { framer } from "framer-plugin";
 
 const checkoutURL = "https://store.framestack.co/buy/24b67220-4e17-478b-9a4a-9cbf0e2db171";
 
+const PluginDataLicenseKey = "lemonSqueezyLicenseKey";
+const PluginDataInstanceId = "lemonSqueezyInstanceId";
+
+// framer.setPluginData(PluginDataLicenseKey, null);
+// framer.setPluginData(PluginDataInstanceId, null);
+
 export const LemonSqueezyContext = createContext();
 
 export function useLemonSqueezy() {
@@ -18,8 +24,8 @@ export function LemonSqueezyProvider({ children }) {
 	}
 
 	async function validateLicenseKey() {
-		const licenseKey = await framer.getPluginData("lemonSqueezyLicenseKey");
-		const instanceId = await framer.getPluginData("lemonSqueezyInstanceId");
+		const licenseKey = await framer.getPluginData(PluginDataLicenseKey);
+		const instanceId = await framer.getPluginData(PluginDataInstanceId);
 
 		if (!licenseKey || !instanceId) return false;
 
@@ -43,8 +49,8 @@ export function LemonSqueezyProvider({ children }) {
 		const data = await response.json();
 
 		if (!data.valid) {
-			await framer.setPluginData("lemonSqueezyLicenseKey", null);
-			await framer.setPluginData("lemonSqueezyInstanceId", null);
+			await framer.setPluginData(PluginDataLicenseKey, null);
+			await framer.setPluginData(PluginDataInstanceId, null);
 		}
 
 		setLicenseKeyValid(data.valid);
@@ -54,8 +60,8 @@ export function LemonSqueezyProvider({ children }) {
 
 	async function activateLicenseKey(licenseKey) {
 		if (licenseKey.toLowerCase() === "a") {
-			await framer.setPluginData("lemonSqueezyLicenseKey", licenseKey);
-			await framer.setPluginData("lemonSqueezyInstanceId", "a");
+			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
+			await framer.setPluginData(PluginDataInstanceId, "a");
 			setLicenseKeyValid(true);
 			return true;
 		}
@@ -75,8 +81,8 @@ export function LemonSqueezyProvider({ children }) {
 		const data = await response.json();
 
 		if (data.activated) {
-			await framer.setPluginData("lemonSqueezyLicenseKey", licenseKey);
-			await framer.setPluginData("lemonSqueezyInstanceId", data.instance.id);
+			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
+			await framer.setPluginData(PluginDataInstanceId, data.instance.id);
 		}
 
 		setLicenseKeyValid(data.activated);

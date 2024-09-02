@@ -33,7 +33,8 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 				<div
 					className={classNames(
 						"text-tertiary flex-row items-center gap-1 mt-2 transition-opacity",
-						licenseKeyValid ? "opacity-100" : "opacity-0"
+						licenseKeyValid ? "opacity-100" : "opacity-0",
+						!licenseKeyValid && !licenseKeyValidLoading && "!hidden"
 					)}
 				>
 					<svg

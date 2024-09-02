@@ -65,6 +65,8 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 		}
 	}
 
+	const activateHeadingText = isValidated ? "Activated License Key!" : "Activate License Key";
+
 	return (
 		<div className={classNames("flex-col justify-center px-3 pb-3 gap-2 w-full", className)}>
 			<div className="flex-col gap-2 flex-1 py-8 items-center justify-center w-full text-center">
@@ -84,7 +86,7 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 					</>
 				) : (
 					<>
-						<h1 className="font-bold text-base text-balance">Activated Licence Key!</h1>
+						<h1 className="font-bold text-base text-balance">{activateHeadingText}</h1>
 						<p className="px-3 text-balance mb-4">
 							If you have a FramerSync license, you can find your licence key in your order
 							confirmation email or on the{" "}
@@ -112,7 +114,7 @@ export function LicenseKeyMenu({ checkout, databaseLabel = "", paywall = false, 
 							disabled={isValidated}
 						/>
 						<Button primary onClick={onSubmitLicenseKey} className="w-full" loading={isActivating}>
-							{isValidated ? "Activated License Key!" : "Activate License Key"}
+							{activateHeadingText}
 						</Button>
 						{error && <p className="text-error text-center">{error}</p>}
 					</>
