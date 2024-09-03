@@ -27,7 +27,7 @@ export async function updateCollection(
 	// Generate dynamic fields (arrays and file types)
 	const arrayFieldIDs = new Set<string>();
 	const arrayFieldLengths = {};
-	const fileFieldExtensions = {};
+	// const fileFieldExtensions = {};
 	for (const item of collectionItems) {
 		for (const field of collectionFields) {
 			const value = item.fieldData[field.id];
@@ -43,37 +43,38 @@ export async function updateCollection(
 				}
 			}
 
-			if (field.type == "file" && (typeof value == "string" || Array.isArray(value))) {
-				const values = Array.isArray(value) ? value : [value];
+			// if (field.type == "file" && (typeof value == "string" || Array.isArray(value))) {
+			// 	const values = Array.isArray(value) ? value : [value];
 
-				for (const value of values) {
-					const extension = getFileExtensionFromURL(value);
-					if (extension) {
-						if (fileFieldExtensions[field.id]) {
-							fileFieldExtensions[field.id].add(extension);
-						} else {
-							fileFieldExtensions[field.id] = new Set([extension]);
-						}
-					}
-				}
-			}
+			// 	for (const value of values) {
+			// 		const extension = getFileExtensionFromURL(value);
+			// 		if (extension) {
+			// 			if (fileFieldExtensions[field.id]) {
+			// 				fileFieldExtensions[field.id].add(extension);
+			// 			} else {
+			// 				fileFieldExtensions[field.id] = new Set([extension]);
+			// 			}
+			// 		}
+			// 	}
+			// }
 		}
 	}
 
 	let fields = collectionFields;
 
-	if (arrayFieldIDs.size > 0 || Object.keys(fileFieldExtensions).length > 0) {
+	// if (arrayFieldIDs.size > 0 || Object.keys(fileFieldExtensions).length > 0) {
+	if (arrayFieldIDs.size > 0) {
 		fields = [];
 		for (const field of collectionFields) {
 			let fieldToAdd = field;
 
-			if (fileFieldExtensions[field.id]) {
-				console.log(fileFieldExtensions[field.id]);
-				fieldToAdd = {
-					...field,
-					allowedFileTypes: Array.from(fileFieldExtensions[field.id]),
-				};
-			}
+			// if (fileFieldExtensions[field.id]) {
+			// 	console.log(fileFieldExtensions[field.id]);
+			// 	fieldToAdd = {
+			// 		...field,
+			// 		allowedFileTypes: Array.from(fileFieldExtensions[field.id]),
+			// 	};
+			// }
 
 			if (arrayFieldIDs.has(field.id)) {
 				for (let i = 0; i < arrayFieldLengths[field.id]; i++) {
@@ -88,8 +89,6 @@ export async function updateCollection(
 			}
 		}
 	}
-
-	console.log(arrayFieldIDs, arrayFieldLengths, fields, collectionItems);
 
 	await collection.setFields(fields);
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName, false);
