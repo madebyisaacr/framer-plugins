@@ -178,7 +178,7 @@ function DatabaseButton({
 				selected && "bg-secondary"
 			)}
 		>
-			<div onClick={onClick} className="flex-row gap-2 items-center h-6 px-2">
+			<div onClick={onClick} className="flex-row gap-2 items-center h-7 px-2">
 				{icon}
 				{databaseName}
 			</div>

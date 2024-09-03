@@ -204,7 +204,6 @@ export async function authorize() {
 		}, 2500);
 	});
 
-	console.log({ promise, cancel: () => clearInterval(intervalId) });
 	return { promise, cancel: () => clearInterval(intervalId) };
 }
 
@@ -218,28 +217,28 @@ export function getCollectionFieldForProperty(
 	type: string,
 	fieldSettings: Record<string, any>
 ): CollectionField | null {
+	const fieldData = {};
+
 	if (type == "enum") {
-		return {
-			type,
-			id: property.id,
-			name,
-			cases: [
-				{
-					id: noneOptionID,
-					name: fieldSettings?.noneOption ?? "None",
-				},
-				...property.options.choices.map((option) => ({
-					id: option.id,
-					name: option.name,
-				})),
-			],
-		};
+		fieldData.cases = [
+			{
+				id: noneOptionID,
+				name: fieldSettings?.noneOption ?? "None",
+			},
+			...property.options.choices.map((option) => ({
+				id: option.id,
+				name: option.name,
+			})),
+		];
+	} else if (type === "file") {
+		fieldData.allowedFileTypes = []; // TODO: Make this automatic based on the file types in the database
 	}
 
 	return {
 		type,
 		id: property.id,
 		name,
+		...fieldData,
 	};
 }
 
@@ -323,12 +322,16 @@ export function getPropertyValue(
 		case "multipleCollaborators":
 		case "multipleSelects":
 			if (importArray) {
-				return value.map((item) => (fieldType === "enum" ? item.id : item.name));
+				return value.map((item) => getSelectOptionId(item, property));
 			} else {
-				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
+				return value?.[0]
+					? fieldType === "enum"
+						? getSelectOptionId(value[0], property)
+						: value[0]
+					: null;
 			}
 		case "singleSelect":
-			return fieldType === "enum" ? value.id : value.name;
+			return fieldType === "enum" ? getSelectOptionId(value, property) : value;
 		case "externalSyncSource":
 			return value.name;
 		case "duration":
@@ -663,4 +666,18 @@ function getIntegrationData(pluginContext: PluginContext) {
 	const { integrationContext } = pluginContext;
 	const { baseId, tableId } = integrationContext;
 	return { baseId, tableId };
+}
+
+function getSelectOptionId(name: string, property: object) {
+	if (!name) {
+		return noneOptionID;
+	}
+
+	for (const option of property.options.choices) {
+		if (option.name === name) {
+			return option.id;
+		}
+	}
+
+	return noneOptionID;
 }

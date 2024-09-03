@@ -220,11 +220,11 @@ export function getCollectionFieldForProperty(
 	type: string,
 	fieldSettings: Record<string, any>
 ): CollectionField | null {
-	if (type == "enum") {
-		let cases: any[] = [];
+	const fieldData = {};
 
+	if (type == "enum") {
 		if (property.type == "select" || property.type == "multi_select") {
-			cases = [
+			fieldData.cases = [
 				{
 					id: noneOptionID,
 					name: fieldSettings?.noneOption ?? "None",
@@ -235,31 +235,20 @@ export function getCollectionFieldForProperty(
 				})),
 			];
 		} else if (property.type == "status") {
-			cases = property.status.options.map((option) => ({
+			fieldData.cases = property.status.options.map((option) => ({
 				id: option.id,
 				name: option.name,
 			}));
 		}
-
-		return {
-			type: "enum",
-			id: property.id,
-			name,
-			cases,
-		};
 	} else if (type === "file") {
-		return {
-			type: "file",
-			id: property.id,
-			name,
-			allowedFileTypes: [], // TODO: Make this automatic based on the file types in the database
-		};
+		fieldData.allowedFileTypes = []; // TODO: Make this automatic based on the file types in the database
 	}
 
 	return {
 		type: type,
 		id: property.id,
 		name,
+		...fieldData,
 	};
 }
 
