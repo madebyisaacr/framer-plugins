@@ -289,10 +289,10 @@ export function getPropertyValue(
 		case "last_edited_by":
 			return value?.id;
 		case "multi_select":
-			if (fieldSettings[FieldSettings.MultipleFields]) {
-				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
-			} else {
+			if (!fieldSettings[FieldSettings.MultipleFields]) {
 				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
+			} else {
+				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
 			}
 		case "people":
 			return value.map((person) => person.id).join(", ");

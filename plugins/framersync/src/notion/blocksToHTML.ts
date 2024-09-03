@@ -154,7 +154,6 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 			htmlContent += blockContent;
 		}
 	}
-	console.log("htmlContent", htmlContent);
 
 	return htmlContent;
 }

@@ -10,4 +10,5 @@ export const cmsFieldTypeNames = {
 	enum: "Option",
 	slug: "Slug",
 	title: "Title",
+	file: "File",
 };
