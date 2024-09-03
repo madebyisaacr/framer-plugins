@@ -238,16 +238,30 @@ export function getCellValue(
 ): unknown {
 	const cellValue = cell.effectiveValue;
 	const formattedValue = cell.formattedValue;
+	const numberFormat = cell.effectiveFormat?.numberFormat?.type;
 
 	let value: any = null;
 
 	if (cellValue?.boolValue !== undefined) {
 		value = fieldType === "boolean" ? cellValue.boolValue : String(cellValue.boolValue);
 	} else if (cellValue?.numberValue !== undefined) {
-		value = fieldType === "number" ? cellValue.numberValue : String(cellValue.numberValue);
+		if (numberFormat === "DATE" || numberFormat === "DATE_TIME") {
+			// Convert Excel date serial number to JavaScript Date
+			const date = new Date((cellValue.numberValue - 25569) * 86400 * 1000);
+			value = date.toISOString();
+		} else if (numberFormat === "TIME") {
+			// Convert Excel time serial number to formatted time string
+			const totalSeconds = cellValue.numberValue * 86400;
+			const hours = Math.floor(totalSeconds / 3600);
+			const minutes = Math.floor((totalSeconds % 3600) / 60);
+			const seconds = Math.floor(totalSeconds % 60);
+			value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+		} else {
+			value = fieldType === "number" ? cellValue.numberValue : String(cellValue.numberValue);
+		}
 	} else if (cellValue?.stringValue !== undefined) {
 		if (fieldType === "date") {
-			value = new Date(cellValue.stringValue);
+			value = new Date(cellValue.stringValue).toISOString();
 		} else {
 			value = cellValue.stringValue;
 		}
@@ -258,7 +272,7 @@ export function getCellValue(
 		} else if (fieldType === "boolean") {
 			value = formattedValue.toLowerCase() === "true" || formattedValue.toLowerCase() === "yes";
 		} else if (fieldType === "date") {
-			value = new Date(formattedValue);
+			value = new Date(formattedValue).toISOString();
 		} else {
 			value = formattedValue;
 		}

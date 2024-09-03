@@ -405,6 +405,7 @@ async function processItem(
 
 	assert(isFullPage(item));
 
+	// TODO: Only skip reimporting page content, images, and files. Always reimport other fields.
 	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
 		status.info.push({
 			message: `Skipping. last updated: ${formatDate(
