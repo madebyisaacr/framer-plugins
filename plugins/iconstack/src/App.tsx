@@ -73,6 +73,8 @@ framer.showUI({
 	position: "top left",
 	width: 290,
 	height: 550,
+	resizable: "height",
+	minHeight: 400,
 });
 
 export function App() {
@@ -548,106 +550,113 @@ function CustomizationMenu() {
 	}, []);
 
 	return (
-		<div className="flex flex-col size-full px-3 pb-3 gap-2">
-			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
-				Customization
-			</div>
+		<div className="flex flex-col size-full max-h-[max(400px,80vh)] overflow-hidden">
 			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
-			<PropertyControl title="Size">
-				<div className="flex flex-row gap-2 w-full">
-					<input
-						type="number"
-						min="1"
-						max="100"
-						value={size}
-						onChange={(e) => setSize(parseInt(e.target.value))}
-						className="w-1/2"
-					/>
-					<div className="flex flex-row bg-secondary rounded h-6 w-1/2 text-tertiary items-center">
-						<div
-							onClick={() => setSize(Math.max(size - 1, 1))}
-							className="flex flex-1 justify-center items-center h-full cursor-pointer"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-								<path
-									d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
-									fill="currentColor"
-								></path>
-							</svg>
-						</div>
-						<div className="min-w-[1px] bg-divider-secondary h-3"></div>
-						<div
-							onClick={() => setSize(Math.min(size + 1, 1000))}
-							className="flex flex-1 justify-center items-center h-full cursor-pointer"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
-								<path
-									d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
-									fill="currentColor"
-								></path>
-							</svg>
+			<div className="flex flex-col gap-2 px-3 pb-3 relative">
+				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
+					Customization
+				</div>
+				<PropertyControl title="Size">
+					<div className="flex flex-row gap-2 w-full">
+						<input
+							type="number"
+							min="1"
+							max="100"
+							value={size}
+							onChange={(e) => setSize(parseInt(e.target.value))}
+							className="w-1/2"
+						/>
+						<div className="flex flex-row bg-secondary rounded h-6 w-1/2 text-tertiary items-center">
+							<div
+								onClick={() => setSize(Math.max(size - 1, 1))}
+								className="flex flex-1 justify-center items-center h-full cursor-pointer"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+									<path
+										d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
+										fill="currentColor"
+									></path>
+								</svg>
+							</div>
+							<div className="min-w-[1px] bg-divider-secondary h-3"></div>
+							<div
+								onClick={() => setSize(Math.min(size + 1, 1000))}
+								className="flex flex-1 justify-center items-center h-full cursor-pointer"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
+									<path
+										d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
+										fill="currentColor"
+									></path>
+								</svg>
+							</div>
 						</div>
 					</div>
-				</div>
-			</PropertyControl>
-			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 mt-1 border-t border-divider">
-				Color
+				</PropertyControl>
+				<div className="absolute inset-x-3 bottom-0 min-h-[1px] bg-divider" />
 			</div>
-			<div className="flex flex-col relative">
-				<div
-					className={classNames(
-						"flex flex-row gap-2.5 px-2 h-6 items-center cursor-pointer rounded relative",
-						!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
-					)}
-					onClick={() => {
-						setSelectedColorStyle(null);
-					}}
-				>
+			<div className="flex flex-col px-3 pb-3 overflow-y-auto flex-1">
+				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
+					Color Styles
+				</div>
+				<div className="flex flex-col relative">
 					<div
-						className="size-2 relative rounded-full pointer-events-none"
-						style={{
-							backgroundColor: customColor,
+						className={classNames(
+							"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded relative",
+							!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
+						)}
+						onClick={() => {
+							setSelectedColorStyle(null);
 						}}
 					>
-						<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
-					</div>
-					Custom
-					<span className="flex-1 text-right text-tertiary pointer-events-none">
-						{customColor.toUpperCase()}
-					</span>
-					<input
-						type="color"
-						value={customColor}
-						onChange={(e) => setCustomColor(e.target.value)}
-						className="absolute opacity-0 inset-0 w-full cursor-pointer"
-					/>
-				</div>
-				{colorStyles.map((colorStyle) => (
-					<div
-						key={colorStyle.id}
-						className={classNames(
-							"flex flex-row gap-2.5 px-2 h-6 items-center cursor-pointer rounded",
-							selectedColorStyle == colorStyle ? "bg-secondary text-primary" : "text-secondary"
-						)}
-						onClick={() => setSelectedColorStyle(colorStyle)}
-					>
 						<div
-							className="size-2 relative rounded-full"
+							className="size-2 relative rounded-full pointer-events-none"
 							style={{
-								backgroundColor:
-									theme === "light" ? colorStyle.light : colorStyle.dark || colorStyle.light,
+								backgroundColor: customColor,
 							}}
 						>
 							<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
 						</div>
-						{colorStyle.name}
+						Custom
+						<span className="flex-1 text-right text-tertiary pointer-events-none">
+							{expandHexCode(customColor)}
+						</span>
+						<input
+							type="color"
+							value={customColor}
+							onChange={(e) => setCustomColor(e.target.value)}
+							className="absolute opacity-0 inset-0 w-full cursor-pointer"
+						/>
 					</div>
-				))}
+					{colorStyles.map((colorStyle) => (
+						<div
+							key={colorStyle.id}
+							className={classNames(
+								"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
+								selectedColorStyle == colorStyle ? "bg-secondary text-primary" : "text-secondary"
+							)}
+							onClick={() => setSelectedColorStyle(colorStyle)}
+						>
+							<div
+								className="size-2 relative rounded-full"
+								style={{
+									backgroundColor:
+										theme === "light" ? colorStyle.light : colorStyle.dark || colorStyle.light,
+								}}
+							>
+								<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+							</div>
+							{colorStyle.name}
+						</div>
+					))}
+				</div>
 			</div>
-			<div className="w-full min-h-[1px] bg-divider my-1" />
-			<Button primary onClick={closeModal}>
-				Done
-			</Button>
+			<div className="flex flex-col p-3 relative">
+				<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
+				<Button primary onClick={closeModal}>
+					Done
+				</Button>
+			</div>
 		</div>
 	);
 }
@@ -699,4 +708,28 @@ function useTheme() {
 	}, []);
 
 	return theme;
+}
+
+function expandHexCode(hex) {
+	// Remove the hash symbol if present
+	hex = hex.replace(/^#/, "").toUpperCase();
+
+	// Check if it's already a 6-character hex code
+	if (hex.length === 6) {
+		return "#" + hex;
+	}
+
+	// Check if it's a 3-character hex code
+	if (hex.length === 3) {
+		return (
+			"#" +
+			hex
+				.split("")
+				.map((char) => char + char)
+				.join("")
+		);
+	}
+
+	// If it's neither 3 nor 6 characters, return the original input
+	return "#" + hex;
 }
