@@ -665,7 +665,7 @@ export function hasFieldConfigurationChanged(
 	const fields = Object.values(currentFieldsById).filter((field) => !isPageLevelField(field.id));
 
 	const properties = Object.values(database.properties).filter(
-		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]
+		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
 	);
 
 	if (properties.length !== fields.length) {
@@ -678,13 +678,9 @@ export function hasFieldConfigurationChanged(
 
 	for (const property of includedProperties) {
 		const currentField = currentFieldsById[property.id];
-		if (!currentField) {
-			return true;
-		}
+		if (!currentField) return true;
 
-		if (!propertyConversionTypes[property.type].includes(currentField.type)) {
-			return true;
-		}
+		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
 	}
 
 	return false;

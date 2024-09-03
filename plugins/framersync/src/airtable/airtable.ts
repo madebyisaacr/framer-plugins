@@ -1,10 +1,14 @@
 import pLimit from "p-limit";
-import { assert, formatDate, isDefined, isString, slugify } from "../utils";
+import { isDefined, isString, slugify } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./richText";
 import { PluginContext } from "../general/PluginContext";
-import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
+import {
+	updateCollection,
+	updateCollectionPluginData,
+	getFieldsById,
+} from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
 
 type FieldId = string;
@@ -620,24 +624,24 @@ export function hasFieldConfigurationChanged(
 ): boolean {
 	const { table } = integrationContext;
 
-	const fields = currentConfig;
-
-	const currentFieldsById = new Map<string, CollectionField>();
-	for (const field of fields) {
-		currentFieldsById.set(field.id, field);
-	}
+	const currentFieldsById = getFieldsById(currentConfig);
+	const fields = Object.values(currentFieldsById);
 
 	const properties = Object.values(table.fields).filter(
 		(property) =>
-			!ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type].length > 0
+			!ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
 	);
 
-	if (properties.length !== fields.length) return true;
+	if (properties.length !== fields.length) {
+		return true;
+	}
 
-	const includedProperties = properties.filter((property) => currentFieldsById.has(property.id));
+	const includedProperties = properties.filter((property) =>
+		currentFieldsById.hasOwnProperty(property.id)
+	);
 
 	for (const property of includedProperties) {
-		const currentField = currentFieldsById.get(property.id);
+		const currentField = currentFieldsById[property.id];
 		if (!currentField) return true;
 
 		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
