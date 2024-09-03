@@ -114,7 +114,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 				ignoredFieldIds
 			);
 		} catch (error) {
-			console.error("Error getting integration context", error);
+			console.error("Error getting integration context:", error);
 		}
 
 		return {

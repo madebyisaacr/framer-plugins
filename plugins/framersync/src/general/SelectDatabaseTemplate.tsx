@@ -59,15 +59,15 @@ export default function SelectDatabasePageTemplate({
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Enter' && !nextButtonDisabled) {
+			if (event.key === "Enter" && !nextButtonDisabled) {
 				handleSubmit();
 			}
 		};
 
-		document.addEventListener('keydown', handleKeyDown);
+		document.addEventListener("keydown", handleKeyDown);
 
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown);
+			document.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [nextButtonDisabled, handleSubmit]);
 
@@ -103,7 +103,7 @@ export default function SelectDatabasePageTemplate({
 							Loading {databasesLabel}...
 						</div>
 					) : (
-						<div className="flex-1 flex-col">
+						<div className="flex-1 flex-col gap-1">
 							{databases?.map((database) => (
 								<DatabaseButton
 									key={database.id}
@@ -174,11 +174,11 @@ function DatabaseButton({
 	return (
 		<div
 			className={classNames(
-				"relative cursor-pointer flex-col font-semibold",
-				selected && "bg-secondary rounded"
+				"relative cursor-pointer flex-col font-semibold hover:bg-secondary transition-colors rounded",
+				selected && "bg-secondary"
 			)}
 		>
-			<div onClick={onClick} className="flex-row gap-2 items-center h-7 px-2">
+			<div onClick={onClick} className="flex-row gap-2 items-center h-6 px-2">
 				{icon}
 				{databaseName}
 			</div>

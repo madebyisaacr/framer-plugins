@@ -126,8 +126,7 @@ export function MapFieldsPage({
 	error: Error | null;
 }) {
 	const { pluginContext } = usePluginContext();
-
-	const { spreadsheet } = pluginContext.integrationContext;
+	const { spreadsheet, sheet } = pluginContext.integrationContext;
 
 	return (
 		<MapFieldsPageTemplate
@@ -139,8 +138,8 @@ export function MapFieldsPage({
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Sheet column"
 			slugFieldTitleText="Slug Field Column"
-			databaseName={spreadsheet.name}
-			databaseUrl={`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit`}
+			databaseName={`${spreadsheet.name} → ${sheet.properties.title}`}
+			databaseUrl={`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit?gid=${sheet.id}`}
 			databaseLabel="Google Sheet"
 			getFieldConversionMessage={getFieldConversionMessage}
 			getPropertyTypeName={getPropertyTypeName}

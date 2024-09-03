@@ -77,18 +77,45 @@ export async function googleAPIFetch(url: string, method: string, route: string,
 	return response;
 }
 
-export async function getIntegrationContext(integrationData: object, sheetName: string) {
+export async function getIntegrationContext(integrationData: object, databaseName: string) {
 	const { spreadsheetId, sheetId } = integrationData;
 
-	if (!spreadsheetId || !sheetId) {
+	if (!spreadsheetId || sheetId == null || sheetId == undefined) {
 		return null;
 	}
 
 	try {
 		if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
+		// First, fetch the sheet's name using its ID
+		const sheetMetadataResponse = await googleAPIFetch(
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title,sheets.properties`,
+			"GET",
+			PROXY
+		);
+
+		if (!sheetMetadataResponse.ok) {
+			throw new Error(`HTTP error! status: ${sheetMetadataResponse.status}`);
+		}
+
+		const sheetMetadata = await sheetMetadataResponse.json();
+		const sheet = sheetMetadata.sheets.find(
+			(s) => s.properties.sheetId.toString() === sheetId.toString()
+		);
+
+		if (!sheet) {
+			return Error(
+				`The sheet "${databaseName}" was not found. Log in with Google and select the Sheet to sync.`
+			);
+		}
+
+		const sheetTitle = sheet.properties.title;
+
+		// Now use the sheet's title to fetch the data
 		const response = await googleAPIFetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true&fields=sheets(properties,data)`,
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${encodeURIComponent(
+				sheetTitle
+			)}&includeGridData=true&fields=sheets(properties,data)`,
 			"GET",
 			PROXY
 		);
@@ -96,7 +123,7 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 		if (!response.ok) {
 			if (response.status === 404) {
 				return Error(
-					`The sheet "${sheetName}" was not found. Log in with Google and select the Sheet to sync.`
+					`The sheet "${sheetTitle}" was not found. Log in with Google and select the Sheet to sync.`
 				);
 			}
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -108,9 +135,13 @@ export async function getIntegrationContext(integrationData: object, sheetName: 
 			sheet: data.sheets[0],
 			spreadsheetId,
 			sheetId,
+			spreadsheet: {
+				id: spreadsheetId,
+				name: sheetMetadata.properties.title,
+			},
 		};
 	} catch (error) {
-		console.error("Error getting integration context", error);
+		console.error("Error getting integration context: ", error);
 		return null;
 	}
 }
@@ -255,7 +286,9 @@ export function getCellValue(
 			const hours = Math.floor(totalSeconds / 3600);
 			const minutes = Math.floor((totalSeconds % 3600) / 60);
 			const seconds = Math.floor(totalSeconds % 60);
-			value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+			value = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+				.toString()
+				.padStart(2, "0")}`;
 		} else {
 			value = fieldType === "number" ? cellValue.numberValue : String(cellValue.numberValue);
 		}
