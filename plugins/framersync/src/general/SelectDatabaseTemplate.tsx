@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { assert } from "../utils";
 import { ReloadIcon } from "../components/Icons";
 import Button from "@shared/Button";
@@ -56,6 +56,20 @@ export default function SelectDatabasePageTemplate({
 	};
 
 	const nextButtonDisabled = !selectedDatabaseId || (subdatabases && !selectedSubdatabase);
+
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Enter' && !nextButtonDisabled) {
+				handleSubmit();
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [nextButtonDisabled, handleSubmit]);
 
 	return (
 		<Window
