@@ -18,7 +18,7 @@ const propertyTypeNames = {
 	NUMBER: "Number",
 	DATE: "Date",
 	TIME: "Time",
-	DATETIME: "Date & Time",
+	DATE_TIME: "Date & Time",
 	FORMULA: "Formula",
 	IMAGE: "Image",
 	HYPERLINK: "Link",

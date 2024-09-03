@@ -23,16 +23,18 @@ let googleSheetsAccessToken: string | null = null;
 const googleSheetsRefreshTokenKey = "googleSheetsRefreshToken";
 
 const propertyConversionTypes = {
-	BOOLEAN: ["boolean"],
-	TEXT: ["string", "formattedText"],
+	BOOLEAN: ["boolean", "string"],
+	TEXT: ["string", "formattedText", "boolean", "number", "link", "image", "file", "date"],
+	FORMULA: ["string", "formattedText", "boolean", "number", "link", "image", "file", "date"],
 	NUMBER: ["number", "string"],
 	DATE: ["date", "string"],
 	TIME: ["string"],
-	DATETIME: ["date", "string"],
-	FORMULA: ["string", "number", "boolean", "date", "link"],
-	IMAGE: ["image", "link"],
-	HYPERLINK: ["link", "string"],
+	DATE_TIME: ["date", "string"],
+	IMAGE: ["image", "link", "file", "string"],
+	HYPERLINK: ["link", "string", "image", "file"],
 };
+
+const propertyTypes = Object.keys(propertyConversionTypes);
 
 // Maximum number of concurrent requests to Google Sheets API
 // This is to prevent rate limiting.
@@ -259,6 +261,31 @@ export function getCellValue(
 			value = new Date(formattedValue);
 		} else {
 			value = formattedValue;
+		}
+	}
+
+	// Handle image type
+	const formulaValue = cell.effectiveValue?.formulaValue;
+	if (
+		formulaValue?.startsWith("=IMAGE(") &&
+		formulaValue?.endsWith(")") &&
+		propertyConversionTypes.IMAGE.includes(fieldType)
+	) {
+		const imageUrl = formulaValue.match(/=IMAGE\("(.+)"\)/)?.[1];
+		if (imageUrl) {
+			value = imageUrl;
+		}
+	}
+
+	// Handle hyperlink type
+	if (propertyConversionTypes.HYPERLINK.includes(fieldType)) {
+		if (cell.hyperlink) {
+			value = cell.hyperlink;
+		} else if (cell.textFormatRuns && cell.textFormatRuns.some((run) => run.format.link)) {
+			const linkRun = cell.textFormatRuns.find((run) => run.format.link);
+			if (linkRun) {
+				value = linkRun.format.link.uri;
+			}
 		}
 	}
 
@@ -751,11 +778,14 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	return sheet;
 }
 
-export function getCellPropertyType(cellValue: object) {
+export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 	let columnType = "TEXT";
 
 	if (cellValue.effectiveFormat?.numberFormat?.type) {
-		columnType = cellValue.effectiveFormat.numberFormat.type;
+		const type = cellValue.effectiveFormat.numberFormat.type;
+		if (propertyTypes.includes(type)) {
+			columnType = type;
+		}
 	} else if (cellValue.effectiveValue) {
 		if (typeof cellValue.effectiveValue.numberValue === "number") {
 			columnType = "NUMBER";
@@ -767,6 +797,19 @@ export function getCellPropertyType(cellValue: object) {
 		) {
 			columnType = "DATE";
 		}
+	}
+
+	// Check for image type
+	if (cellValue.userEnteredValue?.formulaValue?.startsWith("=IMAGE(")) {
+		columnType = "IMAGE";
+	}
+
+	// Check for hyperlink type
+	if (
+		cellValue.hyperlink ||
+		(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
+	) {
+		columnType = "HYPERLINK";
 	}
 
 	return columnType;

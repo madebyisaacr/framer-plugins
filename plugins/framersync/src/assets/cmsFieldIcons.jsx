@@ -150,12 +150,6 @@ export const cmsFieldIcons = {
 			></path>
 		</svg>
 	),
-	datetime: (
-		<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">
-			<path d="M0 4a4 4 0 0 1 4-4h14a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4Z" fill="currentColor"></path>
-			<path d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm-1 7c0 .6.4 1 1 1h4a1 1 0 0 0 0-2h-3V7a1 1 0 0 0-2 0Z" fill="white"></path>
-		</svg>
-	),
 	file: (
 		<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22">
 			<path
