@@ -613,38 +613,6 @@ export async function updatePluginData(pluginContext: PluginContext) {
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 }
 
-function getIgnoredFieldIds(rawIgnoredFields: string | null) {
-	if (!rawIgnoredFields) {
-		return [];
-	}
-
-	const parsed = JSON.parse(rawIgnoredFields);
-	if (!Array.isArray(parsed)) return [];
-	if (!parsed.every(isString)) return [];
-
-	return parsed;
-}
-
-function getSuggestedFieldsForTable(table: object, ignoredFieldIds: FieldId[]) {
-	if (!table) {
-		return [];
-	}
-
-	const properties: object[] = [];
-
-	for (const property of table.fields) {
-		// These fields were ignored by the user
-		if (ignoredFieldIds.includes(property.id)) continue;
-
-		const field = getCollectionFieldForProperty(property);
-		if (field) {
-			properties.push(field);
-		}
-	}
-
-	return properties;
-}
-
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	integrationContext: object,

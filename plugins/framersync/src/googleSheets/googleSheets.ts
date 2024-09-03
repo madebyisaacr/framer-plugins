@@ -601,44 +601,6 @@ export function useSpreadsheetsQuery() {
 	});
 }
 
-function getIgnoredFieldIds(rawIgnoredFields: string | null) {
-	if (!rawIgnoredFields) {
-		return [];
-	}
-
-	const parsed = JSON.parse(rawIgnoredFields);
-	if (!Array.isArray(parsed)) return [];
-	if (!parsed.every(isString)) return [];
-
-	return parsed;
-}
-
-function getSuggestedFieldsForSheet(
-	sheet: { data: { rowData: { values: GoogleSheetsColumn[] }[] } },
-	ignoredFieldIds: FieldId[]
-) {
-	const fields: object[] = [];
-
-	assert(sheet.data && sheet.data[0].rowData);
-	const headerRow = sheet.data[0].rowData[0].values;
-
-	headerRow.forEach((cell, index) => {
-		if (ignoredFieldIds.includes(index.toString())) return;
-
-		const field = getCollectionFieldForProperty(
-			cell,
-			cell.formattedValue || `Column ${index + 1}`,
-			propertyConversionTypes[getCellPropertyType(cell)][0]
-		);
-
-		if (field) {
-			fields.push(field);
-		}
-	});
-
-	return fields;
-}
-
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	integrationContext: object,
