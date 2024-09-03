@@ -42,15 +42,15 @@ const propertyConversionTypes = {
 	created_time: ["date"],
 	date: ["date"],
 	last_edited_time: ["date"],
-	files: ["link", "image"],
+	files: ["file", "link", "image"],
 	number: ["number"],
 	rich_text: ["formattedText", "string"],
 	select: ["enum", "string"],
 	status: ["enum", "string"],
-	url: ["link", "string"],
+	url: ["link", "string", "file"],
 	unique_id: ["string", "number"],
-	formula: ["string", "number", "boolean", "date", "link", "image"],
-	rollup: ["string", "number", "boolean", "date", "link", "image"],
+	formula: ["string", "number", "boolean", "date", "link", "image", "file"],
+	rollup: ["string", "number", "boolean", "date", "link", "image", "file"],
 };
 
 // Maximum number of concurrent requests to Notion API
@@ -242,6 +242,13 @@ export function getCollectionFieldForProperty(
 			id: property.id,
 			name,
 			cases,
+		};
+	} else if (type === "file") {
+		return {
+			type: "file",
+			id: property.id,
+			name,
+			allowedFileTypes: [], // TODO: Make this automatic based on the file types in the database
 		};
 	}
 
