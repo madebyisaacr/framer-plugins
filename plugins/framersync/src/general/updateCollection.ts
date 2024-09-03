@@ -27,6 +27,7 @@ export async function updateCollection(
 	// Generate dynamic fields (arrays and file types)
 	const arrayFieldIDs = new Set<string>();
 	const arrayFieldLengths = {};
+	const fileFieldExtensions = {};
 	for (const item of collectionItems) {
 		for (const field of collectionFields) {
 			const value = item.fieldData[field.id];
@@ -41,6 +42,15 @@ export async function updateCollection(
 						field.type == "enum" ? value[i] || noneOptionID : value[i];
 				}
 			}
+
+			if (field.type == "file") {
+				const extension = value.split(".").pop();
+				if (fileFieldExtensions[field.id]) {
+					fileFieldExtensions[field.id].add(extension);
+				} else {
+					fileFieldExtensions[field.id] = new Set([extension]);
+				}
+			}
 		}
 	}
 
@@ -49,16 +59,25 @@ export async function updateCollection(
 	if (arrayFieldIDs.size > 0) {
 		fields = [];
 		for (const field of collectionFields) {
+			let fieldToAdd = field;
+
+			if (fileFieldExtensions[field.id]) {
+				fieldToAdd = ({
+					...field,
+					allowedFileTypes: Array.from(fileFieldExtensions[field.id]),
+				});
+			}
+
 			if (arrayFieldIDs.has(field.id)) {
 				for (let i = 0; i < arrayFieldLengths[field.id]; i++) {
 					fields.push({
-						...field,
+						...fieldToAdd,
 						id: `${field.id}-${i}`,
 						name: `${field.name} ${i + 1}`,
 					});
 				}
 			} else {
-				fields.push(field);
+				fields.push(fieldToAdd);
 			}
 		}
 	}
