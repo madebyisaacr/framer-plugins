@@ -429,12 +429,7 @@ async function processItem(
 		}
 
 		const fieldValue = getPropertyValue(property, field.type, fieldSettings[property.id]);
-		if (!fieldValue) {
-			status.warnings.push({
-				url: item.url,
-				fieldId: field.id,
-				message: `Value missing for field ${field.name}`,
-			});
+		if (fieldValue === null || fieldValue === undefined) {
 			continue;
 		}
 
