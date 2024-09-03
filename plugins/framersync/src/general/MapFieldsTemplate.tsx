@@ -491,6 +491,7 @@ export function MapFieldsPageTemplate({
 							</div>
 						) : editMenuFieldConfig ? (
 							<EditFieldMenu
+								key={editMenuFieldConfig.property.id}
 								fieldConfig={editMenuFieldConfig}
 								fieldTypes={fieldTypes}
 								fieldNames={fieldNameOverrides}
