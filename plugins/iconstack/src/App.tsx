@@ -98,10 +98,8 @@ function HomePage() {
 	const [iconGroups, setIconGroups] = useState(generateIconGroups(ICON_PACKS[iconPack?.name]));
 	const [rowsVisible, setRowsVisible] = useState(MAX_VISIBLE_ROWS);
 	const [iconSize, setIconSize] = useState(16);
-	const [colorStyle, setColorStyle] = useState<ColorStyle | null>(null);
-	const [customColor, setCustomColor] = useState(
-		(document.body.getAttribute("data-framer-theme") as Theme) === "dark" ? "#ffffff" : "#000000"
-	);
+	const [colorStyleID, setColorStyleID] = useState<string | null>(null);
+	const [customColor, setCustomColor] = useState("#000000");
 
 	const scrollContainerRef = useRef(null);
 	const rowsVisibleRef = useRef(rowsVisible);
@@ -152,11 +150,20 @@ function HomePage() {
 			if (!response.ok) {
 				throw new Error(`Failed to fetch ${url}: ${response.statusText}`);
 			}
-			let svgText = await response.text();
-			svgText = svgText;
-			// .replace(/strokeWidth="2"/g, `strokeWidth="${iconStroke / 10}"`)
-			// .replace(`width="200" height="200"`, `width="${iconSize}" height="${iconSize}"`)
-			// .replace(/"currentColor"/g, `"${iconColor}"`);
+
+			const colorStyle = colorStyleID ? await framer.getColorStyle(colorStyleID) : null;
+
+			const color = `"${
+				colorStyle
+					? `var(--token-${colorStyle.id}, ${colorStyle.light}) {\"name\": \"${colorStyle.name}\"} */`
+					: customColor
+			}"`;
+
+			const svgText = (await response.text())
+				.replace(`width="200"`, `width="${iconSize}"`)
+				.replace(`height="200"`, `height="${iconSize}"`)
+				.replace(/"currentColor"/g, color)
+				.replace(/"#000000"/g, color);
 
 			// Use the Clipboard API to write the SVG text to the clipboard
 			if (copy) {
@@ -337,10 +344,10 @@ function HomePage() {
 								openModal(
 									<CustomizationMenu
 										iconSize={iconSize}
-										colorStyle={colorStyle}
+										colorStyleID={colorStyleID}
 										customColor={customColor}
 										setIconSize={setIconSize}
-										setColorStyle={setColorStyle}
+										setColorStyleID={setColorStyleID}
 										setCustomColor={setCustomColor}
 									/>
 								)
@@ -554,16 +561,16 @@ function CopySVGButton({ copyFunction }) {
 
 function CustomizationMenu({
 	iconSize,
-	colorStyle,
+	colorStyleID,
 	customColor,
 	setIconSize,
-	setColorStyle,
+	setColorStyleID,
 	setCustomColor,
 }) {
 	const { closeModal } = useContext(PageStackContext);
 
 	const [size, setSize] = useState(iconSize);
-	const [selectedColorStyle, setSelectedColorStyle] = useState<ColorStyle | null>(colorStyle);
+	const [selectedColorStyleID, setSelectedColorStyleID] = useState<string | null>(colorStyleID);
 	const [selectedCustomColor, setSelectedCustomColor] = useState(customColor);
 
 	const [colorStyles, setColorStyles] = useState<ColorStyle[]>([]);
@@ -579,18 +586,18 @@ function CustomizationMenu({
 
 	useEffect(() => {
 		return () => {
-			setSize(iconSize);
-			setSelectedColorStyle(colorStyle);
-			setSelectedCustomColor(customColor);
+			setIconSize(size);
+			setColorStyleID(selectedColorStyleID);
+			setCustomColor(selectedCustomColor);
 		};
-	}, [iconSize, colorStyle, customColor]);
+	}, [size, selectedColorStyleID, selectedCustomColor]);
 
 	return (
 		<div className="flex flex-col size-full max-h-[max(400px,80vh)] overflow-hidden">
 			<XIcon className="absolute top-4 right-4 z-10" onClick={closeModal} />
 			<div className="flex flex-col px-3 pb-3 relative">
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
-					Customization
+					Customizations
 				</div>
 				<PropertyControl title="Size">
 					<div className="flex flex-row gap-2 w-full">
@@ -638,10 +645,10 @@ function CustomizationMenu({
 				<div
 					className={classNames(
 						"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded relative",
-						!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
+						!selectedColorStyleID ? "bg-secondary text-primary" : "text-secondary"
 					)}
 					onClick={() => {
-						setSelectedColorStyle(null);
+						setSelectedColorStyleID(null);
 					}}
 				>
 					<div
@@ -668,9 +675,9 @@ function CustomizationMenu({
 						key={style.id}
 						className={classNames(
 							"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
-							selectedColorStyle == style ? "bg-secondary text-primary" : "text-secondary"
+							selectedColorStyleID == style.id ? "bg-secondary text-primary" : "text-secondary"
 						)}
-						onClick={() => setSelectedColorStyle(style)}
+						onClick={() => setSelectedColorStyleID(style.id)}
 					>
 						<div
 							className="size-2 relative rounded-full"
