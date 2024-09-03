@@ -285,13 +285,17 @@ export function getPropertyValue(
 			return value?.id;
 		case "multi_select":
 			if (importArray) {
-				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
+				return value?.map((option) => (fieldType === "enum" ? option.id : option.name));
 			} else {
 				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
 			}
 		case "people":
-			return value.map((person) => person.id).join(", ");
+			return value?.map((person) => person.id).join(", ");
 		case "formula":
+			if (!value) {
+				return null;
+			}
+
 			switch (fieldType) {
 				case "string":
 				case "link":
@@ -307,7 +311,7 @@ export function getPropertyValue(
 					return null;
 			}
 		case "rollup":
-			switch (value.type) {
+			switch (value?.type) {
 				case "array":
 					const item = value.array[0];
 					return item ? getPropertyValue(item, fieldType, fieldSettings) : null;
@@ -319,12 +323,12 @@ export function getPropertyValue(
 					return null;
 			}
 		case "date":
-			return dateValue(value.start, fieldSettings);
+			return dateValue(value?.start, fieldSettings);
 		case "files":
 			if (importArray) {
-				return value.map((file) => file[file.type].url);
+				return value?.map((file) => file[file.type].url);
 			} else {
-				return value[0] ? value[0][value[0].type].url : null;
+				return value?.[0] ? value[0][value[0].type]?.url : null;
 			}
 		case "select":
 			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;
@@ -697,6 +701,10 @@ export function getFieldConversionTypes(property: NotionProperty) {
 }
 
 function dateValue(value: string, fieldSettings: Record<string, any>) {
+	if (!value) {
+		return null;
+	}
+
 	return !fieldSettings.time ? removeTimeFromISO(value) : value;
 }
 

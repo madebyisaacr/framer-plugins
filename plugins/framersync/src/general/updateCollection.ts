@@ -54,22 +54,31 @@ export async function updateCollection(
 		}
 	}
 
-	if (arrayFieldIDs.size > 0) {
-		const replaceFields = collectionFields.filter((field) => arrayFieldIDs.has(field.id));
+	const collectionFieldsById = getFieldsById(collectionFields);
 
-		for (const item of collectionItems) {
-			for (const field of replaceFields) {
-				const arrayFieldLength = arrayFieldLengths[field.id];
-				const value = item.fieldData[field.id];
+	const replaceFieldIds = collectionFields.map((field) => field.id).filter((fieldId) => arrayFieldIDs.has(fieldId));
+
+	for (const item of collectionItems) {
+		const fieldData = item.fieldData;
+		for (const fieldId of Object.keys(fieldData)) {
+			if (fieldData[fieldId] === null || fieldData[fieldId] === undefined) {
+				delete fieldData[fieldId];
+				continue;
+			}
+
+			if (replaceFieldIds.includes(fieldId)) {
+				const field = collectionFieldsById[fieldId];
+				const arrayFieldLength = arrayFieldLengths[fieldId];
+				const value = item.fieldData[fieldId];
 
 				if (!value) {
-					item.fieldData[field.id] = field.type == "enum" ? noneOptionID : null;
+					fieldData[fieldId] = field.type == "enum" ? noneOptionID : null;
 				} else if (arrayFieldLength <= 1) {
-					item.fieldData[field.id] = field.type == "enum" ? value[0] || noneOptionID : value[0];
+					fieldData[fieldId] = field.type == "enum" ? value[0] || noneOptionID : value[0];
 				} else {
-					delete item.fieldData[field.id];
+					delete fieldData[fieldId];
 					for (let i = 0; i < arrayFieldLength; i++) {
-						item.fieldData[`${field.id}-[[${i}]]`] =
+						fieldData[`${fieldId}-[[${i}]]`] =
 							field.type == "enum" ? value[i] || noneOptionID : value[i];
 					}
 				}
@@ -107,7 +116,7 @@ export async function updateCollection(
 		}
 	}
 
-	console.log(collectionItems)
+	console.log(collectionItems);
 
 	await collection.setFields(fields);
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName, false);
