@@ -57,6 +57,15 @@ const propertyConversionTypes = {
 	rollup: ["string", "number", "boolean", "date", "link", "image", "file"],
 };
 
+// The order in which we display slug fields
+const slugFieldTypes: NotionProperty["type"][] = [
+	"title",
+	"rich_text",
+	"unique_id",
+	"formula",
+	"rollup",
+];
+
 // Maximum number of concurrent requests to Notion API
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
@@ -140,15 +149,6 @@ export function initNotionClient() {
 		auth: token,
 	});
 }
-
-// The order in which we display slug fields
-const slugFieldTypes: NotionProperty["type"][] = [
-	"title",
-	"rich_text",
-	"unique_id",
-	"formula",
-	"rollup",
-];
 
 /**
  * Given a Notion Database returns a list of possible fields that can be used as
@@ -665,7 +665,8 @@ export function hasFieldConfigurationChanged(
 	const fields = Object.values(currentFieldsById).filter((field) => !isPageLevelField(field.id));
 
 	const properties = Object.values(database.properties).filter(
-		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
+		(property) =>
+			!ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
 	);
 
 	if (properties.length !== fields.length) {

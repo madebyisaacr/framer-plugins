@@ -34,6 +34,9 @@ const propertyConversionTypes = {
 	HYPERLINK: ["link", "string", "image", "file"],
 };
 
+// The order in which we display slug fields
+const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
+
 const propertyTypes = Object.keys(propertyConversionTypes);
 
 // Maximum number of concurrent requests to Google Sheets API
@@ -150,9 +153,6 @@ export async function refreshGoogleSheetsToken() {
 		return false;
 	}
 }
-
-// The order in which we display slug fields
-const slugFieldTypes = ["TEXT", "NUMBER", "FORMULA"];
 
 /**
  * Given a Google Sheets worksheet returns a list of possible fields that can be used as
@@ -351,16 +351,6 @@ async function processItem(
 
 	// Mark the item as seen
 	unsyncedItemIds.delete(rowIndex.toString());
-
-	if (isUnchangedSinceLastSync(row.values[0].formattedValue!, lastSyncedTime)) {
-		status.info.push({
-			message: `Skipping. last updated: ${formatDate(
-				row.values[0].formattedValue!
-			)}, last synced: ${formatDate(lastSyncedTime!)}`,
-			rowIndex,
-		});
-		return null;
-	}
 
 	row.values.forEach((cell, index) => {
 		if (index.toString() === slugFieldId) {
@@ -635,21 +625,6 @@ export function hasFieldConfigurationChanged(
 	}
 
 	return false;
-}
-
-export function isUnchangedSinceLastSync(
-	lastEditedTime: string,
-	lastSyncedTime: string | null
-): boolean {
-	if (!lastSyncedTime) return false;
-
-	const lastEdited = new Date(lastEditedTime);
-	const lastSynced = new Date(lastSyncedTime);
-	// Last edited time is rounded to the nearest minute.
-	// So we should round lastSyncedTime to the nearest minute as well.
-	lastSynced.setSeconds(0, 0);
-
-	return lastSynced > lastEdited;
 }
 
 export function getFieldConversionTypes(columnType: string) {

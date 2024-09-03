@@ -66,6 +66,9 @@ export const propertyConversionTypes: Record<string, string[]> = {
 	url: ["link", "string"],
 };
 
+// The order in which we display slug fields
+const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
+
 export async function getIntegrationContext(integrationData: object, databaseName: string) {
 	const { baseId, tableId } = integrationData;
 
@@ -142,9 +145,6 @@ export async function airtableFetch(url: string, body?: object) {
 	const data = await response.json();
 	return data;
 }
-
-// The order in which we display slug fields
-const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
 
 /**
  * Given an Airtable base returns a list of possible fields that can be used as
@@ -413,16 +413,6 @@ async function processItem(
 	// Mark the item as seen
 	unsyncedItemIds.delete(item.id);
 
-	// TODO: Airtable records do not have last edited time, so find a workaround.
-
-	// if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
-	// 	status.info.push({
-	// 		message: `Skipping. last updated: ${formatDate(item.last_edited_time)}, last synced: ${formatDate(lastSyncedTime!)}`,
-	// 		url: item.url,
-	// 	});
-	// 	return null;
-	// }
-
 	for (const fieldId in item.fields) {
 		const value = item.fields[fieldId];
 		const property = properties[fieldId];
@@ -648,21 +638,6 @@ export function hasFieldConfigurationChanged(
 	}
 
 	return false;
-}
-
-export function isUnchangedSinceLastSync(
-	lastEditedTime: string,
-	lastSyncedTime: string | null
-): boolean {
-	if (!lastSyncedTime) return false;
-
-	const lastEdited = new Date(lastEditedTime);
-	const lastSynced = new Date(lastSyncedTime);
-	// Last edited time is rounded to the nearest minute.
-	// So we should round lastSyncedTime to the nearest minute as well.
-	lastSynced.setSeconds(0, 0);
-
-	return lastSynced > lastEdited;
 }
 
 function objectToUrlParams(obj) {
