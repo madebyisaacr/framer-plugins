@@ -1,4 +1,4 @@
-import { framer } from "framer-plugin";
+import { framer, ColorStyle } from "framer-plugin";
 import { useState, useRef, useEffect, useContext } from "react";
 import "./App.css";
 import { iconPacks } from "./IconstackData.jsx";
@@ -70,7 +70,6 @@ const ICON_PACKS = {
 };
 
 framer.showUI({
-	title: "Iconstack",
 	position: "top left",
 	width: 290,
 	height: 550,
@@ -533,10 +532,26 @@ function CustomizationMenu() {
 	const { closeModal } = useContext(PageStackContext);
 
 	const [size, setSize] = useState(16);
+	const [selectedColorStyle, setSelectedColorStyle] = useState<ColorStyle | null>(null);
+	const [customColor, setCustomColor] = useState("#000");
+	const colorPickerRef = useRef(null);
+
+	const [colorStyles, setColorStyles] = useState<ColorStyle[]>([]);
+	const theme = useTheme();
+
+	useEffect(() => {
+		framer.getColorStyles().then(setColorStyles);
+
+		framer.subscribeToColorStyles((colorStyles) => {
+			setColorStyles(colorStyles);
+		});
+	}, []);
 
 	return (
-		<div className="flex flex-col size-full p-3 gap-2">
-			<h1 className="text-sm font-bold">Customization</h1>
+		<div className="flex flex-col size-full px-3 pb-3 gap-2">
+			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2">
+				Customization
+			</div>
 			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
 			<PropertyControl title="Size">
 				<div className="flex flex-row gap-2 w-full">
@@ -575,6 +590,64 @@ function CustomizationMenu() {
 					</div>
 				</div>
 			</PropertyControl>
+			<div className="min-h-10 flex flex-row items-center text-primary font-semibold -mb-2 mt-1 border-t border-divider">
+				Color
+			</div>
+			<div className="flex flex-col relative">
+				<div
+					className={classNames(
+						"flex flex-row gap-2.5 px-2 h-6 items-center cursor-pointer rounded relative",
+						!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
+					)}
+					onClick={() => {
+						setSelectedColorStyle(null);
+					}}
+				>
+					<div
+						className="size-2 relative rounded-full pointer-events-none"
+						style={{
+							backgroundColor: customColor,
+						}}
+					>
+						<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+					</div>
+					Custom
+					<span className="flex-1 text-right text-tertiary pointer-events-none">
+						{customColor.toUpperCase()}
+					</span>
+					<input
+						type="color"
+						value={customColor}
+						onChange={(e) => setCustomColor(e.target.value)}
+						className="absolute opacity-0 inset-0 w-full cursor-pointer"
+					/>
+				</div>
+				{colorStyles.map((colorStyle) => (
+					<div
+						key={colorStyle.id}
+						className={classNames(
+							"flex flex-row gap-2.5 px-2 h-6 items-center cursor-pointer rounded",
+							selectedColorStyle == colorStyle ? "bg-secondary text-primary" : "text-secondary"
+						)}
+						onClick={() => setSelectedColorStyle(colorStyle)}
+					>
+						<div
+							className="size-2 relative rounded-full"
+							style={{
+								backgroundColor:
+									theme === "light" ? colorStyle.light : colorStyle.dark || colorStyle.light,
+							}}
+						>
+							<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+						</div>
+						{colorStyle.name}
+					</div>
+				))}
+			</div>
+			<div className="w-full min-h-[1px] bg-divider my-1" />
+			<Button primary onClick={closeModal}>
+				Done
+			</Button>
 		</div>
 	);
 }
@@ -594,4 +667,36 @@ function PropertyControl({ title, children, disabled = false }) {
 			<div className="col-span-2">{children}</div>
 		</div>
 	);
+}
+
+type Theme = "light" | "dark";
+
+function useTheme() {
+	const [theme, setTheme] = useState<Theme>(
+		(document.body.getAttribute("data-framer-theme") as Theme) ?? "light"
+	);
+
+	const handle = (mutationsList: MutationRecord[]) => {
+		for (const mutation of mutationsList) {
+			if (mutation.type === "attributes" && mutation.attributeName === "data-framer-theme") {
+				setTheme(document.body.getAttribute("data-framer-theme") as Theme);
+				break;
+			}
+		}
+	};
+
+	useEffect(() => {
+		const mutationObserver = new MutationObserver(handle);
+
+		mutationObserver.observe(document.body, {
+			attributes: true,
+			attributeFilter: ["data-framer-theme"],
+		});
+
+		return () => {
+			mutationObserver.disconnect();
+		};
+	}, []);
+
+	return theme;
 }
