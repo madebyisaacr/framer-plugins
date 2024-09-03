@@ -401,11 +401,12 @@ function HomePage() {
 				</div>
 				{icon && (
 					<div
-						className="relative flex flex-col p-3 gap-3 bg-primary border-t border-divider"
+						className="relative flex flex-col p-3 gap-3 bg-primary"
 						style={{
 							boxShadow: "0 -12px 12px -12px rgba(0,0,0,0.05)",
 						}}
 					>
+						<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
 						<div className="flex flex-row gap-2.5 flex-1 pt-0.5">
 							<div className="relative size-[80px] bg-secondary rounded">
 								<img
@@ -587,7 +588,7 @@ function CustomizationMenu({
 	return (
 		<div className="flex flex-col size-full max-h-[max(400px,80vh)] overflow-hidden">
 			<XIcon className="absolute top-4 right-4 z-10" onClick={closeModal} />
-			<div className="flex flex-col gap-2 px-3 pb-3 relative">
+			<div className="flex flex-col px-3 pb-3 relative">
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
 					Customization
 				</div>
@@ -634,56 +635,54 @@ function CustomizationMenu({
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
 					Color Styles
 				</div>
-				<div className="flex flex-col relative">
+				<div
+					className={classNames(
+						"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded relative",
+						!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
+					)}
+					onClick={() => {
+						setSelectedColorStyle(null);
+					}}
+				>
 					<div
-						className={classNames(
-							"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded relative",
-							!selectedColorStyle ? "bg-secondary text-primary" : "text-secondary"
-						)}
-						onClick={() => {
-							setSelectedColorStyle(null);
+						className="size-2 relative rounded-full pointer-events-none"
+						style={{
+							backgroundColor: selectedCustomColor,
 						}}
 					>
+						<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+					</div>
+					Custom
+					<span className="flex-1 text-right text-tertiary pointer-events-none">
+						{expandHexCode(selectedCustomColor)}
+					</span>
+					<input
+						type="color"
+						value={selectedCustomColor}
+						onChange={(e) => setSelectedCustomColor(e.target.value)}
+						className="absolute opacity-0 inset-0 w-full cursor-pointer"
+					/>
+				</div>
+				{colorStyles.map((style) => (
+					<div
+						key={style.id}
+						className={classNames(
+							"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
+							selectedColorStyle == style ? "bg-secondary text-primary" : "text-secondary"
+						)}
+						onClick={() => setSelectedColorStyle(style)}
+					>
 						<div
-							className="size-2 relative rounded-full pointer-events-none"
+							className="size-2 relative rounded-full"
 							style={{
-								backgroundColor: selectedCustomColor,
+								backgroundColor: theme === "light" ? style.light : style.dark || style.light,
 							}}
 						>
 							<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
 						</div>
-						Custom
-						<span className="flex-1 text-right text-tertiary pointer-events-none">
-							{expandHexCode(selectedCustomColor)}
-						</span>
-						<input
-							type="color"
-							value={selectedCustomColor}
-							onChange={(e) => setSelectedCustomColor(e.target.value)}
-							className="absolute opacity-0 inset-0 w-full cursor-pointer"
-						/>
+						{style.name}
 					</div>
-					{colorStyles.map((style) => (
-						<div
-							key={style.id}
-							className={classNames(
-								"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
-								selectedColorStyle == style ? "bg-secondary text-primary" : "text-secondary"
-							)}
-							onClick={() => setSelectedColorStyle(style)}
-						>
-							<div
-								className="size-2 relative rounded-full"
-								style={{
-									backgroundColor: theme === "light" ? style.light : style.dark || style.light,
-								}}
-							>
-								<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
-							</div>
-							{style.name}
-						</div>
-					))}
-				</div>
+				))}
 			</div>
 			<div className="flex flex-col p-3 relative">
 				<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
