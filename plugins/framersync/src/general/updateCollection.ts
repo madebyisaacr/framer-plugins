@@ -35,12 +35,6 @@ export async function updateCollection(
 				arrayFieldIDs.add(field.id);
 				const fieldCount = Math.min(Math.max(arrayFieldLengths[field.id] || 0, value.length), 10);
 				arrayFieldLengths[field.id] = fieldCount;
-
-				delete item.fieldData[field.id];
-				for (let i = 0; i < fieldCount; i++) {
-					item.fieldData[`${field.id}-[[${i}]]`] =
-						field.type == "enum" ? value[i] || noneOptionID : value[i];
-				}
 			}
 
 			// if (field.type == "file" && (typeof value == "string" || Array.isArray(value))) {
@@ -60,6 +54,27 @@ export async function updateCollection(
 		}
 	}
 
+	if (arrayFieldIDs.size > 0) {
+		const replaceFields = collectionFields.filter((field) => arrayFieldIDs.has(field.id));
+
+		for (const item of collectionItems) {
+			for (const field of replaceFields) {
+				const arrayFieldLength = arrayFieldLengths[field.id];
+				const value = item.fieldData[field.id];
+
+				if (arrayFieldLength <= 1) {
+					item.fieldData[field.id] = field.type == "enum" ? value[0] || noneOptionID : value[0];
+				} else {
+					delete item.fieldData[field.id];
+					for (let i = 0; i < arrayFieldLength; i++) {
+						item.fieldData[`${field.id}-[[${i}]]`] =
+							field.type == "enum" ? value[i] || noneOptionID : value[i];
+					}
+				}
+			}
+		}
+	}
+
 	let fields = collectionFields;
 
 	// if (arrayFieldIDs.size > 0 || Object.keys(fileFieldExtensions).length > 0) {
@@ -76,7 +91,7 @@ export async function updateCollection(
 			// 	};
 			// }
 
-			if (arrayFieldIDs.has(field.id)) {
+			if (arrayFieldIDs.has(field.id) && arrayFieldLengths[field.id] > 1) {
 				for (let i = 0; i < arrayFieldLengths[field.id]; i++) {
 					fields.push({
 						...fieldToAdd,
