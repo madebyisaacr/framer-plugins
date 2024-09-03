@@ -107,3 +107,21 @@ export function removeTimeFromISO(isoString: string) {
 	// Return the formatted date string
 	return date.toISOString();
 }
+
+const arrayFieldPattern = /-\[\[\d+\]\]$/;
+
+export function isArrayField(fieldId: string) {
+	return arrayFieldPattern.test(fieldId);
+}
+
+export function getArrayFieldId(fieldId: string) {
+	const lastIndex = fieldId.lastIndexOf("-[[");
+
+	if (lastIndex === -1) {
+		// If '-[[' is not found, return the original string
+		return fieldId;
+	}
+
+	// Return the substring from the beginning to the last occurrence of '-[['
+	return fieldId.substring(0, lastIndex);
+}

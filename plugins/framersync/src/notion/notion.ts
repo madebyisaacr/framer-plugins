@@ -13,7 +13,16 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify, removeTimeFromISO } from "../utils";
+import {
+	assert,
+	formatDate,
+	isDefined,
+	isString,
+	slugify,
+	removeTimeFromISO,
+	isArrayField,
+	getArrayFieldId,
+} from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
@@ -289,7 +298,7 @@ export function getPropertyValue(
 		case "last_edited_by":
 			return value?.id;
 		case "multi_select":
-			if (!fieldSettings[FieldSettings.MultipleFields]) {
+			if (fieldSettings[FieldSettings.MultipleFields] == false) {
 				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
 			} else {
 				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
@@ -326,10 +335,10 @@ export function getPropertyValue(
 		case "date":
 			return dateValue(value.start, fieldSettings);
 		case "files":
-			if (fieldSettings[FieldSettings.MultipleFields]) {
-				return value.map((file) => file[file.type].url);
-			} else {
+			if (fieldSettings[FieldSettings.MultipleFields] == false) {
 				return value[0] ? value[0][value[0].type].url : null;
+			} else {
+				return value.map((file) => file[file.type].url);
 			}
 		case "select":
 			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;
@@ -643,38 +652,6 @@ export function useDatabasesQuery() {
 	});
 }
 
-function getIgnoredFieldIds(rawIgnoredFields: string | null) {
-	if (!rawIgnoredFields) {
-		return [];
-	}
-
-	const parsed = JSON.parse(rawIgnoredFields);
-	if (!Array.isArray(parsed)) return [];
-	if (!parsed.every(isString)) return [];
-
-	return parsed;
-}
-
-function getSuggestedFieldsForDatabase(database: GetDatabaseResponse, ignoredFieldIds: FieldId[]) {
-	const fields: object[] = [];
-
-	for (const key in database.properties) {
-		const property = database.properties[key];
-		assert(property);
-
-		// These fields were ignored by the user
-		if (ignoredFieldIds.includes(property.id)) continue;
-
-		if (property.type === "title") continue;
-
-		if (field) {
-			fields.push(field);
-		}
-	}
-
-	return fields;
-}
-
 function isPageLevelField(fieldId: string) {
 	return fieldId === "page-icon" || fieldId === "page-cover" || fieldId === "page-content";
 }
@@ -691,8 +668,15 @@ export function hasFieldConfigurationChanged(
 
 	const currentFieldsById = new Map<string, CollectionField>();
 	for (const field of fields) {
-		currentFieldsById.set(field.id, field);
+		if (isArrayField(field.id)) {
+			const id = getArrayFieldId(field.id);
+			currentFieldsById.set(id, { ...field, id });
+		} else {
+			currentFieldsById.set(field.id, field);
+		}
 	}
+
+	console.log(fields, currentFieldsById);
 
 	const properties = Object.values(database.properties).filter(
 		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]
