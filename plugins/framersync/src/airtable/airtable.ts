@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./richText";
 import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
+import { FieldSettings } from "../general/FieldSettings";
 
 type FieldId = string;
 
@@ -27,7 +28,7 @@ const concurrencyLimit = 5;
 
 export const propertyConversionTypes: Record<string, string[]> = {
 	aiText: ["string"],
-	multipleAttachments: ["link", "image"],
+	multipleAttachments: ["file", "image", "link"],
 	autoNumber: ["number"],
 	barcode: ["string"],
 	button: ["link"],
@@ -41,13 +42,13 @@ export const propertyConversionTypes: Record<string, string[]> = {
 	dateTime: ["date"],
 	duration: ["string"],
 	email: ["string"],
-	formula: ["string", "number", "boolean", "date", "link", "image"],
+	formula: ["string", "number", "boolean", "date", "link", "image", "file"],
 	lastModifiedBy: ["string"],
 	lastModifiedTime: ["date"],
 	multipleRecordLinks: [],
 	multilineText: ["string"],
 	multipleLookupValues: [],
-	multipleCollaborators: [],
+	multipleCollaborators: ["string"],
 	multipleSelects: ["enum", "string"],
 	number: ["number"],
 	percent: ["number"],
@@ -146,7 +147,7 @@ const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText
  * a slug. And a suggested field id to use as a slug.
  */
 export function getPossibleSlugFields(fieldConfigList: object[]) {
-	const options: object[] = fieldConfigList.filter(fieldConfig => 
+	const options: object[] = fieldConfigList.filter((fieldConfig) =>
 		slugFieldTypes.includes(fieldConfig.property.type)
 	);
 
@@ -199,7 +200,7 @@ export async function authorize() {
 		}, 2500);
 	});
 
-	console.log({ promise, cancel: () => clearInterval(intervalId) })
+	console.log({ promise, cancel: () => clearInterval(intervalId) });
 	return { promise, cancel: () => clearInterval(intervalId) };
 }
 
@@ -250,6 +251,8 @@ export function getPropertyValue(
 
 	fieldSettings = fieldSettings || {};
 
+	const importArray = fieldSettings[FieldSettings.MultipleFields] !== false;
+
 	switch (property.type) {
 		case "currency":
 		case "email":
@@ -275,7 +278,11 @@ export function getPropertyValue(
 		case "aiText":
 			return value.value;
 		case "multipleAttachments":
-			return null;
+			if (importArray) {
+				return value.map((item) => item.url);
+			} else {
+				return value?.[0] ? value[0].url : null;
+			}
 		case "multipleRecordLinks":
 			return null;
 		case "barcode":
@@ -292,21 +299,26 @@ export function getPropertyValue(
 				case "string":
 				case "link":
 				case "image":
-					return isArray ? value.join(", ") : String(value);
+				case "file":
+					return isArray ? (importArray ? value : String(value[0])) : String(value);
 				case "number":
-					return isArray ? value.join(", ") : Number(value);
+					return isArray ? (importArray ? value.map(Number) : Number(value[0])) : Number(value);
 				case "date":
-					return isArray ? value.join(", ") : dateValue(String(value), fieldSettings);
+					return isArray
+						? importArray
+							? value.map((v) => dateValue(String(v), fieldSettings))
+							: dateValue(String(value[0]), fieldSettings)
+						: dateValue(String(value), fieldSettings);
 				case "boolean":
-					return value;
+					return isArray ? (importArray ? value.map(Boolean) : Boolean(value[0])) : Boolean(value);
 				default:
 					return null;
 			}
 		case "multipleLookupValues":
-			return value.map((item) => String(item)).join(", ");
+			return null;
 		case "multipleCollaborators":
 		case "multipleSelects":
-			if (fieldSettings.multipleFields) {
+			if (importArray) {
 				return value.map((item) => (fieldType === "enum" ? item.id : item.name));
 			} else {
 				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;

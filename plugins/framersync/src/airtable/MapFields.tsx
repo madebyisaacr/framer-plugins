@@ -42,7 +42,7 @@ const propertyTypeNames = {
 	rating: "Rating",
 	richText: "Rich text",
 	rollup: "Rollup",
-	singleLineText: "Single line text",
+	singleLineText: "Text",
 	singleSelect: "Single select",
 	externalSyncSource: "Sync source",
 	url: "URL",

@@ -281,6 +281,8 @@ export function getPropertyValue(
 
 	fieldSettings = fieldSettings || {};
 
+	const importArray = fieldSettings[FieldSettings.MultipleFields] !== false;
+
 	switch (property.type) {
 		case "checkbox":
 		case "url":
@@ -298,10 +300,10 @@ export function getPropertyValue(
 		case "last_edited_by":
 			return value?.id;
 		case "multi_select":
-			if (fieldSettings[FieldSettings.MultipleFields] == false) {
-				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
-			} else {
+			if (importArray) {
 				return value.map((option) => (fieldType === "enum" ? option.id : option.name));
+			} else {
+				return value?.[0] ? (fieldType === "enum" ? value[0].id : value[0].name) : null;
 			}
 		case "people":
 			return value.map((person) => person.id).join(", ");
@@ -335,10 +337,10 @@ export function getPropertyValue(
 		case "date":
 			return dateValue(value.start, fieldSettings);
 		case "files":
-			if (fieldSettings[FieldSettings.MultipleFields] == false) {
-				return value[0] ? value[0][value[0].type].url : null;
-			} else {
+			if (importArray) {
 				return value.map((file) => file[file.type].url);
+			} else {
+				return value[0] ? value[0][value[0].type].url : null;
 			}
 		case "select":
 			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;

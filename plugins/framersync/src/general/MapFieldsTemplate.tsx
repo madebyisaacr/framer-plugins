@@ -418,7 +418,7 @@ export function MapFieldsPageTemplate({
 						{editMenuFieldConfig == "slug" ? (
 							<div className="w-full flex-1 flex-col overflow-y-auto">
 								<div className="relative flex-col gap-1 w-full p-3">
-									<h1 className="text-lg font-bold -mb-1 mt-1">Slug</h1>
+									<h1 className="text-lg font-bold -mb-1">Slug</h1>
 									<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 								</div>
 								<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
@@ -801,7 +801,7 @@ function EditFieldMenu({
 	return (
 		<div className="flex-1 w-full flex-col overflow-hidden">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
-				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
+				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1 text-tertiary">
 					{getPropertyTypeName(fieldConfig.property.type)}
 					{columnLetters && ` • Column ${fieldConfig.property.columnLetter}`}
