@@ -934,9 +934,9 @@ function EditFieldMenu({
 						<PropertyControl title="Text Format">
 							<SegmentedControl
 								id={`importMarkdownOrHTML-${id}`}
-								items={["none", "markdown", "html"]}
-								itemTitles={["None", "Markdown", "HTML"]}
-								currentItem={settings?.[FieldSettings.ImportMarkdownOrHTML] ?? "none"}
+								items={["html", "markdown"]}
+								itemTitles={["HTML", "Markdown"]}
+								currentItem={settings?.[FieldSettings.ImportMarkdownOrHTML] ?? "html"}
 								tint
 								vertical
 								onChange={(value) => {
