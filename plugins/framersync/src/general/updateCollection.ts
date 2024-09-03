@@ -1,4 +1,4 @@
-import { framer, CollectionItem } from "framer-plugin";
+import { framer, CollectionItem, CollectionField } from "framer-plugin";
 import { createObject } from "../utils";
 import { PluginContext } from "./PluginContext";
 
@@ -171,4 +171,49 @@ function getFileExtensionFromURL(url: string | null) {
 	}
 
 	return fileExtension.toLowerCase();
+}
+
+export function getFieldsById(collectionFields: CollectionField[]) {
+	const currentFieldsById: Record<string, CollectionField> = {};
+	for (const field of collectionFields) {
+		if (isArrayField(field.id)) {
+			const id = getArrayFieldId(field.id);
+			currentFieldsById[id] = { ...field, id, name: getBeforeLastSpace(field.name) };
+		} else {
+			currentFieldsById[field.id] = field;
+		}
+	}
+
+	return currentFieldsById;
+}
+
+const arrayFieldPattern = /-\[\[\d+\]\]$/;
+
+function isArrayField(fieldId: string) {
+	return arrayFieldPattern.test(fieldId);
+}
+
+function getArrayFieldId(fieldId: string) {
+	const lastIndex = fieldId.lastIndexOf("-[[");
+
+	if (lastIndex === -1) {
+		// If '-[[' is not found, return the original string
+		return fieldId;
+	}
+
+	// Return the substring from the beginning to the last occurrence of '-[['
+	return fieldId.substring(0, lastIndex);
+}
+
+function getBeforeLastSpace(str) {
+	// Find the index of the last space
+	const lastSpaceIndex = str.lastIndexOf(" ");
+
+	// If there's no space, return the original string
+	if (lastSpaceIndex === -1) {
+		return str;
+	}
+
+	// Return the substring from the beginning to the last space
+	return str.substring(0, lastSpaceIndex);
 }

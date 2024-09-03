@@ -16,6 +16,7 @@ import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFiel
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import getDatabaseIcon from "./getDatabaseIcon";
 import { FieldSettings } from "../general/FieldSettings";
+import { getFieldsById } from "../general/updateCollection";
 
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
@@ -79,9 +80,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		return [];
 	}
 
-	const existingFieldIds = new Set(
-		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
-	);
+	const existingFieldsById = pluginContext.type === "update" ? getFieldsById(pluginContext.collectionFields) : {};
 
 	const regularFields: CollectionFieldConfig[] = [];
 	let titleProperty: NotionProperty | null = null;
@@ -100,7 +99,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 		regularFields.push({
 			originalFieldName: property.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+			isNewField: !existingFieldsById.hasOwnProperty(property.id),
 			unsupported: !conversionTypes.length,
 			property,
 			conversionTypes,
@@ -114,7 +113,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		pageLevelFields.push({
 			property: titleProperty,
 			originalFieldName: titleProperty.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("title"),
+			isNewField: !existingFieldsById.hasOwnProperty("title"),
 			conversionTypes: ["string", "formattedText"],
 			isPageLevelField: true,
 			unsupported: false,
@@ -129,7 +128,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			unsupported: false,
 		},
 		originalFieldName: pageContentField.name,
-		isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(pageContentField.id),
+		isNewField: !existingFieldsById.hasOwnProperty(pageContentField.id),
 		unsupported: false,
 		conversionTypes: ["formattedText"],
 		isPageLevelField: true,
@@ -144,7 +143,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				unsupported: false,
 			},
 			originalFieldName: "Cover Image",
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-cover"),
+			isNewField: !existingFieldsById.hasOwnProperty("page-cover"),
 			conversionTypes: ["image"],
 			isPageLevelField: true,
 		},
@@ -156,7 +155,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				unsupported: false,
 			},
 			originalFieldName: "Icon",
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has("page-icon"),
+			isNewField: !existingFieldsById.hasOwnProperty("page-icon"),
 			conversionTypes: ["image", "string"],
 			isPageLevelField: true,
 		}

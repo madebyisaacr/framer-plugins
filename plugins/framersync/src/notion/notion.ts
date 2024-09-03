@@ -13,21 +13,16 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import {
-	assert,
-	formatDate,
-	isDefined,
-	isString,
-	slugify,
-	removeTimeFromISO,
-	isArrayField,
-	getArrayFieldId,
-} from "../utils";
+import { assert, formatDate, isDefined, isString, slugify, removeTimeFromISO } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
 import { PluginContext } from "../general/PluginContext";
-import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
+import {
+	updateCollection,
+	updateCollectionPluginData,
+	getFieldsById,
+} from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
 
 export type FieldId = string;
@@ -51,7 +46,7 @@ const propertyConversionTypes = {
 	created_time: ["date"],
 	date: ["date"],
 	last_edited_time: ["date"],
-	files: ["file", "link", "image"],
+	files: ["file", "image"],
 	number: ["number"],
 	rich_text: ["formattedText", "string"],
 	select: ["enum", "string"],
@@ -666,33 +661,30 @@ export function hasFieldConfigurationChanged(
 	const { database } = integrationContext;
 	assert(isFullDatabase(database));
 
-	const fields = currentConfig.filter((field) => !isPageLevelField(field.id));
-
-	const currentFieldsById = new Map<string, CollectionField>();
-	for (const field of fields) {
-		if (isArrayField(field.id)) {
-			const id = getArrayFieldId(field.id);
-			currentFieldsById.set(id, { ...field, id });
-		} else {
-			currentFieldsById.set(field.id, field);
-		}
-	}
-
-	console.log(fields, currentFieldsById);
+	const currentFieldsById = getFieldsById(currentConfig);
+	const fields = Object.values(currentFieldsById).filter((field) => !isPageLevelField(field.id));
 
 	const properties = Object.values(database.properties).filter(
 		(property) => !ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]
 	);
 
-	if (properties.length !== fields.length) return true;
+	if (properties.length !== fields.length) {
+		return true;
+	}
 
-	const includedProperties = properties.filter((property) => currentFieldsById.has(property.id));
+	const includedProperties = properties.filter((property) =>
+		currentFieldsById.hasOwnProperty(property.id)
+	);
 
 	for (const property of includedProperties) {
-		const currentField = currentFieldsById.get(property.id);
-		if (!currentField) return true;
+		const currentField = currentFieldsById[property.id];
+		if (!currentField) {
+			return true;
+		}
 
-		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
+		if (!propertyConversionTypes[property.type].includes(currentField.type)) {
+			return true;
+		}
 	}
 
 	return false;

@@ -68,12 +68,9 @@ export function MapFieldsPageTemplate({
 	error: Error | null;
 }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
-	const { integrationContext } = pluginContext;
-	const { licenseKeyValid } = useLemonSqueezy();
+	const { licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
 
-	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(
-		framer.mode === "syncManagedCollection" && !licenseKeyValid
-	);
+	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(false);
 
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
@@ -249,6 +246,12 @@ export function MapFieldsPageTemplate({
 			document.removeEventListener("keydown", handleEscapeKey);
 		};
 	}, []);
+
+	useEffect(() => {
+		if (framer.mode === "syncManagedCollection" && !licenseKeyValid && !licenseKeyValidLoading) {
+			setShowLicenseKeyMenu(true);
+		}
+	}, [licenseKeyValidLoading]);
 
 	const newFields = fieldConfigList.filter(
 		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
@@ -615,7 +618,7 @@ function FieldTypeSelector({
 }) {
 	if (availableFieldTypes.length === 1) {
 		return (
-			<div className="relative cursor-pointer" onClick={onClick}>
+			<div className={classNames("relative", onClick && "cursor-pointer")} onClick={onClick}>
 				<StaticInput disabled={disabled} className="pl-[34px]">
 					{cmsFieldTypeNames[fieldType]}
 				</StaticInput>
@@ -646,7 +649,7 @@ function FieldTypeSelector({
 						onClick={() => onChange(type)}
 						className={classNames(
 							"relative w-full pl-[34px] pr-1 h-6 cursor-pointer flex flex-col justify-center transition-colors",
-							fieldType === type ? "text-primary font-semibold" : "text-secondary"
+							fieldType === type ? "text-primary" : "text-secondary"
 						)}
 					>
 						{cmsFieldTypeNames[type]}
