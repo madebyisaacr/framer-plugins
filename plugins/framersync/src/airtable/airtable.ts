@@ -322,7 +322,7 @@ export function getPropertyValue(
 		case "multipleCollaborators":
 		case "multipleSelects":
 			if (importArray) {
-				return value.map((item) => getSelectOptionId(item, property));
+				return fieldType == "enum" ? value.map((item) => getSelectOptionId(item, property)) : value;
 			} else {
 				return value?.[0]
 					? fieldType === "enum"

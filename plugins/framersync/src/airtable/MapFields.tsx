@@ -11,6 +11,7 @@ import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate.js";
 import { FieldSettings } from "../general/FieldSettings.js";
+import { getFieldsById } from "../general/updateCollection.js";
 
 const propertyTypeNames = {
 	aiText: "AI Text",
@@ -57,21 +58,24 @@ const allFieldSettings = [
 		propertyType: "multipleAttachments",
 		[FieldSettings.MultipleFields]: {
 			true: "The attachments options will be imported as multiple CMS fields with a number ending added to each field's name.",
-			false: "Only the first attachment will be imported as a CMS field, and the rest will be ignored.",
+			false:
+				"Only the first attachment will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "multipleLookupValues",
 		[FieldSettings.MultipleFields]: {
 			true: "The lookup values will be imported as multiple CMS fields with a number ending added to each field's name.",
-			false: "Only the first lookup value will be imported as a CMS field, and the rest will be ignored.",
+			false:
+				"Only the first lookup value will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
 		propertyType: "multipleCollaborators",
 		[FieldSettings.MultipleFields]: {
 			true: "The collaborators' names will be imported as multiple CMS fields with a number ending added to each field's name.",
-			false: "Only the first collaborator's name will be imported as a CMS field, and the rest will be ignored.",
+			false:
+				"Only the first collaborator's name will be imported as a CMS field, and the rest will be ignored.",
 		},
 	},
 	{
@@ -106,9 +110,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const result: CollectionFieldConfig[] = [];
 
-	const existingFieldIds = new Set(
-		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
-	);
+	const existingFieldsById =
+		pluginContext.type === "update" ? getFieldsById(pluginContext.collectionFields) : null;
 
 	for (const key in table.fields) {
 		const property = table.fields[key];
@@ -117,9 +120,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		const conversionTypes = propertyConversionTypes[property.type] ?? [];
 
 		result.push({
-			// field: getCollectionFieldForProperty(property),
 			originalFieldName: property.name,
-			isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty(property.id) : false,
 			unsupported: !conversionTypes.length,
 			property,
 			conversionTypes,

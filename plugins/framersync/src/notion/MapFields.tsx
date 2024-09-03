@@ -80,7 +80,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		return [];
 	}
 
-	const existingFieldsById = pluginContext.type === "update" ? getFieldsById(pluginContext.collectionFields) : {};
+	const existingFieldsById =
+		pluginContext.type === "update" ? getFieldsById(pluginContext.collectionFields) : null;
 
 	const regularFields: CollectionFieldConfig[] = [];
 	let titleProperty: NotionProperty | null = null;
@@ -99,7 +100,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 		regularFields.push({
 			originalFieldName: property.name,
-			isNewField: !existingFieldsById.hasOwnProperty(property.id),
+			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty(property.id) : false,
 			unsupported: !conversionTypes.length,
 			property,
 			conversionTypes,
@@ -113,7 +114,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		pageLevelFields.push({
 			property: titleProperty,
 			originalFieldName: titleProperty.name,
-			isNewField: !existingFieldsById.hasOwnProperty("title"),
+			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty("title") : false,
 			conversionTypes: ["string", "formattedText"],
 			isPageLevelField: true,
 			unsupported: false,
@@ -128,7 +129,9 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			unsupported: false,
 		},
 		originalFieldName: pageContentField.name,
-		isNewField: !existingFieldsById.hasOwnProperty(pageContentField.id),
+		isNewField: existingFieldsById
+			? !existingFieldsById.hasOwnProperty(pageContentField.id)
+			: false,
 		unsupported: false,
 		conversionTypes: ["formattedText"],
 		isPageLevelField: true,
@@ -143,7 +146,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				unsupported: false,
 			},
 			originalFieldName: "Cover Image",
-			isNewField: !existingFieldsById.hasOwnProperty("page-cover"),
+			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty("page-cover") : false,
 			conversionTypes: ["image"],
 			isPageLevelField: true,
 		},
@@ -155,7 +158,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				unsupported: false,
 			},
 			originalFieldName: "Icon",
-			isNewField: !existingFieldsById.hasOwnProperty("page-icon"),
+			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty("page-icon") : false,
 			conversionTypes: ["image", "string"],
 			isPageLevelField: true,
 		}

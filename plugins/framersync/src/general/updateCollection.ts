@@ -69,7 +69,7 @@ export async function updateCollection(
 			if (replaceFieldIds.includes(fieldId)) {
 				const field = collectionFieldsById[fieldId];
 				const arrayFieldLength = arrayFieldLengths[fieldId];
-				const value = item.fieldData[fieldId];
+				const value = fieldData[fieldId];
 
 				if (!value) {
 					fieldData[fieldId] = field.type == "enum" ? noneOptionID : null;
@@ -78,8 +78,10 @@ export async function updateCollection(
 				} else {
 					delete fieldData[fieldId];
 					for (let i = 0; i < arrayFieldLength; i++) {
-						fieldData[`${fieldId}-[[${i}]]`] =
-							field.type == "enum" ? value[i] || noneOptionID : value[i];
+						const arrayValue = field.type == "enum" ? value[i] || noneOptionID : value[i];
+						if (arrayValue !== null && arrayValue !== undefined) {
+							fieldData[`${fieldId}-[[${i}]]`] = arrayValue;
+						}
 					}
 				}
 			}
@@ -115,8 +117,6 @@ export async function updateCollection(
 			}
 		}
 	}
-
-	console.log(collectionItems);
 
 	await collection.setFields(fields);
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName, false);
