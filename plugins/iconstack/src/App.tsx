@@ -101,6 +101,8 @@ function HomePage() {
 	const [colorStyleID, setColorStyleID] = useState<string | null>(null);
 	const [customColor, setCustomColor] = useState("#000000");
 
+	const theme = useTheme();
+
 	const scrollContainerRef = useRef(null);
 	const rowsVisibleRef = useRef(rowsVisible);
 
@@ -136,6 +138,19 @@ function HomePage() {
 			}
 		};
 	}, []);
+
+	function openColorStyleMenu() {
+		openModal(
+			<CustomizationMenu
+				iconSize={iconSize}
+				colorStyleID={colorStyleID}
+				customColor={customColor}
+				setIconSize={setIconSize}
+				setColorStyleID={setColorStyleID}
+				setCustomColor={setCustomColor}
+			/>
+		);
+	}
 
 	async function onIconActionButtonClick(copy = true) {
 		const url = `https://files.svgcdn.io/${iconPack.cdnId}/${icon}.svg`;
@@ -338,32 +353,6 @@ function HomePage() {
 								<rect x="8" y="7" width="2" height="8" rx="1" fill="currentColor" />
 							</svg>
 						</Button>
-						<Button
-							square
-							onClick={() =>
-								openModal(
-									<CustomizationMenu
-										iconSize={iconSize}
-										colorStyleID={colorStyleID}
-										customColor={customColor}
-										setIconSize={setIconSize}
-										setColorStyleID={setColorStyleID}
-										setCustomColor={setCustomColor}
-									/>
-								)
-							}
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
-								<path
-									fill="none"
-									stroke="currentColor"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4m9.5-13.5l4 4"
-								/>
-							</svg>
-						</Button>
 					</div>
 					{iconPackData?.types &&
 						(iconPackData.types.length < 5 ? (
@@ -438,6 +427,41 @@ function HomePage() {
 						<XIcon className="absolute top-4 right-4" onClick={() => setIcon(null)} />
 					</div>
 				)}
+				<div className="relative flex flex-row gap-2 w-full p-3">
+					<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
+					<ColorStyleButton
+						colorStyleID={colorStyleID}
+						color={customColor}
+						onClick={openColorStyleMenu}
+						selected
+						inlineHexCode
+					/>
+					<div className="relative">
+						<input
+							type="number"
+							min="1"
+							max="100"
+							value={iconSize}
+							onChange={(e) => setIconSize(parseInt(e.target.value))}
+							className="w-[60px]"
+						/>
+						<span className="absolute right-1.5 text-tertiary flex flex-row items-center inset-y-0 pointer-events-none">
+							px
+						</span>
+					</div>
+					<Button square onClick={openColorStyleMenu}>
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+							<path
+								fill="none"
+								stroke="currentColor"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4m9.5-13.5l4 4"
+							/>
+						</svg>
+					</Button>
+				</div>
 			</div>
 		</div>
 	);
@@ -597,7 +621,7 @@ function CustomizationMenu({
 			<XIcon className="absolute top-4 right-4 z-10" onClick={closeModal} />
 			<div className="flex flex-col px-3 pb-3 relative">
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
-					Customizations
+					Customization
 				</div>
 				<PropertyControl title="Size">
 					<div className="flex flex-row gap-2 w-full">
@@ -642,53 +666,25 @@ function CustomizationMenu({
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
 					Color Styles
 				</div>
-				<div
-					className={classNames(
-						"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded relative",
-						!selectedColorStyleID ? "bg-secondary text-primary" : "text-secondary"
-					)}
-					onClick={() => {
-						setSelectedColorStyleID(null);
-					}}
+				<ColorStyleButton
+					color={selectedCustomColor}
+					selected={!selectedColorStyleID}
+					onClick={() => setSelectedColorStyleID(null)}
 				>
-					<div
-						className="size-2 relative rounded-full pointer-events-none"
-						style={{
-							backgroundColor: selectedCustomColor,
-						}}
-					>
-						<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
-					</div>
-					Custom
-					<span className="flex-1 text-right text-tertiary pointer-events-none">
-						{expandHexCode(selectedCustomColor)}
-					</span>
 					<input
 						type="color"
 						value={selectedCustomColor}
 						onChange={(e) => setSelectedCustomColor(e.target.value)}
 						className="absolute opacity-0 inset-0 w-full cursor-pointer"
 					/>
-				</div>
+				</ColorStyleButton>
 				{colorStyles.map((style) => (
-					<div
+					<ColorStyleButton
 						key={style.id}
-						className={classNames(
-							"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
-							selectedColorStyleID == style.id ? "bg-secondary text-primary" : "text-secondary"
-						)}
+						style={style}
+						selected={selectedColorStyleID == style.id}
 						onClick={() => setSelectedColorStyleID(style.id)}
-					>
-						<div
-							className="size-2 relative rounded-full"
-							style={{
-								backgroundColor: theme === "light" ? style.light : style.dark || style.light,
-							}}
-						>
-							<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
-						</div>
-						{style.name}
-					</div>
+					/>
 				))}
 			</div>
 			<div className="flex flex-col p-3 relative">
@@ -770,4 +766,55 @@ function expandHexCode(hex) {
 
 	// If it's neither 3 nor 6 characters, return the original input
 	return "#" + hex;
+}
+function ColorStyleButton({
+	colorStyleID = null,
+	style = null,
+	color = null,
+	selected = false,
+	onClick,
+	children = null,
+	inlineHexCode = false,
+}) {
+	const [colorStyle, setColorStyle] = useState<ColorStyle | null>(style);
+
+	const theme = useTheme();
+
+	useEffect(() => {
+		if (colorStyleID) {
+			framer.getColorStyle(colorStyleID).then(setColorStyle);
+		} else if (!style) {
+			setColorStyle(null);
+		}
+	}, [colorStyleID, style]);
+
+	return (
+		<div
+			className={classNames(
+				"relative flex flex-row gap-2 px-2 h-6 min-h-6 w-full items-center cursor-pointer rounded",
+				selected ? "bg-secondary text-primary" : "text-secondary"
+			)}
+			onClick={onClick}
+		>
+			<div
+				className="size-2 relative rounded-full"
+				style={{
+					backgroundColor: colorStyle
+						? theme === "light"
+							? colorStyle.light
+							: colorStyle.dark || colorStyle.light
+						: color || "transparent",
+				}}
+			>
+				<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+			</div>
+			{colorStyle ? colorStyle.name : inlineHexCode ? expandHexCode(color) : "Custom Color"}
+			{!inlineHexCode && color && !colorStyle && (
+				<span className="flex-1 text-right text-tertiary pointer-events-none">
+					{expandHexCode(color)}
+				</span>
+			)}
+			{children}
+		</div>
+	);
 }
