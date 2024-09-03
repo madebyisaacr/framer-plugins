@@ -21,4 +21,6 @@ export default {
 	AuthenticatePage,
 	SelectDatabasePage,
 	MapFieldsPage,
+
+	successMessage: "Notion database synced successfully",
 };

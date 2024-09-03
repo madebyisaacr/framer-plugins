@@ -23,4 +23,6 @@ export default {
 	AuthenticatePage,
 	SelectDatabasePage,
 	MapFieldsPage,
+
+	successMessage: "Google Sheet synced successfully",
 };

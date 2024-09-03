@@ -154,7 +154,7 @@ function AuthenticatedApp() {
 			logSyncResult(result);
 
 			if (result.status === "success") {
-				// framer.closePlugin("Synchronization successful");
+				framer.closePlugin(integration.successMessage);
 				return;
 			}
 		},

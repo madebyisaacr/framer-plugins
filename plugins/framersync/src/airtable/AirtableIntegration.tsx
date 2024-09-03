@@ -23,4 +23,6 @@ export default {
 	AuthenticatePage,
 	SelectDatabasePage,
 	MapFieldsPage,
+
+	successMessage: "Airtable table synced successfully",
 };
