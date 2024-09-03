@@ -69,6 +69,8 @@ const ICON_PACKS = {
 	Gridicons: Gridicons,
 };
 
+type Theme = "light" | "dark";
+
 framer.showUI({
 	position: "top left",
 	width: 290,
@@ -95,6 +97,11 @@ function HomePage() {
 	const [searchText, setSearchText] = useState("");
 	const [iconGroups, setIconGroups] = useState(generateIconGroups(ICON_PACKS[iconPack?.name]));
 	const [rowsVisible, setRowsVisible] = useState(MAX_VISIBLE_ROWS);
+	const [iconSize, setIconSize] = useState(16);
+	const [colorStyle, setColorStyle] = useState<ColorStyle | null>(null);
+	const [customColor, setCustomColor] = useState(
+		(document.body.getAttribute("data-framer-theme") as Theme) === "dark" ? "#ffffff" : "#000000"
+	);
 
 	const scrollContainerRef = useRef(null);
 	const rowsVisibleRef = useRef(rowsVisible);
@@ -324,7 +331,21 @@ function HomePage() {
 								<rect x="8" y="7" width="2" height="8" rx="1" fill="currentColor" />
 							</svg>
 						</Button>
-						<Button square onClick={() => openModal(<CustomizationMenu />)}>
+						<Button
+							square
+							onClick={() =>
+								openModal(
+									<CustomizationMenu
+										iconSize={iconSize}
+										colorStyle={colorStyle}
+										customColor={customColor}
+										setIconSize={setIconSize}
+										setColorStyle={setColorStyle}
+										setCustomColor={setCustomColor}
+									/>
+								)
+							}
+						>
 							<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
 								<path
 									fill="none"
@@ -422,7 +443,7 @@ function IconPackInfoPage({ iconPack }) {
 	return (
 		<div className="flex flex-col size-full p-3 gap-2">
 			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
-			<h1 className="text-sm font-bold -mb-1">{iconPack?.name}</h1>
+			<h1 className="font-semibold -mb-1">{iconPack?.name}</h1>
 			<p className="mb-1">{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
 			{iconPack?.licenseUrl && (
 				<Button
@@ -530,13 +551,19 @@ function CopySVGButton({ copyFunction }) {
 	);
 }
 
-function CustomizationMenu() {
+function CustomizationMenu({
+	iconSize,
+	colorStyle,
+	customColor,
+	setIconSize,
+	setColorStyle,
+	setCustomColor,
+}) {
 	const { closeModal } = useContext(PageStackContext);
 
-	const [size, setSize] = useState(16);
-	const [selectedColorStyle, setSelectedColorStyle] = useState<ColorStyle | null>(null);
-	const [customColor, setCustomColor] = useState("#000");
-	const colorPickerRef = useRef(null);
+	const [size, setSize] = useState(iconSize);
+	const [selectedColorStyle, setSelectedColorStyle] = useState<ColorStyle | null>(colorStyle);
+	const [selectedCustomColor, setSelectedCustomColor] = useState(customColor);
 
 	const [colorStyles, setColorStyles] = useState<ColorStyle[]>([]);
 	const theme = useTheme();
@@ -549,9 +576,17 @@ function CustomizationMenu() {
 		});
 	}, []);
 
+	useEffect(() => {
+		return () => {
+			setSize(iconSize);
+			setSelectedColorStyle(colorStyle);
+			setSelectedCustomColor(customColor);
+		};
+	}, [iconSize, colorStyle, customColor]);
+
 	return (
 		<div className="flex flex-col size-full max-h-[max(400px,80vh)] overflow-hidden">
-			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
+			<XIcon className="absolute top-4 right-4 z-10" onClick={closeModal} />
 			<div className="flex flex-col gap-2 px-3 pb-3 relative">
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
 					Customization
@@ -612,41 +647,40 @@ function CustomizationMenu() {
 						<div
 							className="size-2 relative rounded-full pointer-events-none"
 							style={{
-								backgroundColor: customColor,
+								backgroundColor: selectedCustomColor,
 							}}
 						>
 							<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
 						</div>
 						Custom
 						<span className="flex-1 text-right text-tertiary pointer-events-none">
-							{expandHexCode(customColor)}
+							{expandHexCode(selectedCustomColor)}
 						</span>
 						<input
 							type="color"
-							value={customColor}
-							onChange={(e) => setCustomColor(e.target.value)}
+							value={selectedCustomColor}
+							onChange={(e) => setSelectedCustomColor(e.target.value)}
 							className="absolute opacity-0 inset-0 w-full cursor-pointer"
 						/>
 					</div>
-					{colorStyles.map((colorStyle) => (
+					{colorStyles.map((style) => (
 						<div
-							key={colorStyle.id}
+							key={style.id}
 							className={classNames(
 								"flex flex-row gap-2.5 px-2 h-6 min-h-6 items-center cursor-pointer rounded",
-								selectedColorStyle == colorStyle ? "bg-secondary text-primary" : "text-secondary"
+								selectedColorStyle == style ? "bg-secondary text-primary" : "text-secondary"
 							)}
-							onClick={() => setSelectedColorStyle(colorStyle)}
+							onClick={() => setSelectedColorStyle(style)}
 						>
 							<div
 								className="size-2 relative rounded-full"
 								style={{
-									backgroundColor:
-										theme === "light" ? colorStyle.light : colorStyle.dark || colorStyle.light,
+									backgroundColor: theme === "light" ? style.light : style.dark || style.light,
 								}}
 							>
 								<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
 							</div>
-							{colorStyle.name}
+							{style.name}
 						</div>
 					))}
 				</div>
@@ -677,8 +711,6 @@ function PropertyControl({ title, children, disabled = false }) {
 		</div>
 	);
 }
-
-type Theme = "light" | "dark";
 
 function useTheme() {
 	const [theme, setTheme] = useState<Theme>(
