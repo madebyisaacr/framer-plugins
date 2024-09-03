@@ -799,7 +799,7 @@ function EditFieldMenu({
 	}, [propertyType, fieldType, allFieldSettings]);
 
 	return (
-		<div className="size-full flex-col">
+		<div className="flex-1 w-full flex-col overflow-hidden">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1 mt-1">{fieldConfig.property.name}</h1>
 				<p className="mb-1 text-tertiary">
@@ -901,7 +901,7 @@ function EditFieldMenu({
 									allFieldSettings.find(
 										(setting) => setting.propertyType === fieldConfig.property.type
 									)?.[FieldSettings.MultipleFields]?.[
-										settings[FieldSettings.MultipleFields] ? "true" : "false"
+										settings[FieldSettings.MultipleFields] == false ? "false" : "true"
 									]
 								}
 								{settings[FieldSettings.MultipleFields] && (
