@@ -1,4 +1,5 @@
 import { GetDatabaseResponse } from "@notionhq/client/build/src/api-endpoints";
+import { useState, useEffect } from "react";
 import { assert } from "../utils";
 import {
 	NotionProperty,
@@ -9,6 +10,8 @@ import {
 	richTextToPlainText,
 	getFieldConversionTypes,
 	updatePluginData,
+	fetchDatabasePages,
+	getCachedDatabasePages,
 } from "./notion";
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
@@ -17,6 +20,8 @@ import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import getDatabaseIcon from "./getDatabaseIcon";
 import { FieldSettings } from "../general/FieldSettings";
 import { getFieldsById } from "../general/updateCollection";
+import Window from "../general/Window";
+import { Spinner } from "@shared/spinner/Spinner";
 
 const peopleMessage =
 	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
@@ -80,6 +85,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		return [];
 	}
 
+	const databasePages = getCachedDatabasePages(database.id);
+
 	const canHaveNewFields = pluginContext.type === "update";
 	const existingFieldsById = canHaveNewFields ? getFieldsById(pluginContext.collectionFields) : {};
 
@@ -88,6 +95,52 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			? !existingFieldsById.hasOwnProperty(fieldId) && !disabledFieldIds.includes(fieldId)
 			: false;
 	};
+
+	const autoFieldTypesById = {};
+	let pageCoverAutoDisabled = true;
+	let pageIconAutoDisabled = true;
+	let imageIconsCount = 0;
+	let emojiIconsCount = 0;
+
+	const autoTypeFieldNames: string[] = [];
+
+	for (const key in database.properties) {
+		const property = database.properties[key];
+
+		if (property.type == "formula") {
+			autoTypeFieldNames.push(key);
+		}
+	}
+
+	for (const page of databasePages) {
+		if (page.icon) {
+			pageIconAutoDisabled = false;
+
+			if (page.icon.type == "emoji") {
+				emojiIconsCount += 1;
+			} else if (page.icon.type == "external") {
+				imageIconsCount += 1;
+			}
+		}
+
+		if (page.cover) {
+			pageCoverAutoDisabled = false;
+		}
+
+		for (const fieldName of autoTypeFieldNames) {
+			const property = page.properties[fieldName]
+			if (property.type == "formula" && property.formula.type) {
+				autoFieldTypesById[property.id] = property.formula.type
+			}
+		}
+	}
+
+	const pageIconAutoFieldType =
+		emojiIconsCount > 0 || imageIconsCount > 0
+			? emojiIconsCount > imageIconsCount
+				? "string"
+				: "image"
+			: undefined;
 
 	const regularFields: CollectionFieldConfig[] = [];
 	let titleProperty: NotionProperty | null = null;
@@ -111,6 +164,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			property,
 			conversionTypes,
 			isPageLevelField: false,
+			autoFieldType: autoFieldTypesById[property.id],
 		});
 	}
 
@@ -132,7 +186,6 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			id: "page-content",
 			name: "Content",
 			type: "page-content",
-			unsupported: false,
 		},
 		originalFieldName: pageContentField.name,
 		isNewField: isNewField(pageContentField.id),
@@ -147,24 +200,27 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				id: "page-cover",
 				name: "Cover Image",
 				type: "page-cover",
-				unsupported: false,
 			},
 			originalFieldName: "Cover Image",
 			isNewField: isNewField("page-cover"),
 			conversionTypes: ["image"],
 			isPageLevelField: true,
+			unsupported: false,
+			autoDisabled: pageCoverAutoDisabled,
 		},
 		{
 			property: {
 				id: "page-icon",
 				name: "Icon",
 				type: "page-icon",
-				unsupported: false,
 			},
 			originalFieldName: "Icon",
 			isNewField: isNewField("page-icon"),
 			conversionTypes: ["image", "string"],
 			isPageLevelField: true,
+			unsupported: false,
+			autoDisabled: pageIconAutoDisabled,
+			autoFieldType: pageIconAutoFieldType,
 		}
 	);
 
@@ -217,13 +273,25 @@ export function MapFieldsPage({
 }) {
 	const { pluginContext } = usePluginContext();
 	const { database } = pluginContext.integrationContext;
+	const [isLoadingDatabasePages, setIsLoadingDatabasePages] = useState(true);
 
 	assert(isFullDatabase(database));
+
+	useEffect(() => {
+		fetchDatabasePages(database.id).then(() => setIsLoadingDatabasePages(false));
+	}, [database.id]);
 
 	const coverImage = database.cover?.type === "external" ? database.cover.external.url : null;
 	const icon = getDatabaseIcon(database, 28);
 
-	return (
+	return isLoadingDatabasePages ? (
+		<Window page="MapFields">
+			<div className="absolute inset-0 flex-col items-center justify-center gap-3 font-semibold">
+				<Spinner inline />
+				Loading database...
+			</div>
+		</Window>
+	) : (
 		<MapFieldsPageTemplate
 			onSubmit={onSubmit}
 			isLoading={isLoading}

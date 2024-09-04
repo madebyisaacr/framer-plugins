@@ -24,6 +24,8 @@ export interface CollectionFieldConfig {
 	unsupported: boolean;
 	conversionTypes: string[];
 	isPageLevelField: boolean;
+	autoFieldType?: string;
+	autoDisabled?: boolean;
 }
 
 const TRANSITION = {
@@ -83,7 +85,7 @@ export function MapFieldsPageTemplate({
 		getInitialSlugFieldId(pluginContext, slugFields)
 	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
-		() => new Set<string>(pluginContext.type === "update" ? pluginContext.disabledFieldIds : [])
+		getDisabledFieldIds(fieldConfigList, pluginContext)
 	);
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
@@ -612,6 +614,7 @@ function FieldTypeSelector({
 	onClick = null,
 	fieldType,
 	availableFieldTypes,
+	autoFieldType = null,
 	disabled = false,
 	segmentedControl = false,
 	onChange = (value) => {},
@@ -641,6 +644,28 @@ function FieldTypeSelector({
 							initial={false}
 							transition={transition}
 						/>
+					</div>
+				)}
+				{autoFieldType && (
+					<div
+						className="absolute w-4 h-6 flex-col items-center justify-center top-0.5 -left-4 text-tertiary hover:text-secondary transition-colors"
+						style={{ translate: `0px ${availableFieldTypes.indexOf(autoFieldType) * 32}px` }}
+						title="Field type automatically detected from field values"
+					>
+						<svg
+							width="10"
+							height="12"
+							viewBox="0 0 10 12"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								fillRule="evenodd"
+								clipRule="evenodd"
+								d="M1.06045 7.99999C0.593446 7.99999 0.305446 7.49099 0.545446 7.09099L4.37445 0.709993C4.71545 0.141993 5.58944 0.463993 5.48044 1.11699L5.09745 3.41799C5.04645 3.72299 5.28145 3.99999 5.59045 3.99999H8.94044C9.40744 3.99999 9.69545 4.50899 9.45545 4.90899L5.62645 11.29C5.28545 11.858 4.41145 11.536 4.52045 10.883L4.90345 8.58199C4.95445 8.27699 4.71945 7.99999 4.41045 7.99999H1.06045Z"
+								fill="currentColor"
+							/>
+						</svg>
 					</div>
 				)}
 				{availableFieldTypes.map((type) => (
@@ -738,8 +763,10 @@ function createFieldTypesList(
 			continue;
 		}
 
+		const defaultType = fieldConfig.autoFieldType || fieldConfig.conversionTypes[0];
+
 		if (pluginContext.type !== "update") {
-			result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
+			result[fieldConfig.property.id] = defaultType;
 		} else {
 			const field = pluginContext.collectionFields.find(
 				(field) => field.id === fieldConfig.property.id
@@ -748,7 +775,7 @@ function createFieldTypesList(
 			if (field && conversionTypes.includes(field.type)) {
 				result[fieldConfig.property.id] = field.type;
 			} else {
-				result[fieldConfig.property.id] = fieldConfig.conversionTypes[0];
+				result[fieldConfig.property.id] = defaultType;
 			}
 		}
 	}
@@ -847,6 +874,7 @@ function EditFieldMenu({
 						<FieldTypeSelector
 							fieldType={fieldTypes[id]}
 							availableFieldTypes={fieldConfig.conversionTypes}
+							autoFieldType={fieldConfig.autoFieldType}
 							onChange={(value) => handleFieldTypeChange(id, value)}
 							segmentedControl
 						/>
@@ -1090,6 +1118,7 @@ function FieldConfigRow({
 					<FieldTypeSelector
 						fieldType={fieldTypes[id]}
 						availableFieldTypes={fieldConfig.conversionTypes}
+						autoFieldType={fieldConfig.autoFieldType}
 						disabled={isDisabled}
 						onChange={(value) => handleFieldTypeChange(id, value)}
 						onClick={() => selectField(id)}
@@ -1119,4 +1148,23 @@ function getInitialSlugFieldId(pluginContext: PluginContext, fieldConfigList: ob
 		return pluginContext.slugFieldId;
 
 	return fieldConfigList[0]?.property?.id ?? null;
+}
+
+function getDisabledFieldIds(
+	fieldConfigList: CollectionFieldConfig[],
+	pluginContext: PluginContext
+): Set<string> {
+	if (pluginContext.type === "update") {
+		return new Set(pluginContext.disabledFieldIds);
+	} else {
+		const disabledFieldIds = new Set<string>();
+
+		for (const fieldConfig of fieldConfigList) {
+			if (fieldConfig.autoDisabled) {
+				disabledFieldIds.add(fieldConfig.property.id);
+			}
+		}
+
+		return disabledFieldIds;
+	}
 }

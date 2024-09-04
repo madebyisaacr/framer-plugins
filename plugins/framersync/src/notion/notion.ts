@@ -27,6 +27,8 @@ import { FieldSettings } from "../general/FieldSettings";
 
 export type FieldId = string;
 
+const databasePagesByDatabaseId = {};
+
 const apiBaseUrl =
 	window.location.hostname === "localhost"
 		? "http://localhost:8787/notion"
@@ -521,6 +523,27 @@ async function processAllItems(
 	};
 }
 
+export async function fetchDatabasePages(databaseId: string) {
+	if (databasePagesByDatabaseId[databaseId]) {
+		return databasePagesByDatabaseId[databaseId];
+	}
+
+	const data = await collectPaginatedAPI(notion.databases.query, {
+		database_id: databaseId,
+	});
+
+	databasePagesByDatabaseId[databaseId] = data;
+	return data;
+}
+
+export function getCachedDatabasePages(databaseId: string) {
+	if (databasePagesByDatabaseId[databaseId]) {
+		return databasePagesByDatabaseId[databaseId];
+	}
+
+	return [];
+}
+
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
@@ -546,9 +569,7 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await collectPaginatedAPI(notion.databases.query, {
-		database_id: database.id,
-	});
+	const data = await fetchDatabasePages(database.id);
 
 	assert(data.every(isFullPage), "Response is not a full page");
 
