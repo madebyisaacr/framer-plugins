@@ -1,6 +1,0 @@
-{
-    "id": "W4zWWL",
-    "name": "AirtableSync",
-    "modes": ["configureManagedCollection", "syncManagedCollection"],
-    "icon": "/notion.png"
-}
