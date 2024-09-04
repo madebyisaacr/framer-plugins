@@ -8,6 +8,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 		authorize={authorize}
 		integrationName="Google Sheets"
 		accountPlatformName="Google"
+		databaseLabel="sheet"
 		logo={<GoogleSheetsLogo size={50} />}
 		steps={[
 			"Log in to your Google account",

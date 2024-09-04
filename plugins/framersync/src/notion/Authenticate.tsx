@@ -8,6 +8,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 		authorize={authorize}
 		integrationName="Notion"
 		accountPlatformName="Notion"
+		databaseLabel="database"
 		logo={<NotionLogo size={50} />}
 		steps={[
 			"Log in to your Notion account",

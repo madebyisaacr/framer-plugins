@@ -8,6 +8,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 		authorize={authorize}
 		integrationName="Airtable"
 		accountPlatformName="Airtable"
+		databaseLabel="base"
 		logo={<AirtableLogo size={50} />}
 		steps={[
 			"Log in to your Airtable account",

@@ -13,6 +13,7 @@ export function AuthenticatePageTemplate({
 	accountPlatformName,
 	logo,
 	steps,
+	databaseLabel,
 }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
 
@@ -20,6 +21,8 @@ export function AuthenticatePageTemplate({
 	const isDocumentVisible = useIsDocumentVisible();
 	const notifiedForContextRef = useRef<PluginContext | null>(null);
 	const authPollCancelRef = useRef(null);
+
+	const reauthenticating = pluginContext.collectionFields?.length > 0;
 
 	useEffect(() => {
 		// after authentication the user may not have returned to Framer yet.
@@ -64,12 +67,16 @@ export function AuthenticatePageTemplate({
 
 	return (
 		<Window page="Authenticate" className="flex-col justify-center gap-3 pb-3 px-3">
-			<BackButton onClick={onBackButtonClick} />
+			{!reauthenticating && <BackButton onClick={onBackButtonClick} />}
 			<h1 className="text-base font-bold text-primary">
-				Connect your {integrationName} account
+				{reauthenticating ? "Reconnect" : "Connect"} your {integrationName} account
 				<br />
 				with FramerSync
 			</h1>
+			<p className="text-secondary -mt-2">
+				Your {integrationName} account was disconnected or no longer has access. Please reconnect
+				your account and share the {databaseLabel} that was previously connected.
+			</p>
 			<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
 				{logo}
 				<svg
