@@ -103,7 +103,7 @@ export default function SelectDatabasePageTemplate({
 							Loading {databasesLabel}...
 						</div>
 					) : (
-						<div className="flex-1 flex-col gap-1">
+						<div className="flex-1 flex-col">
 							{databases?.map((database) => (
 								<DatabaseButton
 									key={database.id}
@@ -174,7 +174,7 @@ function DatabaseButton({
 	return (
 		<div
 			className={classNames(
-				"relative cursor-pointer flex-col font-semibold hover:bg-secondary transition-colors rounded",
+				"relative cursor-pointer flex-col font-semibold rounded",
 				selected && "bg-secondary"
 			)}
 		>

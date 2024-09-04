@@ -22,7 +22,7 @@ export function AuthenticatePageTemplate({
 	const notifiedForContextRef = useRef<PluginContext | null>(null);
 	const authPollCancelRef = useRef(null);
 
-	const reauthenticating = pluginContext.collectionFields?.length > 0;
+	const reauthenticating = pluginContext.type === "update";
 
 	useEffect(() => {
 		// after authentication the user may not have returned to Framer yet.
