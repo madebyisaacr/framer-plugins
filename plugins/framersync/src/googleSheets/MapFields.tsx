@@ -11,6 +11,7 @@ import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import { FieldSettings } from "../general/FieldSettings";
+import { getFieldsById } from "../general/updateCollection";
 
 const propertyTypeNames = {
 	BOOLEAN: "Boolean",
@@ -38,12 +39,17 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
-	const { integrationContext } = pluginContext;
+	const { integrationContext, ignoredFieldIds, collectionFields } = pluginContext;
 	const { sheet } = integrationContext;
 
-	const existingFieldIds = new Set(
-		pluginContext.type === "update" ? pluginContext.collectionFields.map((field) => field.id) : []
-	);
+	const canHaveNewFields = pluginContext.type === "update";
+	const existingFieldsById = canHaveNewFields ? getFieldsById(collectionFields) : {};
+
+	const isNewField = (fieldId: string) => {
+		return canHaveNewFields
+			? !existingFieldsById.hasOwnProperty(fieldId) && !ignoredFieldIds.includes(fieldId)
+			: false;
+	};
 
 	const fields: CollectionFieldConfig[] = [];
 
@@ -79,7 +85,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 			fields.push({
 				originalFieldName: property.name,
-				isNewField: existingFieldIds.size > 0 && !existingFieldIds.has(property.id),
+				isNewField: isNewField(property.id),
 				unsupported: !conversionTypes.length,
 				property,
 				conversionTypes,

@@ -54,7 +54,8 @@ const collaboratorsMessage =
 const fieldConversionMessages = {
 	"singleCollaborator - string": collaboratorsMessage,
 	"multipleCollaborators - string": collaboratorsMessage,
-	"button - link": "If the button's action is “Open URL”, the button URL will be imported as a link. Otherwise, nothing will be imported."
+	"button - link":
+		"If the button's action is “Open URL”, the button URL will be imported as a link. Otherwise, nothing will be imported.",
 };
 
 const allFieldSettings = [
@@ -119,7 +120,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
-	const { integrationContext } = pluginContext;
+	const { integrationContext, ignoredFieldIds } = pluginContext;
 	const { table } = integrationContext;
 
 	if (!table) {
@@ -128,8 +129,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const result: CollectionFieldConfig[] = [];
 
-	const existingFieldsById =
-		pluginContext.type === "update" ? getFieldsById(pluginContext.collectionFields) : null;
+	const canHaveNewFields = pluginContext.type === "update";
+	const existingFieldsById = canHaveNewFields ? getFieldsById(pluginContext.collectionFields) : {};
 
 	for (const key in table.fields) {
 		const property = table.fields[key];
@@ -139,7 +140,9 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 		result.push({
 			originalFieldName: property.name,
-			isNewField: existingFieldsById ? !existingFieldsById.hasOwnProperty(property.id) : false,
+			isNewField: canHaveNewFields
+				? !existingFieldsById.hasOwnProperty(property.id) && !ignoredFieldIds.includes(property.id)
+				: false,
 			unsupported: !conversionTypes.length,
 			property,
 			conversionTypes,
