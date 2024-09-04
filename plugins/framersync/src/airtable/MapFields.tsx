@@ -48,7 +48,15 @@ const propertyTypeNames = {
 	externalSyncSource: "Sync source",
 	url: "URL",
 };
-const fieldConversionMessages = {};
+
+const collaboratorsMessage =
+	"Users' names are imported as text. Other user information, including email addresses and profile pictures, are not imported.";
+const fieldConversionMessages = {
+	"singleCollaborator - string": collaboratorsMessage,
+	"multipleCollaborators - string": collaboratorsMessage,
+	"button - link": "If the button's action is “Open URL”, the button URL will be imported as a link. Otherwise, nothing will be imported."
+};
+
 const allFieldSettings = [
 	{ propertyType: "createdTime", [FieldSettings.Time]: true },
 	{ propertyType: "dateTime", [FieldSettings.Time]: true },

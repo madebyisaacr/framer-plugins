@@ -6,7 +6,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 	return <AuthenticatePageTemplate
 		onAuthenticated={onAuthenticated}
 		authorize={authorize}
-		integrationName="Google Sheets"
+		integrationName="Google"
 		accountPlatformName="Google"
 		databaseLabel="sheet"
 		logo={<GoogleSheetsLogo size={50} />}

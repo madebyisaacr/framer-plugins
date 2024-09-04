@@ -295,7 +295,7 @@ export function MapFieldsPageTemplate({
 										<a
 											href={databaseUrl}
 											target="_blank"
-											className="text-lg font-bold hover:underline"
+											className="text-lg font-bold hover:underline text-primary"
 										>
 											{databaseName}
 										</a>

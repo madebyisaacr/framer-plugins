@@ -14,7 +14,7 @@
 }
 
 [data-framer-theme="dark"] {
-	--color-bg-secondary: var(--framer-color-bg-secondary);
+	--color-bg-secondary: #222222; /*var(--framer-color-bg-secondary); */
 	--color-bg-tertiary: var(--framer-color-bg-tertiary);
 	--color-segmented-control: #555;
 	--color-divider-secondary: #444;
