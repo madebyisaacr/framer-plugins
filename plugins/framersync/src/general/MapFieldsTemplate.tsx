@@ -83,7 +83,7 @@ export function MapFieldsPageTemplate({
 		getInitialSlugFieldId(pluginContext, slugFields)
 	);
 	const [disabledFieldIds, setDisabledFieldIds] = useState(
-		() => new Set<string>(pluginContext.type === "update" ? pluginContext.ignoredFieldIds : [])
+		() => new Set<string>(pluginContext.type === "update" ? pluginContext.disabledFieldIds : [])
 	);
 	const [fieldNameOverrides, setFieldNameOverrides] = useState<Record<string, string>>(() =>
 		getFieldNameOverrides(pluginContext)
@@ -174,7 +174,7 @@ export function MapFieldsPageTemplate({
 			{
 				collectionFields: fields,
 				slugFieldId,
-				ignoredFieldIds: Array.from(disabledFieldIds),
+				disabledFieldIds: Array.from(disabledFieldIds),
 				databaseName,
 				fieldSettings,
 			},

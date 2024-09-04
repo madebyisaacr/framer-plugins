@@ -360,7 +360,7 @@ export function getCellValue(
 
 export interface SynchronizeMutationOptions {
 	fields: CollectionField[];
-	ignoredFieldIds: string[];
+	disabledFieldIds: string[];
 	lastSyncedTime: string | null;
 	slugFieldId: string;
 }
@@ -502,7 +502,7 @@ export async function synchronizeDatabase(
 	const {
 		integrationContext,
 		collectionFields,
-		ignoredFieldIds,
+		disabledFieldIds,
 		lastSyncedTime,
 		slugFieldId,
 		fieldSettings,
@@ -641,7 +641,7 @@ export function useSpreadsheetsQuery() {
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	integrationContext: object,
-	ignoredFieldIds: string[]
+	disabledFieldIds: string[]
 ): boolean {
 	const { sheet } = integrationContext;
 	assert(sheet && sheet.data && sheet.data[0].rowData);
@@ -654,7 +654,7 @@ export function hasFieldConfigurationChanged(
 	}
 
 	const headerRow = sheet.data[0].rowData[0].values;
-	const properties = headerRow.filter((_, index) => !ignoredFieldIds.includes(index.toString()));
+	const properties = headerRow.filter((_, index) => !disabledFieldIds.includes(index.toString()));
 
 	if (properties.length !== fields.length) return true;
 

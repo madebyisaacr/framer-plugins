@@ -73,7 +73,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
-	const { integrationContext, ignoredFieldIds } = pluginContext;
+	const { integrationContext, disabledFieldIds } = pluginContext;
 	const { database } = integrationContext;
 
 	if (!isFullDatabase(database)) {
@@ -85,7 +85,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const isNewField = (fieldId: string) => {
 		return canHaveNewFields
-			? !existingFieldsById.hasOwnProperty(fieldId) && !ignoredFieldIds.includes(fieldId)
+			? !existingFieldsById.hasOwnProperty(fieldId) && !disabledFieldIds.includes(fieldId)
 			: false;
 	};
 

@@ -5,7 +5,7 @@ import { PluginContext } from "./PluginContext";
 export const PluginDataKey = createObject([
 	"integrationId",
 	"integrationData",
-	"ignoredFieldIds",
+	"disabledFieldIds",
 	"lastSyncedTime",
 	"slugFieldId",
 	"databaseName",
@@ -135,7 +135,7 @@ export async function updateCollectionPluginData(
 	databaseName: string | null,
 	shouldSetFields: boolean = true
 ) {
-	const { collectionFields, integrationId, ignoredFieldIds, slugFieldId, fieldSettings } =
+	const { collectionFields, integrationId, disabledFieldIds, slugFieldId, fieldSettings } =
 		pluginContext;
 
 	const collection = await framer.getManagedCollection();
@@ -146,7 +146,7 @@ export async function updateCollectionPluginData(
 
 	await Promise.all([
 		collection.setPluginData(PluginDataKey.integrationId, integrationId),
-		collection.setPluginData(PluginDataKey.ignoredFieldIds, JSON.stringify(ignoredFieldIds)),
+		collection.setPluginData(PluginDataKey.disabledFieldIds, JSON.stringify(disabledFieldIds)),
 		collection.setPluginData(PluginDataKey.integrationData, JSON.stringify(integrationData)),
 		collection.setPluginData(PluginDataKey.slugFieldId, slugFieldId),
 		collection.setPluginData(

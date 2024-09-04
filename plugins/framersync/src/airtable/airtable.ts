@@ -380,7 +380,7 @@ export function getPropertyValue(
 
 export interface SynchronizeMutationOptions {
 	fields: CollectionField[];
-	ignoredFieldIds: string[];
+	disabledFieldIds: string[];
 	lastSyncedTime: string | null;
 	slugFieldId: string;
 }
@@ -518,7 +518,7 @@ export async function synchronizeDatabase(
 	const {
 		integrationContext,
 		collectionFields,
-		ignoredFieldIds,
+		disabledFieldIds,
 		lastSyncedTime,
 		slugFieldId,
 		databaseName,
@@ -620,7 +620,7 @@ export async function updatePluginData(pluginContext: PluginContext) {
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	integrationContext: object,
-	ignoredFieldIds: string[]
+	disabledFieldIds: string[]
 ): boolean {
 	const { table } = integrationContext;
 
@@ -629,7 +629,7 @@ export function hasFieldConfigurationChanged(
 
 	const properties = Object.values(table.fields).filter(
 		(property) =>
-			!ignoredFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
+			!disabledFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
 	);
 
 	if (properties.length !== fields.length) {

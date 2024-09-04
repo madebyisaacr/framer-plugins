@@ -42,7 +42,7 @@ let collection: ManagedCollection | null = null;
 let collectionFields: CollectionField[] | null = null;
 let collectionIntegrationId: string | null = null;
 let integrationDataJson: string | null = null;
-let ignoredFieldIdsJson: string | null = null;
+let disabledFieldIdsJson: string | null = null;
 let lastSyncedTime: string | null = null;
 let slugFieldId: string | null = null;
 let databaseName: string | null = null;
@@ -100,7 +100,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 	}
 
 	try {
-		const ignoredFieldIds = jsonStringToArray(ignoredFieldIdsJson);
+		const disabledFieldIds = jsonStringToArray(disabledFieldIdsJson);
 		const integrationData = JSON.parse(integrationDataJson);
 		const fieldSettings = fieldSettingsJson ? JSON.parse(fieldSettingsJson) : {};
 
@@ -111,7 +111,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			hasChangedFields = integration.hasFieldConfigurationChanged(
 				collectionFields,
 				integrationContext,
-				ignoredFieldIds
+				disabledFieldIds
 			);
 		} catch (error) {
 			console.error("Error getting integration context:", error);
@@ -123,7 +123,7 @@ async function createPluginContext(selectedIntegrationId: string = ""): Promise<
 			integrationContext,
 			collection,
 			collectionFields,
-			ignoredFieldIds,
+			disabledFieldIds,
 			lastSyncedTime,
 			slugFieldId,
 			databaseName,
@@ -211,7 +211,7 @@ async function runPlugin() {
 		collectionFields,
 		collectionIntegrationId,
 		integrationDataJson,
-		ignoredFieldIdsJson,
+		disabledFieldIdsJson,
 		lastSyncedTime,
 		slugFieldId,
 		databaseName,
@@ -220,7 +220,7 @@ async function runPlugin() {
 		collection.getFields(),
 		collection.getPluginData(PluginDataKey.integrationId),
 		collection.getPluginData(PluginDataKey.integrationData),
-		collection.getPluginData(PluginDataKey.ignoredFieldIds),
+		collection.getPluginData(PluginDataKey.disabledFieldIds),
 		collection.getPluginData(PluginDataKey.lastSyncedTime),
 		collection.getPluginData(PluginDataKey.slugFieldId),
 		collection.getPluginData(PluginDataKey.databaseName),

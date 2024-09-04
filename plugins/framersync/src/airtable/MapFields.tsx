@@ -120,7 +120,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
-	const { integrationContext, ignoredFieldIds } = pluginContext;
+	const { integrationContext, disabledFieldIds } = pluginContext;
 	const { table } = integrationContext;
 
 	if (!table) {
@@ -141,7 +141,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		result.push({
 			originalFieldName: property.name,
 			isNewField: canHaveNewFields
-				? !existingFieldsById.hasOwnProperty(property.id) && !ignoredFieldIds.includes(property.id)
+				? !existingFieldsById.hasOwnProperty(property.id) && !disabledFieldIds.includes(property.id)
 				: false,
 			unsupported: !conversionTypes.length,
 			property,

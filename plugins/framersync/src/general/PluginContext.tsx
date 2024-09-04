@@ -22,7 +22,7 @@ export interface PluginContextUpdate {
 	collectionFields: CollectionField[];
 	lastSyncedTime: string;
 	hasChangedFields: boolean;
-	ignoredFieldIds: string[];
+	disabledFieldIds: string[];
 	slugFieldId: string | null;
 	databaseName: string;
 	authenticatedIntegrations: Integration[];

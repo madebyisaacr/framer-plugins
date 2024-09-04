@@ -39,7 +39,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 }
 
 function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
-	const { integrationContext, ignoredFieldIds, collectionFields } = pluginContext;
+	const { integrationContext, disabledFieldIds, collectionFields } = pluginContext;
 	const { sheet } = integrationContext;
 
 	const canHaveNewFields = pluginContext.type === "update";
@@ -47,7 +47,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const isNewField = (fieldId: string) => {
 		return canHaveNewFields
-			? !existingFieldsById.hasOwnProperty(fieldId) && !ignoredFieldIds.includes(fieldId)
+			? !existingFieldsById.hasOwnProperty(fieldId) && !disabledFieldIds.includes(fieldId)
 			: false;
 	};
 
