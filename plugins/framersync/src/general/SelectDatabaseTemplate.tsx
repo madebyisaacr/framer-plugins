@@ -78,7 +78,7 @@ export default function SelectDatabasePageTemplate({
 		>
 			<div className="absolute top-0 inset-x-3 h-px bg-divider"></div>
 			{instructions && (
-				<div className="relative flex-col gap-3 p-3 w-[280px]">
+				<div className="relative flex-col gap-3 p-3 w-[300px]">
 					<BackButton onClick={onBackButtonClick} />
 					{instructions}
 					<div className="absolute right-0 inset-y-3 w-px bg-divider" />

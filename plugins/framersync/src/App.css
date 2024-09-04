@@ -12,6 +12,10 @@ input {
 	@apply bg-secondary;
 }
 
+a {
+	@apply text-tint;
+}
+
 img {
 	-webkit-user-drag: none;
 	-khtml-user-drag: none;

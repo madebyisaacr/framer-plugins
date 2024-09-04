@@ -16,7 +16,7 @@ const pageSizes = {
 		height: 550,
 	},
 	SelectDatabaseWide: {
-		width: 400 + 280,
+		width: 400 + 300,
 		height: 550,
 	},
 	MapFields: {

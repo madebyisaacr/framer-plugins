@@ -27,7 +27,7 @@
 }
 
 select {
-	background-color: var(--color-bg-secondary);
+	@apply bg-secondary;
 }
 
 .segmented-control-shadow {

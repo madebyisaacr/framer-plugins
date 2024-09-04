@@ -2,7 +2,7 @@ export function FramerLogo({ size = 24, className = "" }) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			width={Math.ceil(size * 2 / 3)}
+			width={Math.ceil((size * 2) / 3)}
 			height={Math.ceil(size)}
 			viewBox="4 0 16 24"
 			className={className}
@@ -86,20 +86,23 @@ export function AirtableLogo({ size = 24, className = "" }) {
 export function GoogleSheetsLogo({ size = 24, className = "" }) {
 	return (
 		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 64 88"
-			width={size}
+			width={size * (38 / 50)}
 			height={size}
-			className={className}
+			viewBox="0 0 38 50"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
 		>
-			<path d="M 42,0 64,22 53,24 42,22 40,11 Z" fill="#188038" />
 			<path
-				d="M 42,22 V 0 H 6 C 2.685,0 0,2.685 0,6 v 76 c 0,3.315 2.685,6 6,6 h 52 c 3.315,0 6,-2.685 6,-6 V 22 Z"
-				fill="#34a853"
+				d="M24.6823 0L37.1823 12.5L30.9323 13.6364L24.6823 12.5L23.5459 6.25L24.6823 0Z"
+				fill="#188038"
 			/>
 			<path
-				d="M 12,34 V 63 H 52 V 34 Z M 29.5,58 H 17 v -7 h 12.5 z m 0,-12 H 17 V 39 H 29.5 Z M 47,58 H 34.5 V 51 H 47 Z M 47,46 H 34.5 V 39 H 47 Z"
-				fill="#fff"
+				d="M24.682 12.5V0H4.22745C2.34393 0 0.818359 1.52557 0.818359 3.40909V46.5909C0.818359 48.4744 2.34393 50 4.22745 50H33.7729C35.6564 50 37.182 48.4744 37.182 46.5909V12.5H24.682Z"
+				fill="#34A853"
+			/>
+			<path
+				d="M7.63672 19.3181V35.7954H30.364V19.3181H7.63672ZM17.5799 32.9545H10.4776V28.9772H17.5799V32.9545ZM17.5799 26.1363H10.4776V22.159H17.5799V26.1363ZM27.5231 32.9545H20.4208V28.9772H27.5231V32.9545ZM27.5231 26.1363H20.4208V22.159H27.5231V26.1363Z"
+				fill="white"
 			/>
 		</svg>
 	);
