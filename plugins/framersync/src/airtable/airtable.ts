@@ -257,7 +257,6 @@ export function getPropertyValue(
 	const importArray = fieldSettings[FieldSettings.MultipleFields] !== false;
 
 	switch (property.type) {
-		case "currency":
 		case "email":
 		case "autoNumber":
 		case "count":
@@ -271,6 +270,14 @@ export function getPropertyValue(
 		case "multilineText":
 		case "url":
 			return value;
+		case "currency":
+			if (fieldType === "string") {
+				console.log(property.options);
+				const { precision = 2, symbol = "" } = property.options || {};
+				return `${symbol}${Number(value).toFixed(precision)}`;
+			} else {
+				return Number(value);
+			}
 		case "date":
 		case "dateTime":
 		case "createdTime":
