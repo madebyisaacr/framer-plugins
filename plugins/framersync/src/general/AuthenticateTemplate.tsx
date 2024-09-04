@@ -73,10 +73,12 @@ export function AuthenticatePageTemplate({
 				<br />
 				with FramerSync
 			</h1>
-			<p className="text-secondary -mt-2">
-				Your {integrationName} account was disconnected or no longer has access. Please reconnect
-				your account and share the {databaseLabel} that was previously connected.
-			</p>
+			{reauthenticating && (
+				<p className="text-secondary -mt-2">
+					Your {integrationName} account was disconnected or no longer has access. Please reconnect
+					your account and share the {databaseLabel} that was previously connected.
+				</p>
+			)}
 			<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
 				{logo}
 				<svg

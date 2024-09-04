@@ -917,7 +917,7 @@ function EditFieldMenu({
 							</div>
 						</>
 					)}
-					{applicableSettings.includes(FieldSettings.Time) && (
+					{/* {applicableSettings.includes(FieldSettings.Time) && (
 						<PropertyControl title="Include Time">
 							<SegmentedControl
 								id={`timeOption-${id}`}
@@ -933,7 +933,7 @@ function EditFieldMenu({
 								}}
 							/>
 						</PropertyControl>
-					)}
+					)} */}
 					{applicableSettings.includes(FieldSettings.ImportMarkdownOrHTML) && (
 						<PropertyControl title="Text Format">
 							<SegmentedControl

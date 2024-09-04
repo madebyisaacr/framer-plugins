@@ -57,7 +57,7 @@ const allFieldSettings = [
 	{
 		propertyType: "multipleAttachments",
 		[FieldSettings.MultipleFields]: {
-			true: "The attachments options will be imported as multiple CMS fields with a number ending added to each field's name.",
+			true: "The attachments will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false:
 				"Only the first attachment will be imported as a CMS field, and the rest will be ignored.",
 		},
@@ -84,6 +84,16 @@ const allFieldSettings = [
 			true: "The multi-select options will be imported as multiple CMS fields with a number ending added to each field's name.",
 			false: "Only the first option will be imported as a CMS field, and the rest will be ignored.",
 		},
+	},
+	{
+		propertyType: "singleSelect",
+		fieldType: "enum",
+		[FieldSettings.NoneOption]: true,
+	},
+	{
+		propertyType: "multipleSelects",
+		fieldType: "enum",
+		[FieldSettings.NoneOption]: true,
 	},
 ];
 
