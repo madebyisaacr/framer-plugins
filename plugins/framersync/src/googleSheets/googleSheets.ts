@@ -43,6 +43,22 @@ const propertyTypes = Object.keys(propertyConversionTypes);
 // This is to prevent rate limiting.
 const concurrencyLimit = 5;
 
+const markdownIndicatorPatterns = [
+	/#{1,6}\s.+/m, // Headers
+	/(\*\*|__).+?\1/, // Bold text
+	/(\*|_).+?\1/, // Italic text
+	/`{1,3}[^`\n]+`{1,3}/, // Inline code or code blocks
+	/^\s*[-*+]\s/m, // Unordered list items
+	/^\s*\d+\.\s/m, // Ordered list items
+	/\[.+?\]\(.+?\)/, // Links
+	/!\[.+?\]\(.+?\)/, // Images
+	/^\s*([-*_]){3,}\s*$/m, // Horizontal rules
+	/^>.+/m, // Blockquotes
+	/^\s*```[\s\S]+?```\s*$/m, // Fenced code blocks
+	/\|.+\|.+\|/, // Tables
+	/~~.+?~~/, // Strikethrough
+];
+
 export type GoogleSheetsColumn = {
 	columnIndex: number;
 	effectiveFormat?: {
@@ -59,6 +75,8 @@ export type GoogleSheetsColumn = {
 };
 
 const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
+
+const htmlTagRegex = /^<([a-z][a-z0-9]*)\b[^>]*>.*<\/([a-z][a-z0-9]*)>$/is;
 
 export async function googleAPIFetch(url: string, method: string, route: string, body?: object) {
 	const response = await fetch(
@@ -764,6 +782,8 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 
 export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 	let columnType = "TEXT";
+	let autoFieldType = undefined;
+	let autoFieldSettings = undefined;
 
 	if (cellValue.effectiveFormat?.numberFormat?.type) {
 		const type = cellValue.effectiveFormat.numberFormat.type;
@@ -796,11 +816,40 @@ export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 		columnType = "HYPERLINK";
 	}
 
-	return columnType;
+	// Detect formatted text in HTML or Markdown
+	if (columnType === "TEXT") {
+		const value = cellValue.effectiveValue?.stringValue;
+		if (htmlTagRegex.test(value.trim())) {
+			autoFieldType = "formattedText";
+			autoFieldSettings = {
+				importMarkdownOrHTML: "html",
+			};
+		} else if (isMarkdown(value)) {
+			autoFieldType = "formattedText";
+			autoFieldSettings = {
+				importMarkdownOrHTML: "markdown",
+			};
+		}
+	}
+
+	return [columnType, autoFieldType, autoFieldSettings];
 }
 
 function getIntegrationData(pluginContext: PluginContext) {
 	const { integrationContext } = pluginContext;
 	const { spreadsheetId, sheetId } = integrationContext;
 	return { spreadsheetId, sheetId };
+}
+
+function isMarkdown(text) {
+	// Minimum number of Markdown indicators required
+	const minIndicators = 3;
+
+	// Count how many Markdown indicators are present
+	const indicatorCount = markdownIndicatorPatterns.reduce((count, pattern) => {
+		return count + (pattern.test(text) ? 1 : 0);
+	}, 0);
+
+	// Return true if the number of indicators meets or exceeds the minimum
+	return indicatorCount >= minIndicators;
 }

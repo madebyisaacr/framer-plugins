@@ -63,12 +63,14 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			}
 
 			let columnType = "TEXT";
+			let autoFieldType = undefined;
+			let autoFieldSettings = undefined;
 
 			// Check the column values to determine the type
 			for (let i = 1; i < sheet.data[0].rowData.length; i++) {
 				const cellValue = sheet.data[0].rowData[i].values[index];
 				if (cellValue) {
-					columnType = getCellPropertyType(cellValue);
+					[columnType, autoFieldType, autoFieldSettings] = getCellPropertyType(cellValue);
 					break;
 				}
 			}
@@ -90,6 +92,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				property,
 				conversionTypes,
 				isPageLevelField: false,
+				autoFieldType,
+				autoFieldSettings,
 			});
 		});
 	}
@@ -144,7 +148,7 @@ export function MapFieldsPage({
 			createFieldConfig={createFieldConfig}
 			propertyLabelText="Sheet column"
 			slugFieldTitleText="Slug Field Column"
-			databaseName={`${spreadsheet.name} — ${sheet.properties.title}`}
+			databaseName={`${spreadsheet.name} - ${sheet.properties.title}`}
 			databaseUrl={`https://docs.google.com/spreadsheets/d/${spreadsheet.id}/edit?gid=${sheet.id}`}
 			databaseLabel="Google Sheet"
 			getFieldConversionMessage={getFieldConversionMessage}

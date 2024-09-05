@@ -26,6 +26,7 @@ export interface CollectionFieldConfig {
 	isPageLevelField: boolean;
 	autoFieldType?: string;
 	autoDisabled?: boolean;
+	autoFieldSettings?: Record<string, any>;
 }
 
 const TRANSITION = {
@@ -93,7 +94,9 @@ export function MapFieldsPageTemplate({
 	const [fieldTypes, setFieldTypes] = useState(
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
-	const [fieldSettings, setFieldSettings] = useState(pluginContext.fieldSettings || {});
+	const [fieldSettings, setFieldSettings] = useState(
+		getInitialFieldSettings(pluginContext, fieldConfigList)
+	);
 
 	const fieldElementRefs = useRef({});
 
@@ -1167,4 +1170,35 @@ function getDisabledFieldIds(
 
 		return disabledFieldIds;
 	}
+}
+
+function getInitialFieldSettings(
+	pluginContext: PluginContext,
+	fieldConfigList: CollectionFieldConfig[]
+) {
+	const { fieldSettings } = pluginContext;
+
+	if (pluginContext.type === "update") {
+		let settings = {};
+
+		for (const fieldConfig of fieldConfigList) {
+			const id = fieldConfig.property.id;
+			if (fieldConfig.isNewField) {
+				settings[id] = fieldConfig.autoFieldSettings;
+			} else {
+				settings[id] = fieldSettings[id];
+			}
+		}
+
+		return settings;
+	}
+
+	let settings = {};
+
+	for (const fieldConfig of fieldConfigList) {
+		const id = fieldConfig.property.id;
+		settings[id] = fieldConfig.autoFieldSettings;
+	}
+
+	return settings;
 }
