@@ -785,19 +785,21 @@ export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 	let autoFieldType = undefined;
 	let autoFieldSettings = undefined;
 
+	const effectiveValue = cellValue.effectiveValue;
+
 	if (cellValue.effectiveFormat?.numberFormat?.type) {
 		const type = cellValue.effectiveFormat.numberFormat.type;
 		if (propertyTypes.includes(type)) {
 			columnType = type;
 		}
-	} else if (cellValue.effectiveValue) {
-		if (typeof cellValue.effectiveValue.numberValue === "number") {
+	} else if (effectiveValue) {
+		if (typeof effectiveValue.numberValue === "number") {
 			columnType = "NUMBER";
-		} else if (typeof cellValue.effectiveValue.boolValue === "boolean") {
+		} else if (typeof effectiveValue.boolValue === "boolean") {
 			columnType = "BOOLEAN";
 		} else if (
-			cellValue.effectiveValue.stringValue &&
-			cellValue.effectiveValue.stringValue.match(/^\d{4}-\d{2}-\d{2}$/)
+			effectiveValue.stringValue &&
+			effectiveValue.stringValue.match(/^\d{4}-\d{2}-\d{2}$/)
 		) {
 			columnType = "DATE";
 		}
@@ -817,14 +819,13 @@ export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 	}
 
 	// Detect formatted text in HTML or Markdown
-	if (columnType === "TEXT") {
-		const value = cellValue.effectiveValue?.stringValue;
-		if (htmlTagRegex.test(value.trim())) {
+	if (columnType === "TEXT" && effectiveValue?.stringValue) {
+		if (htmlTagRegex.test(effectiveValue.stringValue.trim())) {
 			autoFieldType = "formattedText";
 			autoFieldSettings = {
 				importMarkdownOrHTML: "html",
 			};
-		} else if (isMarkdown(value)) {
+		} else if (isMarkdown(effectiveValue.stringValue)) {
 			autoFieldType = "formattedText";
 			autoFieldSettings = {
 				importMarkdownOrHTML: "markdown",

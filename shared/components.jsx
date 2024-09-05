@@ -58,6 +58,7 @@ export function SegmentedControl({
 	className = "",
 	tint = false,
 	vertical = false,
+	children = null,
 }) {
 	const transition = { type: "spring", stiffness: "900", damping: "60" };
 
@@ -129,6 +130,7 @@ export function SegmentedControl({
 					<span className="z-[1]">{itemTitles ? itemTitles[index] : item}</span>
 				</div>
 			))}
+			{children}
 		</div>
 	);
 }
