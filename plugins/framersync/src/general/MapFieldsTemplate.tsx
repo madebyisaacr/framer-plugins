@@ -655,20 +655,7 @@ function FieldTypeSelector({
 						style={{ translate: `0px ${availableFieldTypes.indexOf(autoFieldType) * 32}px` }}
 						title="Field type automatically detected from field values"
 					>
-						<svg
-							width="10"
-							height="12"
-							viewBox="0 0 10 12"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								fillRule="evenodd"
-								clipRule="evenodd"
-								d="M1.06045 7.99999C0.593446 7.99999 0.305446 7.49099 0.545446 7.09099L4.37445 0.709993C4.71545 0.141993 5.58944 0.463993 5.48044 1.11699L5.09745 3.41799C5.04645 3.72299 5.28145 3.99999 5.59045 3.99999H8.94044C9.40744 3.99999 9.69545 4.50899 9.45545 4.90899L5.62645 11.29C5.28545 11.858 4.41145 11.536 4.52045 10.883L4.90345 8.58199C4.95445 8.27699 4.71945 7.99999 4.41045 7.99999H1.06045Z"
-								fill="currentColor"
-							/>
-						</svg>
+						<AutoDetectIcon />
 					</div>
 				)}
 				{availableFieldTypes.map((type) => (
@@ -994,20 +981,7 @@ function EditFieldMenu({
 										}}
 										title="Field type automatically detected from field values"
 									>
-										<svg
-											width="10"
-											height="12"
-											viewBox="0 0 10 12"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												fillRule="evenodd"
-												clipRule="evenodd"
-												d="M1.06045 7.99999C0.593446 7.99999 0.305446 7.49099 0.545446 7.09099L4.37445 0.709993C4.71545 0.141993 5.58944 0.463993 5.48044 1.11699L5.09745 3.41799C5.04645 3.72299 5.28145 3.99999 5.59045 3.99999H8.94044C9.40744 3.99999 9.69545 4.50899 9.45545 4.90899L5.62645 11.29C5.28545 11.858 4.41145 11.536 4.52045 10.883L4.90345 8.58199C4.95445 8.27699 4.71945 7.99999 4.41045 7.99999H1.06045Z"
-												fill="currentColor"
-											/>
-										</svg>
+										<AutoDetectIcon />
 									</div>
 								)}
 							</SegmentedControl>
@@ -1231,4 +1205,17 @@ function getInitialFieldSettings(
 	}
 
 	return settings;
+}
+
+function AutoDetectIcon() {
+	return (
+		<svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M1.06045 7.99999C0.593446 7.99999 0.305446 7.49099 0.545446 7.09099L4.37445 0.709993C4.71545 0.141993 5.58944 0.463993 5.48044 1.11699L5.09745 3.41799C5.04645 3.72299 5.28145 3.99999 5.59045 3.99999H8.94044C9.40744 3.99999 9.69545 4.50899 9.45545 4.90899L5.62645 11.29C5.28545 11.858 4.41145 11.536 4.52045 10.883L4.90345 8.58199C4.95445 8.27699 4.71945 7.99999 4.41045 7.99999H1.06045Z"
+				fill="currentColor"
+			/>
+		</svg>
+	);
 }

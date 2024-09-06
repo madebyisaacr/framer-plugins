@@ -73,12 +73,6 @@ export function AuthenticatePageTemplate({
 				<br />
 				with FramerSync
 			</h1>
-			{reauthenticating && (
-				<p className="text-secondary -mt-2">
-					Your {integrationName} account was disconnected or no longer has access. Please reconnect
-					your account and share the {databaseLabel} that was previously connected.
-				</p>
-			)}
 			<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
 				{logo}
 				<svg
@@ -104,6 +98,11 @@ export function AuthenticatePageTemplate({
 					<span className="text-center max-w-[80%] block text-secondary">
 						Complete the authentication and return to this page.
 					</span>
+				) : reauthenticating ? (
+					<p className="text-secondary flex-1">
+						Your {integrationName} account was disconnected or no longer has access. Please
+						reconnect your account and share the {databaseLabel} that was previously connected.
+					</p>
 				) : (
 					<ol className="list-inside list-decimal w-full text-secondary gap-2 text-md flex-col flex-1">
 						{steps.map((step, index) => (
