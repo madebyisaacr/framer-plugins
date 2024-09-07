@@ -5,6 +5,7 @@ import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
 import classNames from "classnames";
+import ArrowRightIcon from "../assets/ArrowRightIcon";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
@@ -26,10 +27,13 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 		<LicenseKeyPage closePage={() => setLicenseKeyPageOpen(false)} />
 	) : (
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
-			<div className="flex-1 flex-col gap-1 w-full items-center justify-center">
+			<div className="flex-1 flex-col gap-1 w-full items-center justify-center text-center text-balance">
 				<Logo />
-				<h1 className="text-lg font-bold mt-3 text-center">Sync your data with the Framer CMS</h1>
-				<p>Select an app to connect to your website.</p>
+				<h1 className="text-lg font-bold mt-3">Sync your apps with the Framer CMS</h1>
+				<p>
+					FramerSync connects Notion, Airtable, and Google Sheets to Framer so you can focus on
+					growing your business, not managing data.
+				</p>
 				<div
 					className={classNames(
 						"text-tertiary flex-row items-center gap-1 mt-2 transition-opacity",
@@ -50,9 +54,10 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 					>
 						<path d="M5 12l5 5l10 -10" />
 					</svg>
-					License Key Activated
+					License Activated
 				</div>
 			</div>
+			<p className="mb-1">Select an app to get started:</p>
 			<div className="grid grid-cols-3 gap-2 w-full">
 				<AppButton
 					icon={<NotionLogo size={40} />}
@@ -75,26 +80,11 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 					<div className="w-full h-px bg-divider" />
 					<div className="flex-row gap-2 w-full">
 						<Button className="flex-1" onClick={onLicenseKeyButtonClick}>
-							Activate your License Key
+							Activate a License Key
 						</Button>
 						<Button className="flex-1" primary onClick={onBuyButtonClick}>
-							Get a License Key
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2.5"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="-ml-0.5"
-							>
-								<path d="M5 12l14 0" />
-								<path d="M13 18l6 -6" />
-								<path d="M13 6l6 6" />
-							</svg>
+							Buy Now
+							<ArrowRightIcon />
 						</Button>
 					</div>
 				</>

@@ -4,6 +4,8 @@ import BackButton from "../components/BackButton";
 import { useState, useEffect } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
 import classNames from "classnames";
+import ArrowRightIcon from "../assets/ArrowRightIcon";
+
 export function LicenseKeyPage({ closePage, checkout }) {
 	return (
 		<Window page="LicenceKey" className="flex-col">
@@ -57,13 +59,13 @@ export function LicenseKeyMenu({
 		setIsValidated(false);
 
 		try {
-			const activated = await activateLicenseKey(licenseKey);
+			const { activated, error } = await activateLicenseKey(licenseKey);
 			if (activated) {
 				setIsValidated(true);
 				setLicenseKey("");
 				onActivated?.();
 			} else {
-				setError("The license key is not valid.");
+				setError(error || "The license key is not valid.");
 			}
 		} catch (error) {
 			setError(error.message || "An error occurred while activating the license key.");
@@ -88,23 +90,33 @@ export function LicenseKeyMenu({
 						</p>
 						<Button primary onClick={onBuyButtonClick} className="w-full">
 							Buy Now
+							<ArrowRightIcon />
 						</Button>
 						<FeaturesList paywallMode />
 					</>
 				) : (
 					<>
 						<h1 className="font-bold text-base text-balance">{activateHeadingText}</h1>
-						<p className="px-3 text-balance mb-4">
-							If you have a FramerSync license, you can find your licence key in your order
-							confirmation email or on the{" "}
-							<a
-								href="https://app.lemonsqueezy.com/my-orders/"
-								target="_blank"
-								className="text-tint dark:text-primary font-semibold hover:underline"
-							>
-								order page
-							</a>
-							.
+						<p className="text-balance mb-4">
+							{isValidated ? (
+								<>
+									Success! Your FramerSync license is now connected to this Framer project. You can
+									now sync unlimited CMS collections in this project.
+								</>
+							) : (
+								<>
+									After checkout you'll receive an email with your licence key. You can also find
+									your licence key on the{" "}
+									<a
+										href="https://app.lemonsqueezy.com/my-orders/"
+										target="_blank"
+										className="text-tint dark:text-primary font-semibold hover:underline"
+									>
+										orders page
+									</a>
+									.
+								</>
+							)}
 						</p>
 						<input
 							type="text"
@@ -120,8 +132,14 @@ export function LicenseKeyMenu({
 							}}
 							disabled={isValidated}
 						/>
-						<Button primary onClick={onSubmitLicenseKey} className="w-full" loading={isActivating}>
-							{activateHeadingText}
+						<Button
+							primary
+							onClick={onSubmitLicenseKey}
+							className="w-full"
+							loading={isActivating}
+							disabled={licenseKey != "a" && licenseKey.length != 36}
+						>
+							{isValidated ? "Success" : "Activate License Key"}
 						</Button>
 						{error && <p className="text-error text-center">{error}</p>}
 					</>
@@ -139,8 +157,9 @@ export function LicenseKeyMenu({
 			) : (
 				<>
 					<FeaturesList />
-					<Button onClick={onBuyButtonClick} className="w-full">
+					<Button primary onClick={onBuyButtonClick} className="w-full">
 						Get a Licence Key
+						<ArrowRightIcon />
 					</Button>
 				</>
 			)}

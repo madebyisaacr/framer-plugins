@@ -3,6 +3,9 @@ import { framer } from "framer-plugin";
 
 const checkoutURL = "https://store.framestack.co/buy/24b67220-4e17-478b-9a4a-9cbf0e2db171";
 
+const storeId = 20315;
+const productId = 341988;
+
 const PluginDataLicenseKey = "lemonSqueezyLicenseKey";
 const PluginDataInstanceId = "lemonSqueezyInstanceId";
 
@@ -22,7 +25,7 @@ export function LemonSqueezyProvider({ children }) {
 	function openCheckout() {
 		window.open(checkoutURL, "_blank");
 	}
-	// framer.setPluginData(PluginDataLicenseKey, null);
+	framer.setPluginData(PluginDataLicenseKey, null);
 
 	async function validateLicenseKeyFunction() {
 		const valid = await validateLicenseKey();
@@ -52,6 +55,12 @@ export function LemonSqueezyProvider({ children }) {
 
 		const data = await response.json();
 
+		console.log(data);
+
+		if (data.meta?.store_id !== storeId || data.meta?.product_id !== productId) {
+			return { activated: false, error: "Invalid license key" };
+		}
+
 		if (data.activated) {
 			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
 			await framer.setPluginData(PluginDataInstanceId, data.instance.id);
@@ -59,7 +68,7 @@ export function LemonSqueezyProvider({ children }) {
 
 		setLicenseKeyValid(data.activated);
 
-		return data.activated;
+		return { activated: data.activated, error: data.error };
 	}
 
 	useEffect(() => {

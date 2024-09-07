@@ -923,10 +923,10 @@ function EditFieldMenu({
 									allFieldSettings.find(
 										(setting) => setting.propertyType === fieldConfig.property.type
 									)?.[FieldSettings.MultipleFields]?.[
-										settings[FieldSettings.MultipleFields] == false ? "false" : "true"
+										settings[FieldSettings.MultipleFields] === false ? "false" : "true"
 									]
 								}
-								{settings[FieldSettings.MultipleFields] && (
+								{settings[FieldSettings.MultipleFields] !== false && (
 									<p>
 										<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
 										{fieldName} 2, {fieldName} 3, ...
