@@ -207,7 +207,7 @@ function FeaturesList({ paywallMode = false }) {
 	return (
 		<div className="flex-col gap-1 bg-secondary rounded p-3 text-secondary text-left">
 			<span className="font-semibold text-primary">
-				{paywallMode ? "" : "Don't have a licence yet? "}Get lifetime access to FramerSync for $49
+				{paywallMode ? "" : "Don't have a licence yet? "}Get lifetime access to FramerSync for $59
 			</span>
 			<ul className="list-disc flex flex-col gap-1">
 				<ChecklistItem>One time purchase - buy once, use forever.</ChecklistItem>
