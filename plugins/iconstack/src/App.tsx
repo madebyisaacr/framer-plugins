@@ -5,7 +5,7 @@ import { iconPacks } from "./IconstackData.jsx";
 import { SearchBar, XIcon, SegmentedControl } from "@shared/components.jsx";
 import Button from "@shared/Button.jsx";
 import classNames from "classnames";
-import { PageStack, PageStackContext, BackButton } from "@shared/PageStack.jsx";
+import { PageStack, PageStackContext } from "@shared/PageStack.jsx";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
 import FeatherIcons from "./icon-packs/FeatherIcons.json";
