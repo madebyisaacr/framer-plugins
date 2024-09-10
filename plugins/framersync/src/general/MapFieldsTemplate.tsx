@@ -16,6 +16,7 @@ import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
 import { framer } from "framer-plugin";
 import { FieldSettings } from "./FieldSettings.js";
+import { getFieldsById } from "./updateCollection";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -36,19 +37,26 @@ const TRANSITION = {
 };
 
 function getFieldNameOverrides(pluginContext: PluginContext): Record<string, string> {
-	const result: Record<string, string> = {};
-	if (pluginContext.type !== "update") return result;
-
-	for (const field of pluginContext.collectionFields) {
-		result[field.id] = field.name;
+	if (pluginContext.type !== "update") {
+		return {};
 	}
+
+	const result: Record<string, string> = {};
+
+	const collectionFieldsById = getFieldsById(pluginContext.collectionFields);
+
+	for (const fieldId of Object.keys(collectionFieldsById)) {
+		result[fieldId] = collectionFieldsById[fieldId].name;
+	}
+
+	console.log(result);
 
 	return result;
 }
 
 export function MapFieldsPageTemplate(props) {
 	const { fieldConfigList, databaseLabel } = props;
-	
+
 	return fieldConfigList ? (
 		<MapFieldsPage {...props} />
 	) : (
