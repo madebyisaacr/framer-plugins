@@ -107,7 +107,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 	for (const key in database.properties) {
 		const property = database.properties[key];
 
-		if (property.type == "formula") {
+		if (property.type == "formula" || property.type == "files") {
 			autoTypeFieldNames.push(key);
 		}
 	}
@@ -129,8 +129,13 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 		for (const fieldName of autoTypeFieldNames) {
 			const property = page.properties[fieldName]
-			if (property.type == "formula" && property.formula.type) {
-				autoFieldTypesById[property.id] = property.formula.type
+			if (property.type == "formula") {
+				if (property.formula.type) {
+					autoFieldTypesById[property.id] = property.formula.type
+				}
+			} else if (property.type == "files") {
+				console.log("files", property);
+				// TODO: Auto detect whether to import as image or file field based on URL file extensions
 			}
 		}
 	}

@@ -692,10 +692,6 @@ export function hasFieldConfigurationChanged(
 	return false;
 }
 
-export function getFieldConversionTypes(columnType: string) {
-	return propertyConversionTypes[columnType] || [];
-}
-
 export async function getSheetData(spreadsheetId: string, sheetName: string) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
@@ -833,7 +829,9 @@ export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 		}
 	}
 
-	return [columnType, autoFieldType, autoFieldSettings];
+	const conversionTypes = propertyConversionTypes[columnType] || [];
+
+	return [conversionTypes, columnType, autoFieldType, autoFieldSettings];
 }
 
 function getIntegrationData(pluginContext: PluginContext) {
