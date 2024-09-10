@@ -1,4 +1,4 @@
-import { assert } from "../utils.js";
+import { assert } from "../utils";
 import {
 	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
@@ -7,12 +7,12 @@ import {
 	propertyConversionTypes,
 	updatePluginData,
 	fetchTableRecords,
-} from "./airtable.js";
+} from "./airtable";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
-import { cmsFieldTypeNames, imageFileExtensions } from "../general/CMSFieldTypes";
-import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate.js";
-import { FieldSettings } from "../general/FieldSettings.js";
-import { getFieldsById } from "../general/updateCollection.js";
+import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
+import { FieldSettings } from "../general/FieldSettings";
+import { getFieldsById } from "../general/updateCollection";
 import { useState, useEffect } from "react";
 
 const propertyTypeNames = {

@@ -1,21 +1,21 @@
 import { assert } from "../utils.js";
 import { Fragment, useMemo, useState, useEffect, forwardRef, useRef } from "react";
 import classNames from "classnames";
-import { IconChevron } from "../components/Icons.js";
+import { IconChevron } from "../components/Icons";
 import Button from "@shared/Button";
-import { cmsFieldIcons } from "../assets/cmsFieldIcons.jsx";
+import { cmsFieldIcons } from "../assets/cmsFieldIcons";
 import { Spinner } from "@shared/spinner/Spinner";
-import { usePluginContext, PluginContext } from "./PluginContext.js";
+import { usePluginContext, PluginContext } from "./PluginContext";
 import Window from "./Window";
 import { SegmentedControl } from "@shared/components";
-import { cmsFieldTypeNames } from "./CMSFieldTypes.js";
-import BackButton from "../components/BackButton.jsx";
-import { useLemonSqueezy } from "./LemonSqueezy.jsx";
-import { LicenseKeyMenu } from "./LicenceKeyPage.jsx";
+import { cmsFieldTypeNames } from "./CMSFieldTypes";
+import BackButton from "../components/BackButton";
+import { useLemonSqueezy } from "./LemonSqueezy";
+import { LicenseKeyMenu } from "./LicenceKeyPage";
 import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
 import { framer } from "framer-plugin";
-import { FieldSettings } from "./FieldSettings.js";
+import { FieldSettings } from "./FieldSettings";
 import { getFieldsById } from "./updateCollection";
 
 export interface CollectionFieldConfig {
