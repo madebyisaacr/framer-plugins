@@ -38,7 +38,7 @@ export function LemonSqueezyProvider({ children }) {
 			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
 			await framer.setPluginData(PluginDataInstanceId, "a");
 			setLicenseKeyValid(true);
-			return true;
+			return { activated: true, error: null };
 		}
 
 		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/activate`, {

@@ -29,10 +29,10 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center text-center text-balance">
 				<Logo />
-				<h1 className="text-lg font-bold mt-3">Sync your apps with the Framer CMS</h1>
+				<h1 className="text-lg font-bold mt-3">Sync your content with the Framer CMS</h1>
 				<p>
-					FramerSync connects Notion, Airtable, and Google Sheets to Framer so you can focus on
-					growing your business, not managing data.
+					FramerSync connects other apps with Framer so you can focus on
+					building your website, not managing data between apps.
 				</p>
 				<div
 					className={classNames(
