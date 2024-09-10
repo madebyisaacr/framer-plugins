@@ -57,6 +57,10 @@ const propertyConversionTypes = {
 	unique_id: ["string", "number"],
 	formula: ["string", "number", "boolean", "date", "link", "image", "file"],
 	rollup: ["string", "number", "boolean", "date", "link", "image", "file"],
+	created_by: [],
+	last_edited_by: [],
+	people: [],
+	relation: [],
 };
 
 // The order in which we display slug fields

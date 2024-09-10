@@ -795,11 +795,7 @@ function EditFieldMenu({
 	const disabled = disabledFieldIds.has(id);
 	const settings = fieldSettings[id] || {};
 
-	const fieldConversionMessage = getFieldConversionMessage(
-		fieldType,
-		propertyType,
-		fieldConfig.unsupported
-	);
+	const fieldConversionMessage = getFieldConversionMessage(fieldConfig, fieldType);
 
 	const applicableSettings = useMemo(() => {
 		const filteredSettings = allFieldSettings.filter((setting) => {
@@ -1105,9 +1101,7 @@ function FieldConfigRow({
 				<IconChevron />
 			</div>
 			{!fieldTypes[id] ? (
-				<UnsupportedFieldBlock
-					{...getFieldConversionMessage(fieldTypes[id], property.type, true)}
-				/>
+				<UnsupportedFieldBlock {...getFieldConversionMessage(fieldConfig, fieldTypes[id])} />
 			) : (
 				<>
 					<input

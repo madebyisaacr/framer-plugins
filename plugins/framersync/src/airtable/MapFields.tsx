@@ -49,15 +49,6 @@ const propertyTypeNames = {
 	url: "URL",
 };
 
-const collaboratorsMessage =
-	"Users' names are imported as text. Other user information, including email addresses and profile pictures, are not imported.";
-const fieldConversionMessages = {
-	"singleCollaborator - string": collaboratorsMessage,
-	"multipleCollaborators - string": collaboratorsMessage,
-	"button - link":
-		"If the button's action is “Open URL”, the button URL will be imported as a link. Otherwise, nothing will be imported.",
-};
-
 const allFieldSettings = [
 	{ propertyType: "createdTime", [FieldSettings.Time]: true },
 	{ propertyType: "dateTime", [FieldSettings.Time]: true },
@@ -225,16 +216,37 @@ export function MapFieldsPage({
 	);
 }
 
-function getFieldConversionMessage(fieldType: string, propertyType: string, unsupported: boolean) {
-	const text =
-		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType: string) {
+	const { property } = fieldConfig;
 
-	return text
-		? {
-				text,
-				title: unsupported
-					? `${propertyTypeNames[propertyType]} is not supported`
-					: `${propertyTypeNames[propertyType]} → ${cmsFieldTypeNames[fieldType]}`,
-		  }
-		: null;
+	let text = "";
+	let title = fieldConfig.unsupported
+		? `${propertyTypeNames[property.type]} is not supported`
+		: `${propertyTypeNames[property.type]} → ${cmsFieldTypeNames[fieldType]}`;
+
+	switch (property.type) {
+		case "singleCollaborator":
+		case "multipleCollaborators":
+			if (fieldType === "string") {
+				text =
+					"Users' names are imported as text. Other user information, including email addresses and profile pictures, are not imported.";
+			}
+			break;
+		case "button":
+			if (fieldType === "link") {
+				text = `If the button's action is "Open URL", the button URL will be imported as a link. Otherwise, nothing will be imported.`;
+			}
+			break;
+		case "multipleRecordLinks":
+			text = "Links to other records cannot be imported.";
+			break;
+		case "rollup":
+			text = "Rollup fields are not currently supported.";
+			break;
+		case "multipleLookupValues":
+			text = "Lookup fields are not currently supported.";
+			break;
+	}
+
+	return text ? { title, text } : null;
 }

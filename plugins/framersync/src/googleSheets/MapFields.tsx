@@ -158,16 +158,18 @@ export function MapFieldsPage({
 	);
 }
 
-function getFieldConversionMessage(fieldType: string, propertyType: string, unsupported: boolean) {
+function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType: string) {
+	const { property, unsupported } = fieldConfig;
+
 	const text =
-		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
+		fieldConversionMessages[unsupported ? property.type : `${property.type} - ${fieldType}`];
 
 	return text
 		? {
 				text,
 				title: unsupported
-					? `${propertyType} is not supported`
-					: `${propertyType} → ${cmsFieldTypeNames[fieldType]}`,
+					? `${propertyTypeNames[property.type]} is not supported`
+					: `${propertyTypeNames[property.type]} → ${cmsFieldTypeNames[fieldType]}`,
 		  }
 		: null;
 }

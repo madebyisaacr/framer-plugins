@@ -23,19 +23,6 @@ import { getFieldsById } from "../general/updateCollection";
 import Window from "../general/Window";
 import { Spinner } from "@shared/spinner/Spinner";
 
-const peopleMessage =
-	"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
-const fieldConversionMessages = {
-	"files - image": "The files must be images, otherwise importing will fail.",
-	"page-icon - string":
-		'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the field type to "Image"',
-	"page-icon - image":
-		'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the field type to "Text"',
-	button: "Button fields cannot be imported.",
-	people: peopleMessage,
-	last_edited_by: peopleMessage,
-	created_by: peopleMessage,
-};
 const notionPropertyTypes = {
 	checkbox: "Checkbox",
 	created_by: "Created by",
@@ -353,24 +340,53 @@ export function MapFieldsPage({
 	);
 }
 
-function getFieldConversionMessage(fieldType: string, propertyType: string, unsupported: boolean) {
-	const text =
-		fieldConversionMessages[unsupported ? propertyType : `${propertyType} - ${fieldType}`];
-
-	return text
-		? {
-				text,
-				title: unsupported
-					? `${notionPropertyTypes[propertyType]} is not supported`
-					: `${propertyType == "page-icon" ? "Page Icon" : notionPropertyTypes[propertyType]} → ${
-							cmsFieldTypeNames[fieldType]
-					  }`,
-		  }
-		: null;
-}
-
 function getPropertyTypeName(propertyType: string) {
 	return notionPropertyTypes[propertyType];
+}
+
+function getFieldConversionMessage(
+	fieldConfig: CollectionFieldConfig,
+	fieldType: string
+): { title: string; text: string } | null {
+	const { property } = fieldConfig;
+
+	let text = "";
+	let title = fieldConfig.unsupported
+		? `${notionPropertyTypes[property.type]} is not supported`
+		: `${property.type == "page-icon" ? "Page Icon" : notionPropertyTypes[property.type]} → ${
+				cmsFieldTypeNames[fieldType]
+		  }`;
+
+	switch (property.type) {
+		case "files":
+			if (fieldType === "image" && fieldConfig.autoFieldType !== "image") {
+				text = "Only image files will be imported. Other file types will be ignored.";
+			}
+			break;
+		case "page-icon":
+			if (fieldType === "string") {
+				text =
+					'Only emoji icons are imported as text. To import Notion icons and custom image icons, change the field type to "Image"';
+			} else if (fieldType === "image") {
+				text =
+					'Only Notion icons and custom image icons are imported as images. To import emoji icons, change the field type to "Text"';
+			}
+			break;
+		case "button":
+			text = "Button fields cannot be imported.";
+			break;
+		case "people":
+		case "last_edited_by":
+		case "created_by":
+			text =
+				"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
+			break;
+		case "relation":
+			text = "Relation fields cannot be imported.";
+			break;
+	}
+
+	return text || fieldConfig.unsupported ? { title, text } : null;
 }
 
 const allFieldSettings = [
