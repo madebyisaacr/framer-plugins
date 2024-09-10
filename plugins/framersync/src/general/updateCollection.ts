@@ -27,7 +27,6 @@ export async function updateCollection(
 	// Generate dynamic fields (arrays and file types)
 	const arrayFieldIDs = new Set<string>();
 	const arrayFieldLengths = {};
-	// const fileFieldExtensions = {};
 	for (const item of collectionItems) {
 		for (const field of collectionFields) {
 			const value = item.fieldData[field.id];
@@ -36,21 +35,6 @@ export async function updateCollection(
 				const fieldCount = Math.min(Math.max(arrayFieldLengths[field.id] || 0, value.length), 10);
 				arrayFieldLengths[field.id] = fieldCount;
 			}
-
-			// if (field.type == "file" && (typeof value == "string" || Array.isArray(value))) {
-			// 	const values = Array.isArray(value) ? value : [value];
-
-			// 	for (const value of values) {
-			// 		const extension = getFileExtensionFromURL(value);
-			// 		if (extension) {
-			// 			if (fileFieldExtensions[field.id]) {
-			// 				fileFieldExtensions[field.id].add(extension);
-			// 			} else {
-			// 				fileFieldExtensions[field.id] = new Set([extension]);
-			// 			}
-			// 		}
-			// 	}
-			// }
 		}
 	}
 
@@ -90,19 +74,10 @@ export async function updateCollection(
 
 	let fields = collectionFields;
 
-	// if (arrayFieldIDs.size > 0 || Object.keys(fileFieldExtensions).length > 0) {
 	if (arrayFieldIDs.size > 0) {
 		fields = [];
 		for (const field of collectionFields) {
 			let fieldToAdd = field;
-
-			// if (fileFieldExtensions[field.id]) {
-			// 	console.log(fileFieldExtensions[field.id]);
-			// 	fieldToAdd = {
-			// 		...field,
-			// 		allowedFileTypes: Array.from(fileFieldExtensions[field.id]),
-			// 	};
-			// }
 
 			if (arrayFieldIDs.has(field.id) && arrayFieldLengths[field.id] > 1) {
 				for (let i = 0; i < arrayFieldLengths[field.id]; i++) {
@@ -158,32 +133,6 @@ export async function updateCollectionPluginData(
 			fieldSettings ? JSON.stringify(fieldSettings) : null
 		),
 	]);
-}
-
-function getFileExtensionFromURL(url: string | null) {
-	if (typeof url !== "string" || !url) {
-		return null;
-	}
-
-	// Remove any anchor or search params
-	const cleanURL = url.split(/[?#]/)[0];
-
-	// Get the last part of the path
-	const fileName = cleanURL.split("/").pop();
-
-	if (!fileName) {
-		return null;
-	}
-
-	// Split the fileName by dot and get the last element
-	const parts = fileName.split(".");
-	const fileExtension = parts.length > 1 ? parts.pop() : null;
-
-	if (!fileExtension) {
-		return null; // No extension found
-	}
-
-	return fileExtension.toLowerCase();
 }
 
 export function getFieldsById(collectionFields: CollectionField[]) {
