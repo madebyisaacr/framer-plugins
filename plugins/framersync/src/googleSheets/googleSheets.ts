@@ -692,38 +692,6 @@ export function hasFieldConfigurationChanged(
 	return false;
 }
 
-export async function getSheetData(spreadsheetId: string, sheetName: string) {
-	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
-
-	const response = await googleAPIFetch(
-		`${googleSheetsApiBaseUrl}/${spreadsheetId}/values/${sheetName}`,
-		"GET",
-		LOCAL
-	);
-
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
-	}
-
-	const data = await response.json();
-	return data.values;
-}
-
-export function parseSheetData(data: any[][]): CollectionItem[] {
-	const headers = data[0];
-	return data.slice(1).map((row, index) => {
-		const fieldData: Record<string, unknown> = {};
-		headers.forEach((header, i) => {
-			fieldData[header] = row[i];
-		});
-		return {
-			id: (index + 1).toString(),
-			fieldData,
-			slug: slugify(row[0] || `Row ${index + 1}`),
-		};
-	});
-}
-
 export function getColumnLetter(index: number): string {
 	let columnLetter = "";
 	while (index >= 0) {
@@ -772,6 +740,8 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	if (!sheet) {
 		throw new Error("Failed to fetch sheet data");
 	}
+
+	console.log("Sheet data", sheet);
 
 	return sheet;
 }

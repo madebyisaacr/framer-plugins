@@ -9,8 +9,7 @@ const productId = 341988;
 const PluginDataLicenseKey = "lemonSqueezyLicenseKey";
 const PluginDataInstanceId = "lemonSqueezyInstanceId";
 
-// framer.setPluginData(PluginDataLicenseKey, null);
-// framer.setPluginData(PluginDataInstanceId, null);
+const licenseKeyValidationCache = {};
 
 export const LemonSqueezyContext = createContext();
 
@@ -25,7 +24,6 @@ export function LemonSqueezyProvider({ children }) {
 	function openCheckout() {
 		window.open(checkoutURL, "_blank");
 	}
-	framer.setPluginData(PluginDataLicenseKey, null);
 
 	async function validateLicenseKeyFunction() {
 		const valid = await validateLicenseKey();
@@ -34,45 +32,50 @@ export function LemonSqueezyProvider({ children }) {
 	}
 
 	async function activateLicenseKey(licenseKey) {
+		let activated = false;
+		let error = null;
+		let instanceId = null;
+
 		if (licenseKey.toLowerCase() === "a") {
-			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
-			await framer.setPluginData(PluginDataInstanceId, "a");
-			setLicenseKeyValid(true);
-			return { activated: true, error: null };
+			activated = true;
+			instanceId = "a";
+		} else {
+			const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/activate`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+				body: JSON.stringify({
+					license_key: licenseKey,
+					instance_name: "FramerSync",
+				}),
+			});
+
+			const data = await response.json();
+
+			if (data.meta?.store_id !== storeId || data.meta?.product_id !== productId) {
+				return { activated: false, error: "Invalid license key" };
+			}
+
+			activated = data.activated;
+			error = data.error;
+			instanceId = data.instance.id;
 		}
 
-		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/activate`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-			body: JSON.stringify({
-				license_key: licenseKey,
-				instance_name: "FramerSync",
-			}),
-		});
-
-		const data = await response.json();
-
-		console.log(data);
-
-		if (data.meta?.store_id !== storeId || data.meta?.product_id !== productId) {
-			return { activated: false, error: "Invalid license key" };
+		if (activated) {
+			framer.setPluginData(PluginDataLicenseKey, licenseKey);
+			framer.setPluginData(PluginDataInstanceId, instanceId);
 		}
 
-		if (data.activated) {
-			await framer.setPluginData(PluginDataLicenseKey, licenseKey);
-			await framer.setPluginData(PluginDataInstanceId, data.instance.id);
-		}
+		setLicenseKeyValid(activated);
 
-		setLicenseKeyValid(data.activated);
-
-		return { activated: data.activated, error: data.error };
+		return { activated, error };
 	}
 
 	useEffect(() => {
 		validateLicenseKeyFunction().then((valid) => {
+			console.log("valid", valid);
 			setLicenseKeyValid(valid);
 			setIsLoading(false);
 		});
@@ -100,29 +103,38 @@ export async function validateLicenseKey() {
 
 	if (!licenseKey || !instanceId) return false;
 
-	if (licenseKey.toLowerCase() === "a") {
+	const cacheKey = `${licenseKey}-${instanceId}`;
+	if (licenseKeyValidationCache[cacheKey]) {
 		return true;
 	}
 
-	const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Accept: "application/json",
-		},
-		body: JSON.stringify({
-			license_key: licenseKey,
-			instance_id: instanceId,
-		}),
-	});
+	let valid = false;
 
-	const data = await response.json();
+	if (licenseKey.toLowerCase() === "a") {
+		valid = true;
+	} else {
+		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+			body: JSON.stringify({
+				license_key: licenseKey,
+				instance_id: instanceId,
+			}),
+		});
 
-	if (data.valid) {
+		const data = await response.json();
+		valid = data.valid;
+	}
+
+	if (valid) {
+		licenseKeyValidationCache[cacheKey] = true;
 		return true;
 	} else {
-		await framer.setPluginData(PluginDataLicenseKey, null);
-		await framer.setPluginData(PluginDataInstanceId, null);
+		framer.setPluginData(PluginDataLicenseKey, null);
+		framer.setPluginData(PluginDataInstanceId, null);
 		return false;
 	}
 }
