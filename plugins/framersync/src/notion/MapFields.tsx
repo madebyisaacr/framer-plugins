@@ -64,6 +64,8 @@ const notionPropertyTypes = {
 	"page-content": "Page Content",
 };
 
+const imageFileExtensions = ["jpg", "jpeg", "png", "gif", "apng", "webp", "svg"];
+
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
 	if (!fieldA.field && !fieldB.field) {
@@ -112,6 +114,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		}
 	}
 
+	const fileExtensionsByPropertyId = {};
+
 	for (const page of databasePages) {
 		if (page.icon) {
 			pageIconAutoDisabled = false;
@@ -128,16 +132,45 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		}
 
 		for (const fieldName of autoTypeFieldNames) {
-			const property = page.properties[fieldName]
+			const property = page.properties[fieldName];
 			if (property.type == "formula") {
 				if (property.formula.type) {
-					autoFieldTypesById[property.id] = property.formula.type
+					autoFieldTypesById[property.id] = property.formula.type;
 				}
 			} else if (property.type == "files") {
-				console.log("files", property);
-				// TODO: Auto detect whether to import as image or file field based on URL file extensions
+				if (property.files.length == 0) {
+					continue;
+				}
+
+				if (!fileExtensionsByPropertyId[property.id]) {
+					fileExtensionsByPropertyId[property.id] = [];
+				}
+
+				for (const file of property.files) {
+					const extension = file.name.split(".").pop();
+					if (extension) {
+						fileExtensionsByPropertyId[property.id].push(extension);
+					}
+				}
 			}
 		}
+	}
+
+	for (const propertyId of Object.keys(fileExtensionsByPropertyId)) {
+		const extensions = fileExtensionsByPropertyId[propertyId];
+		if (!extensions.length) {
+			continue;
+		}
+
+		let isImage = true;
+		for (const extension of extensions) {
+			if (!imageFileExtensions.includes(extension)) {
+				isImage = false;
+				break;
+			}
+		}
+
+		autoFieldTypesById[propertyId] = isImage ? "image" : "file";
 	}
 
 	const pageIconAutoFieldType =
