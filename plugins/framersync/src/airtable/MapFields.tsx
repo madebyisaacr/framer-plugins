@@ -6,12 +6,14 @@ import {
 	hasFieldConfigurationChanged,
 	propertyConversionTypes,
 	updatePluginData,
+	fetchTableRecords,
 } from "./airtable.js";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
-import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import { cmsFieldTypeNames, imageFileExtensions } from "../general/CMSFieldTypes";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate.js";
 import { FieldSettings } from "../general/FieldSettings.js";
 import { getFieldsById } from "../general/updateCollection.js";
+import { useState, useEffect } from "react";
 
 const propertyTypeNames = {
 	aiText: "AI Text",
@@ -97,6 +99,16 @@ const allFieldSettings = [
 	},
 ];
 
+const imageFileMimeTypes = [
+  "image/jpeg",
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/apng",
+  "image/webp",
+  "image/svg+xml"
+];
+
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
 	if (!fieldA.field && !fieldB.field) {
@@ -110,7 +122,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
+async function createFieldConfig(pluginContext: PluginContext): Promise<CollectionFieldConfig[]> {
 	const { integrationContext, disabledFieldIds } = pluginContext;
 	const { table } = integrationContext;
 
@@ -122,6 +134,59 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 
 	const canHaveNewFields = pluginContext.type === "update";
 	const existingFieldsById = canHaveNewFields ? getFieldsById(pluginContext.collectionFields) : {};
+	const autoFieldTypesById = {};
+
+	const tableRecords = await fetchTableRecords(
+		integrationContext.baseId,
+		integrationContext.tableId
+	);
+
+	const autoFileTypeFieldIds: string[] = [];
+
+	for (const property of table.fields) {
+		if (property.type == "multipleAttachments") {
+			autoFileTypeFieldIds.push(property.id);
+		}
+	}
+
+	const fileTypesByPropertyId = {};
+
+	for (const record of tableRecords) {
+		for (const fieldId of autoFileTypeFieldIds) {
+			const files = record.fields[fieldId];
+
+			if (!Array.isArray(files) || !files.length) {
+				continue;
+			}
+
+			if (!fileTypesByPropertyId[fieldId]) {
+				fileTypesByPropertyId[fieldId] = [];
+			}
+
+			for (const file of files) {
+				if (file.type) {
+					fileTypesByPropertyId[fieldId].push(file.type);
+				}
+			}
+		}
+	}
+
+	for (const propertyId of Object.keys(fileTypesByPropertyId)) {
+		const fileTypes = fileTypesByPropertyId[propertyId];
+		if (!fileTypes.length) {
+			continue;
+		}
+
+		let isImage = true;
+		for (const fileType of fileTypes) {
+			if (!imageFileMimeTypes.includes(fileType)) {
+				isImage = false;
+				break;
+			}
+		}
+
+		autoFieldTypesById[propertyId] = isImage ? "image" : "file";
+	}
 
 	for (const key in table.fields) {
 		const property = table.fields[key];
@@ -138,6 +203,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			property,
 			conversionTypes,
 			isPageLevelField: false,
+			autoFieldType: autoFieldTypesById[property.id],
 		});
 	}
 
@@ -190,7 +256,13 @@ export function MapFieldsPage({
 }) {
 	const { pluginContext } = usePluginContext();
 
+	const [fieldConfig, setFieldConfig] = useState<CollectionFieldConfig[] | null>(null);
+
 	const { table, tableId, baseId } = pluginContext.integrationContext;
+
+	useEffect(() => {
+		createFieldConfig(pluginContext).then(setFieldConfig);
+	}, [pluginContext]);
 
 	assert(table);
 
@@ -202,7 +274,7 @@ export function MapFieldsPage({
 			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
-			createFieldConfig={createFieldConfig}
+			fieldConfigList={fieldConfig}
 			propertyLabelText="Airtable field"
 			slugFieldTitleText="Slug Field"
 			databaseName={table.name}

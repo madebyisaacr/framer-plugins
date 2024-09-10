@@ -11,7 +11,6 @@ import {
 	getFieldConversionTypes,
 	updatePluginData,
 	fetchDatabasePages,
-	getCachedDatabasePages,
 } from "./notion";
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
@@ -20,8 +19,6 @@ import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import getDatabaseIcon from "./getDatabaseIcon";
 import { FieldSettings } from "../general/FieldSettings";
 import { getFieldsById } from "../general/updateCollection";
-import Window from "../general/Window";
-import { Spinner } from "@shared/spinner/Spinner";
 
 const notionPropertyTypes = {
 	checkbox: "Checkbox",
@@ -66,7 +63,7 @@ function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig)
 	return -1;
 }
 
-function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[] {
+async function createFieldConfig(pluginContext: PluginContext): Promise<CollectionFieldConfig[]> {
 	const { integrationContext, disabledFieldIds } = pluginContext;
 	const { database } = integrationContext;
 
@@ -74,7 +71,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 		return [];
 	}
 
-	const databasePages = getCachedDatabasePages(database.id);
+	const databasePages = await fetchDatabasePages(database.id);
 
 	const canHaveNewFields = pluginContext.type === "update";
 	const existingFieldsById = canHaveNewFields ? getFieldsById(pluginContext.collectionFields) : {};
@@ -298,25 +295,18 @@ export function MapFieldsPage({
 }) {
 	const { pluginContext } = usePluginContext();
 	const { database } = pluginContext.integrationContext;
-	const [isLoadingDatabasePages, setIsLoadingDatabasePages] = useState(true);
+	const [fieldConfig, setFieldConfig] = useState<CollectionFieldConfig[] | null>(null);
 
 	assert(isFullDatabase(database));
 
 	useEffect(() => {
-		fetchDatabasePages(database.id).then(() => setIsLoadingDatabasePages(false));
-	}, [database.id]);
+		createFieldConfig(pluginContext).then(setFieldConfig);
+	}, [pluginContext]);
 
 	const coverImage = database.cover?.type === "external" ? database.cover.external.url : null;
 	const icon = getDatabaseIcon(database, 28);
 
-	return isLoadingDatabasePages ? (
-		<Window page="MapFields">
-			<div className="absolute inset-0 flex-col items-center justify-center gap-3 font-semibold">
-				<Spinner inline />
-				Loading database...
-			</div>
-		</Window>
-	) : (
+	return (
 		<MapFieldsPageTemplate
 			onSubmit={onSubmit}
 			isLoading={isLoading}
@@ -324,7 +314,7 @@ export function MapFieldsPage({
 			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
 			getInitialSlugFieldId={getInitialSlugFieldId}
-			createFieldConfig={createFieldConfig}
+			fieldConfigList={fieldConfig}
 			propertyLabelText="Notion property"
 			slugFieldTitleText="Slug Field Property"
 			databaseName={richTextToPlainText(database.title)}

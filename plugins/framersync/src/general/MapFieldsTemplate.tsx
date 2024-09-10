@@ -46,13 +46,28 @@ function getFieldNameOverrides(pluginContext: PluginContext): Record<string, str
 	return result;
 }
 
-export function MapFieldsPageTemplate({
+export function MapFieldsPageTemplate(props) {
+	const { fieldConfigList, databaseLabel } = props;
+	
+	return fieldConfigList ? (
+		<MapFieldsPage {...props} />
+	) : (
+		<Window page="MapFields">
+			<div className="absolute inset-0 flex-col items-center justify-center gap-3 font-semibold">
+				<Spinner inline />
+				Loading {databaseLabel}...
+			</div>
+		</Window>
+	);
+}
+
+function MapFieldsPage({
 	onSubmit,
 	isLoading,
 	error,
 	updatePluginData,
 	getPossibleSlugFields,
-	createFieldConfig,
+	fieldConfigList,
 	propertyLabelText,
 	slugFieldTitleText,
 	databaseName,
@@ -78,9 +93,6 @@ export function MapFieldsPageTemplate({
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
 
-	const [fieldConfigList] = useState<CollectionFieldConfig[]>(() =>
-		createFieldConfig(pluginContext)
-	);
 	const slugFields = useMemo(() => getPossibleSlugFields(fieldConfigList), [fieldConfigList]);
 	const [slugFieldId, setSlugFieldId] = useState<string | null>(() =>
 		getInitialSlugFieldId(pluginContext, slugFields)

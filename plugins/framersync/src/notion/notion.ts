@@ -540,14 +540,6 @@ export async function fetchDatabasePages(databaseId: string) {
 	return data;
 }
 
-export function getCachedDatabasePages(databaseId: string) {
-	if (databasePagesByDatabaseId[databaseId]) {
-		return databasePagesByDatabaseId[databaseId];
-	}
-
-	return [];
-}
-
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {

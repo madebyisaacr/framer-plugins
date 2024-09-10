@@ -32,7 +32,7 @@ const concurrencyLimit = 5;
 
 export const propertyConversionTypes: Record<string, string[]> = {
 	aiText: ["string"],
-	multipleAttachments: ["file", "image", "link"],
+	multipleAttachments: ["file", "image"],
 	autoNumber: ["number"],
 	barcode: ["string"],
 	button: ["link"],
@@ -68,6 +68,8 @@ export const propertyConversionTypes: Record<string, string[]> = {
 
 // The order in which we display slug fields
 const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
+
+const tableRecordsByTableId = {};
 
 export async function getIntegrationContext(integrationData: object, databaseName: string) {
 	const { baseId, tableId } = integrationData;
@@ -272,7 +274,6 @@ export function getPropertyValue(
 			return value;
 		case "currency":
 			if (fieldType === "string") {
-				console.log(property.options);
 				const { precision = 2, symbol = "" } = property.options || {};
 				return `${symbol}${Number(value).toFixed(precision)}`;
 			} else {
@@ -512,6 +513,21 @@ async function processAllItems(
 	};
 }
 
+export async function fetchTableRecords(baseId: string, tableId: string) {
+	if (tableRecordsByTableId[tableId]) {
+		return tableRecordsByTableId[tableId];
+	}
+
+	const data = await airtableFetch(`${baseId}/${tableId}`, {
+		cellFormat: "json",
+		returnFieldsByFieldId: true,
+	});
+
+	tableRecordsByTableId[tableId] = data.records;
+	return data.records;
+}
+
+
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
@@ -524,7 +540,7 @@ export async function synchronizeDatabase(
 		databaseName,
 		fieldSettings,
 	} = pluginContext;
-	const { baseId, tableId, table } = integrationContext;
+	const { baseId, table } = integrationContext;
 
 	if (!baseId || !table) {
 		return {
@@ -544,13 +560,10 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
-	const data = await airtableFetch(`${baseId}/${table.id}`, {
-		cellFormat: "json",
-		returnFieldsByFieldId: true,
-	});
+	const records = await fetchTableRecords(baseId, table.id);
 
 	const { collectionItems, status } = await processAllItems(
-		data.records,
+		records,
 		table,
 		fieldsById,
 		slugFieldId,
