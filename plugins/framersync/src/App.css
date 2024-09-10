@@ -1,35 +1,5 @@
 @import url("@shared/shared.css");
 
-select {
-	@apply pl-2 pr-4 cursor-pointer;
-}
-
-strong {
-	@apply text-primary;
-}
-
-input {
-	@apply bg-secondary;
-}
-
-a {
-	@apply text-tint;
-}
-
-img {
-	-webkit-user-drag: none;
-	-khtml-user-drag: none;
-	-moz-user-drag: none;
-	-o-user-drag: none;
-	user-drag: none;
-}
-
-.flex-row {
-	display: flex;
-	flex-direction: row;
-}
-
-.flex-col {
-	display: flex;
-	flex-direction: column;
+html {
+	--color-accent: #0066FF;
 }

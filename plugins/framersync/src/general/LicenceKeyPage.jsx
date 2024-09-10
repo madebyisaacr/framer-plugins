@@ -110,7 +110,7 @@ export function LicenseKeyMenu({
 									<a
 										href="https://app.lemonsqueezy.com/my-orders/"
 										target="_blank"
-										className="text-tint dark:text-primary font-semibold hover:underline"
+										className="font-semibold hover:underline"
 									>
 										orders page
 									</a>
@@ -173,11 +173,12 @@ function KeyIcon() {
 			width="80"
 			height="80"
 			viewBox="0 0 124 102"
-			fill="#09F"
+			fill="currentColor"
 			xmlns="http://www.w3.org/2000/svg"
 			strokeWidth="2px"
 			strokeLinecap="round"
 			strokeLinejoin="round"
+			className="text-accent"
 		>
 			<path
 				d="M101.51 86.2101C101.28 85.5101 100.98 84.8301 100.59 84.1701L95.8998 76.11C95.6198 75.64 95.3298 75.2101 95.0098 74.8101C94.7998 74.5401 94.5798 74.29 94.3498 74.05C93.7798 73.46 93.1898 72.9901 92.5798 72.6401L78.3699 64.48L76.0998 63.18L60.2498 54.07L56.2298 51.7601C54.3898 44.7801 51.1598 37.9501 46.5398 31.2801C44.1698 27.8601 41.5899 24.85 38.8099 22.25C36.1699 19.79 33.3498 17.69 30.3498 15.97C28.1598 14.71 26.0698 13.76 24.0698 13.12C19.6898 11.71 15.7699 11.77 12.2999 13.3L10.9398 13.98C5.61981 17.03 2.96986 22.92 2.98986 31.65C3.00986 40.39 5.69985 49.34 11.0398 58.5201C16.3898 67.6901 22.8798 74.47 30.4998 78.84C36.3598 82.21 41.6499 83.3301 46.3699 82.2001C51.0799 81.0701 54.3898 77.91 56.2798 72.72L57.8798 73.6401L63.8398 83.86C64.2998 84.65 64.7898 85.31 65.3298 85.83C65.8598 86.36 66.4298 86.7901 67.0398 87.1401C67.6498 87.4901 68.2198 87.71 68.7598 87.8C69.2898 87.89 69.7799 87.8 70.2399 87.54L76.1699 84.1401L84.1799 95.94C84.6399 96.64 85.1599 97.2601 85.7299 97.8101C86.2999 98.3601 86.8898 98.7601 87.4998 99.0201C88.1098 99.2901 88.6598 99.4101 89.1598 99.3901C89.4698 99.3701 89.7598 99.3001 90.0198 99.1801L90.1699 99.1001C90.2799 99.0401 90.3698 98.98 90.4698 98.9L100.72 91.3101C101.1 91.0101 101.39 90.6001 101.58 90.1001C101.77 89.6001 101.86 89 101.86 88.3C101.86 87.6 101.74 86.9001 101.51 86.2101ZM42.0298 62.5601C41.5098 63.1901 40.8798 63.71 40.1598 64.12C37.4998 65.64 34.2698 65.3101 30.4598 63.1301C26.6498 60.9401 23.4098 57.55 20.7298 52.96C18.0598 48.37 16.7198 43.9 16.7098 39.53C16.6998 35.16 18.0199 32.2201 20.6799 30.6901C21.6299 30.1501 22.6598 29.83 23.7698 29.76C25.7398 29.65 27.9498 30.2901 30.3898 31.6901C34.1998 33.8801 37.4398 37.26 40.0998 41.84H40.1099C40.3299 42.22 40.5298 42.59 40.7298 42.96C40.7398 42.97 40.7398 42.9801 40.7498 42.9901C42.9998 47.1801 44.1298 51.28 44.1398 55.28C44.1498 58.46 43.4398 60.8901 42.0298 62.5601Z"
@@ -207,9 +208,9 @@ function FeaturesList({ paywallMode = false }) {
 	return (
 		<div className="flex-col gap-1 bg-secondary rounded p-3 text-secondary text-left">
 			<span className="font-semibold text-primary">
-				{paywallMode ? "" : "Don't have a licence yet? "}Get lifetime access to FramerSync for $59
+				{paywallMode ? "" : "Don't have a licence yet? "}Get lifetime access to FramerSync for $49
 			</span>
-			<ul className="list-disc flex flex-col gap-1">
+			<ul className="list-disc flex-col gap-1">
 				<ChecklistItem>One time purchase - buy once, use forever.</ChecklistItem>
 				<ChecklistItem>Includes all future updates.</ChecklistItem>
 				<ChecklistItem>

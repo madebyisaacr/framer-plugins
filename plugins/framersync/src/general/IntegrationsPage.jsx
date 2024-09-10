@@ -113,11 +113,12 @@ export function Logo() {
 			width="80"
 			height="80"
 			viewBox="0 0 99 112"
-			fill="#09F"
+			fill="currentColor"
 			xmlns="http://www.w3.org/2000/svg"
 			strokeWidth="2px"
 			strokeLinecap="round"
 			strokeLinejoin="round"
+			className="text-accent"
 		>
 			<path
 				d="M55.7793 39.8202C56.0593 39.7402 56.3093 39.6202 56.5193 39.4502L55.7793 39.8202Z"

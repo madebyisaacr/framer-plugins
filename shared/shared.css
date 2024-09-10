@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+	--color-accent: var(--framer-color-tint);
+}
+
 [data-framer-theme="light"] {
 	--color-bg-secondary: var(--framer-color-bg-tertiary);
 	--color-bg-tertiary: var(--framer-color-bg-secondary);
@@ -26,10 +30,50 @@
 	display: none;
 }
 
-select {
+input, select {
 	@apply bg-secondary;
+}
+
+select {
+	@apply pl-2 pr-4 cursor-pointer;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+	box-shadow: inset 0 0 0 1px var(--color-accent) !important;
+}
+
+input[type="checkbox"]:checked {
+	@apply !bg-accent !border-accent;
 }
 
 .segmented-control-shadow {
 	box-shadow: 0 2px 4px 0 rgba(0,0,0,0.15);
+}
+
+a {
+	@apply text-accent dark:text-primary cursor-pointer hover:underline;
+}
+
+img {
+	-webkit-user-drag: none;
+	-khtml-user-drag: none;
+	-moz-user-drag: none;
+	-o-user-drag: none;
+	user-drag: none;
+}
+
+strong {
+	@apply text-primary;
+}
+
+.flex-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.flex-col {
+	display: flex;
+	flex-direction: column;
 }

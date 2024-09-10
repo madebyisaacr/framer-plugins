@@ -326,7 +326,7 @@ export function MapFieldsPageTemplate({
 												boxShadow: `0 0 0 2px var(${
 													editMenuFieldConfig == "slug" && !slugFieldConfig
 														? "--color-error"
-														: "--framer-color-tint"
+														: "--color-accent"
 												})`,
 											}}
 										/>
@@ -476,7 +476,7 @@ export function MapFieldsPageTemplate({
 												</label>
 											))
 										) : (
-											<div className="w-full p-3 rounded flex flex-col gap-1 relative">
+											<div className="w-full p-3 rounded flex-col gap-1 relative">
 												<div className="absolute inset-0 rounded bg-error opacity-10" />
 												<div className="absolute inset-0 rounded border-2 border-error" />
 												<span className="text-primary font-semibold">No available slug fields</span>
@@ -636,7 +636,7 @@ function FieldTypeSelector({
 		const currentItemIndex = availableFieldTypes.indexOf(fieldType);
 
 		return (
-			<div onClick={onClick} className="relative flex flex-col p-0.5 gap-0.5 bg-secondary rounded">
+			<div onClick={onClick} className="relative flex-col p-0.5 gap-0.5 bg-secondary rounded">
 				{currentItemIndex >= 0 && (
 					<div className="absolute inset-0.5">
 						<motion.div
@@ -663,7 +663,7 @@ function FieldTypeSelector({
 						key={type}
 						onClick={() => onChange(type)}
 						className={classNames(
-							"relative w-full pl-[34px] pr-1 h-6 cursor-pointer flex flex-col justify-center transition-colors",
+							"relative w-full pl-[34px] pr-1 h-6 cursor-pointer flex-col justify-center transition-colors",
 							fieldType === type ? "text-primary" : "text-secondary"
 						)}
 					>
@@ -702,7 +702,7 @@ function FieldTypeIcon({ fieldType, disabled = false, className = "" }) {
 	return (
 		<div
 			className={classNames(
-				"text-tint absolute top-[4px] left-[4px] pointer-events-none",
+				"text-accent absolute top-[4px] left-[4px] pointer-events-none",
 				disabled && "opacity-50",
 				className
 			)}
@@ -1141,7 +1141,7 @@ function ColumnLetter({ children, className = "" }) {
 	return (
 		<div
 			className={classNames(
-				"bg-segmented-control rounded-sm px-1 min-w-[18px] h-[18px] text-[10px] font-semibold transition-colors segmented-control-shadow flex flex-col items-center justify-center",
+				"bg-segmented-control rounded-sm px-1 min-w-[18px] h-[18px] text-[10px] font-semibold transition-colors segmented-control-shadow flex-col items-center justify-center",
 				className
 			)}
 		>

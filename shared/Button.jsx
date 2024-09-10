@@ -22,7 +22,7 @@ const Button = forwardRef(function Button(
 	const Element = href.length ? "a" : "button";
 	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
 
-	shadowColor = shadowColor || (primary ? "var(--framer-color-tint)" : null);
+	shadowColor = shadowColor || (primary ? "var(--color-accent)" : null);
 
 	return (
 		<Element
@@ -32,7 +32,7 @@ const Button = forwardRef(function Button(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
 				primary
-					? "framer-button-primary transition-opacity"
+					? "bg-accent text-[#FFF] rounded transition-opacity hover:!bg-accent active:!bg-accent focus:!bg-accent"
 					: "bg-secondary text-primary hover:bg-tertiary active:!bg-tertiary",
 				disabled ? "opacity-60" : "cursor-pointer",
 				className

@@ -121,7 +121,7 @@ export function SegmentedControl({
 						index === currentItemIndex ? "font-semibold" : "",
 						index === currentItemIndex
 							? tint
-								? "text-tint dark:text-primary"
+								? "text-accent dark:text-primary"
 								: "text-primary"
 							: "text-tertiary",
 						vertical ? "min-h-6 pl-2" : "h-full justify-center"

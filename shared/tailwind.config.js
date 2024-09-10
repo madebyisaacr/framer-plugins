@@ -16,6 +16,7 @@ export default {
 			"modal": "var(--color-bg-modal)",
 			transparent: "transparent",
 			error: "var(--color-error)",
+			accent: "var(--color-accent)",
 		},
 		colors: {
 			primary: "var(--framer-color-text)",
@@ -24,6 +25,7 @@ export default {
 			reversed: "var(--framer-color-text-reversed)",
 			tint: "var(--framer-color-tint)",
 			error: "var(--color-error)",
+			accent: "var(--color-accent)",
 		},
 		borderColor: {
 			primary: "var(--framer-color-bg)",
@@ -31,6 +33,7 @@ export default {
 			"divider-secondary": "var(--color-divider-secondary)",
 			tint: "var(--framer-color-tint)",
 			error: "var(--color-error)",
+			accent: "var(--color-accent)",
 		},
 		spacing: {
 			px: "1px",
