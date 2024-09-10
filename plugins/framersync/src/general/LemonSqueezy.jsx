@@ -75,7 +75,6 @@ export function LemonSqueezyProvider({ children }) {
 
 	useEffect(() => {
 		validateLicenseKeyFunction().then((valid) => {
-			console.log("valid", valid);
 			setLicenseKeyValid(valid);
 			setIsLoading(false);
 		});
