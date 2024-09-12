@@ -425,7 +425,7 @@ async function handleRequest(request: Request, env: Env) {
 
 		if (!spreadsheetId) {
 			return new Response(null, {
-				status: 404,
+				status: 418,
 				headers: { ...accessControlOrigin },
 			});
 		}
@@ -459,6 +459,7 @@ async function handleRequest(request: Request, env: Env) {
 		return new Response(JSON.stringify({ success: true }), {
 			headers: {
 				'Content-Type': 'application/json',
+				...accessControlOrigin,
 			},
 		});
 	}

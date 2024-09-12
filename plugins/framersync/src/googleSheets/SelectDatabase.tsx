@@ -26,7 +26,9 @@ export function SelectDatabasePage() {
 
 	const pollForPickerResult = async () => {
 		try {
-			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`);
+			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`, {
+				method: "POST",
+			});
 			if (response.status === 200) {
 				const result = await response.json();
 				if (result && result.spreadsheetId) {
