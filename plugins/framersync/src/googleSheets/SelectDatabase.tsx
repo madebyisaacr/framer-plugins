@@ -1,6 +1,12 @@
 import { usePluginContext } from "../general/PluginContext";
 import SelectDatabasePageTemplate from "../general/SelectDatabaseTemplate";
-import { useSpreadsheetsQuery, getSheetsList, getFullSheet } from "./googleSheets";
+import {
+	useSpreadsheetsQuery,
+	getSheetsList,
+	getFullSheet,
+	openGooglePicker,
+} from "./googleSheets";
+import { useEffect } from "react";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
@@ -38,6 +44,10 @@ export function SelectDatabasePage() {
 				id: sheet.id,
 				title: sheet.name,
 		  }));
+
+	useEffect(() => {
+		openGooglePicker();
+	}, []);
 
 	return (
 		<SelectDatabasePageTemplate

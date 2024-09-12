@@ -9,10 +9,10 @@ import { markdownToHTML } from "./markdownToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl =
-	window.location.hostname === "localhost"
-		? "http://localhost:8787/google-sheets"
-		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
+const apiBaseUrl = "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
+// window.location.hostname === "localhost"
+// 	? "http://localhost:8787/google-sheets"
+// 	: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
 const LOCAL = "local";
 const PROXY = "proxy";
@@ -194,6 +194,7 @@ export async function refreshGoogleSheetsToken() {
 		const responseJson = await response.json();
 		const { access_token } = responseJson;
 
+		console.log("access_token", access_token);
 		googleSheetsAccessToken = access_token;
 		return true;
 	} catch (error) {
@@ -821,4 +822,8 @@ function isMarkdown(text) {
 
 	// Return true if the number of indicators meets or exceeds the minimum
 	return indicatorCount >= minIndicators;
+}
+
+export function openGooglePicker() {
+	window.open(`${apiBaseUrl}/open-picker?access_token=${googleSheetsAccessToken}`, "_blank");
 }
