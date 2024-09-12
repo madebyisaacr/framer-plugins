@@ -38,16 +38,19 @@ export function SelectDatabasePage() {
 			: null;
 	};
 
-	const spreadsheets = isLoading
-		? []
-		: data?.map((sheet) => ({
-				id: sheet.id,
-				title: sheet.name,
-		  }));
+	const spreadsheets =
+		isLoading || !Array.isArray(data)
+			? []
+			: data.map((sheet) => ({
+					id: sheet.id,
+					title: sheet.name,
+			  }));
 
 	useEffect(() => {
-		openGooglePicker();
-	}, []);
+		if (!isLoading && !spreadsheets.length) {
+			openGooglePicker();
+		}
+	}, [isLoading]);
 
 	return (
 		<SelectDatabasePageTemplate
@@ -61,6 +64,7 @@ export function SelectDatabasePage() {
 			subdatabases
 			getSubdatabases={getSubdatabases}
 			subdatabasesLabel="Sheets"
+			connectMoreDatabases={openGooglePicker}
 		/>
 	);
 }

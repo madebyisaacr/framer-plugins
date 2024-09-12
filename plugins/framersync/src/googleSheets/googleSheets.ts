@@ -9,10 +9,10 @@ import { markdownToHTML } from "./markdownToHTML";
 
 export type FieldId = string;
 
-const apiBaseUrl = "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
-// window.location.hostname === "localhost"
-// 	? "http://localhost:8787/google-sheets"
-// 	: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
+const apiBaseUrl =
+	window.location.hostname === "localhost"
+		? "http://localhost:8787/google-sheets"
+		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
 const LOCAL = "local";
 const PROXY = "proxy";

@@ -362,6 +362,9 @@ async function handleRequest(request: Request, env: Env) {
 		if (!url) {
 			return new Response('Missing "url" URL param', {
 				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
 			});
 		}
 
@@ -477,7 +480,7 @@ function getGooglePickerHTML({
 	return googlePickerHtml
 		.replace('{{ACCESS_TOKEN}}', accessToken)
 		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
-		.replace('{{PICKER_CALLBACK_URL}}', pickerCallbackURL)
+		.replace('{{CALLBACK_URL}}', pickerCallbackURL)
 		.replace('{{CLIENT_ID}}', clientId);
 }
 

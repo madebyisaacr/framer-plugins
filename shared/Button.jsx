@@ -29,12 +29,13 @@ const Button = forwardRef(function Button(
 			ref={ref}
 			style={style}
 			className={classNames(
-				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] transition-colors overflow-visible",
+				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
 				primary
-					? "bg-accent text-[#FFF] rounded transition-opacity hover:!bg-accent active:!bg-accent focus:!bg-accent"
-					: "bg-secondary text-primary hover:bg-tertiary active:!bg-tertiary",
+					? "bg-accent text-[#FFF] rounded transition-[filter] hover:!bg-accent active:!bg-accent focus:!bg-accent"
+					: "bg-secondary text-primary hover:bg-tertiary active:!bg-tertiary transition-colors",
 				disabled ? "opacity-60" : "cursor-pointer",
+				!disabled && primary && "hover:brightness-110",
 				className
 			)}
 			disabled={disabled}

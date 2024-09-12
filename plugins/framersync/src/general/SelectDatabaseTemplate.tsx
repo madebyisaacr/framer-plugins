@@ -22,6 +22,7 @@ export default function SelectDatabasePageTemplate({
 	instructions,
 	title,
 	onSubmit,
+	connectMoreDatabases,
 	subdatabases = false,
 	getSubdatabases = null,
 	databasesLabel = "",
@@ -101,6 +102,21 @@ export default function SelectDatabasePageTemplate({
 						<div className="flex-col items-center justify-center flex-1 gap-4">
 							<Spinner inline />
 							Loading {databasesLabel}...
+						</div>
+					) : databases?.length === 0 ? (
+						<div className="flex-col items-center justify-center flex-1 gap-3 text-secondary">
+							<p>No {databasesLabel.toLowerCase()} found</p>
+							<div className="flex-col gap-2">
+								{connectMoreDatabases ? (
+									<Button primary onClick={connectMoreDatabases}>
+										Connect More {databasesLabel}
+									</Button>
+								) : null}
+								<Button onClick={refetch}>
+									<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
+									Refresh
+								</Button>
+							</div>
 						</div>
 					) : (
 						<div className="flex-1 flex-col">
