@@ -11,39 +11,94 @@
 
 			// Create and render a Google Picker object for selecting from Drive.
 			function createPicker() {
+				const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+					.setMimeTypes('application/vnd.google-apps.spreadsheet')
+					.setIncludeFolders(true)
+					.setSelectFolderEnabled(false);
+
 				picker = new google.picker.PickerBuilder()
-					.addView(google.picker.ViewId.SPREADSHEETS)
+					.addView(view)
 					.setOAuthToken('{{ACCESS_TOKEN}}')
 					.setDeveloperKey('{{DEVELOPER_API_KEY}}')
 					.setCallback(pickerCallback)
+					.enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
 					.build();
 
-				// Open the picker immediately
 				picker.setVisible(true);
 			}
 
 			function pickerCallback(data) {
-				let url = 'nothing';
 				if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-					let doc = data[google.picker.Response.DOCUMENTS][0];
-					url = doc[google.picker.Document.URL];
-				}
-				let message = `You picked: ${url}`;
-				console.log(message);
+					let docs = data[google.picker.Response.DOCUMENTS];
+					let urls = docs.map((doc) => doc[google.picker.Document.URL]);
+					console.log('You picked:', urls);
 
-				// Send the results to the callback URL
-				fetch('{{CALLBACK_URL}}', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ url: url }),
-				});
+					// Send the results to the callback URL
+					fetch('{{CALLBACK_URL}}', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({ urls: urls }),
+					});
+				}
 			}
 		</script>
 		<script async defer src="https://apis.google.com/js/api.js" onload="onApiLoad()"></script>
+		<style>
+			.picker-dialog-bg {
+				display: none;
+			}
+			.picker-dialog {
+				border-radius: 12px;
+				border: none !important;
+				box-shadow: 0 10px 60px rgba(0, 0, 0, 0.1) !important;
+			}
+			body {
+				background-color: #fff;
+				color: black;
+				height: 100vh;
+				font-family: 'Inter', sans-serif;
+				margin: 0;
+			}
+			.container {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 100%;
+				padding-top: 30px;
+			}
+			.container a {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 10px;
+				text-decoration: none;
+				color: inherit;
+			}
+			.container img {
+				border-radius: 6px;
+			}
+			.title {
+				font-size: 20px;
+				font-weight: 600;
+				margin: 0;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				body {
+					background-color: #111;
+					color: white;
+				}
+			}
+		</style>
 	</head>
 	<body>
-		<div id="picker"></div>
+		<div class="container">
+			<a href="https://framersync.com" target="_blank" rel="noopener noreferrer">
+				<img src="https://plugin.framersync.com/icon.svg" alt="FramerSync Icon" />
+				<span class="title">FramerSync</span>
+			</a>
+		</div>
 	</body>
 </html>
