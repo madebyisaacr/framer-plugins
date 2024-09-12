@@ -643,6 +643,7 @@ export function useSpreadsheetsQuery() {
 				}
 
 				const data = await response.json();
+				console.log("data", data);
 				return data.files || [];
 			} catch (error) {
 				console.error("Error fetching spreadsheets:", error);

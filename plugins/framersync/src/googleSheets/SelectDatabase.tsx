@@ -60,7 +60,7 @@ export function SelectDatabasePage() {
 			isRefetching={isRefetching}
 			onSubmit={onSubmit}
 			title="Select a Google Sheet to sync"
-			databasesLabel="Spreadsheets"
+			databasesLabel="Sheets"
 			subdatabases
 			getSubdatabases={getSubdatabases}
 			subdatabasesLabel="Sheets"
