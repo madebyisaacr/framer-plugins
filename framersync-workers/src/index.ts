@@ -1,5 +1,5 @@
-import { getHTMLTemplate } from './getHTMLTemplate';
 import googlePickerHtml from './googlePicker.html';
+import authorizationSuccessHtml from './authorizationSuccess.html';
 import { generateRandomId, generateAirtableChallengeParams } from './generateAirtableChallenge';
 
 enum Platform {
@@ -249,7 +249,7 @@ async function handleRequest(request: Request, env: Env) {
 			expirationTtl: 300,
 		});
 
-		return new Response(getHTMLTemplate('Authentication successful! You can close this window and return to Framer.'), {
+		return new Response(getAuthorizationSuccessHTML('Authentication successful! You can close this window and return to Framer.'), {
 			headers: {
 				'Content-Type': 'text/html',
 			},
@@ -479,4 +479,8 @@ function getGooglePickerHTML({
 		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
 		.replace('{{PICKER_CALLBACK_URL}}', pickerCallbackURL)
 		.replace('{{CLIENT_ID}}', clientId);
+}
+
+function getAuthorizationSuccessHTML(text: string) {
+	return authorizationSuccessHtml.replace('{{text}}', text);
 }
