@@ -14,11 +14,11 @@ export function SelectDatabasePage() {
 	const [selectedSpreadsheetId, setSelectedSpreadsheetId] = useState(null);
 	const [sheets, setSheets] = useState([]);
 	const pollIntervalRef = useRef(null);
+	const readKeyRef = useRef(null);
 
 	const handleSelectSheet = async () => {
 		setIsLoading(true);
-		const pickerUrl = await openGooglePicker();
-		window.open(pickerUrl, "_blank");
+		readKeyRef.current = openGooglePicker();
 
 		// Start polling for the picker result
 		pollIntervalRef.current = setInterval(pollForPickerResult, 2500);
@@ -26,11 +26,12 @@ export function SelectDatabasePage() {
 
 	const pollForPickerResult = async () => {
 		try {
-			const response = await fetch(`${apiBaseUrl}/picker-result`);
+			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`);
 			if (response.status === 200) {
 				const result = await response.json();
 				if (result && result.spreadsheetId) {
 					clearInterval(pollIntervalRef.current);
+					readKeyRef.current = null;
 					await processPickerResult(result);
 				}
 			}

@@ -831,6 +831,14 @@ function isMarkdown(text) {
 	return indicatorCount >= minIndicators;
 }
 
-export function openGooglePicker() {
-	window.open(`${apiBaseUrl}/open-picker?access_token=${googleSheetsAccessToken}`, "_blank");
+export function openGooglePicker(): string {
+	const readKey =
+		Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+	window.open(
+		`${apiBaseUrl}/open-picker?access_token=${googleSheetsAccessToken}&readKey=${readKey}`,
+		"_blank"
+	);
+
+	return readKey;
 }

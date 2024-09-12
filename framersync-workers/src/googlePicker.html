@@ -24,7 +24,6 @@
 					.setOAuthToken('{{ACCESS_TOKEN}}')
 					.setDeveloperKey('{{DEVELOPER_API_KEY}}')
 					.setCallback(pickerCallback)
-					.enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
 					.build();
 
 				picker.setVisible(true);
@@ -32,9 +31,10 @@
 
 			function pickerCallback(data) {
 				if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
-					let docs = data[google.picker.Response.DOCUMENTS];
-					let urls = docs.map((doc) => doc[google.picker.Document.URL]);
-					console.log('You picked:', urls);
+					let doc = data[google.picker.Response.DOCUMENTS][0]; // Get only the first selected document
+					let url = doc[google.picker.Document.URL];
+					let spreadsheetId = extractSpreadsheetId(url);
+					console.log('You picked spreadsheet with ID:', spreadsheetId);
 
 					// Send the results to the callback URL
 					fetch('{{CALLBACK_URL}}', {
@@ -42,9 +42,14 @@
 						headers: {
 							'Content-Type': 'application/json',
 						},
-						body: JSON.stringify({ urls: urls }),
+						body: JSON.stringify({ spreadsheetId: spreadsheetId }),
 					});
 				}
+			}
+
+			function extractSpreadsheetId(url) {
+				const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+				return match ? match[1] : null;
 			}
 		</script>
 		<script async defer src="https://apis.google.com/js/api.js" onload="onApiLoad()"></script>

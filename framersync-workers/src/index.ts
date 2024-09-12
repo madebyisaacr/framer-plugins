@@ -385,35 +385,80 @@ async function handleRequest(request: Request, env: Env) {
 	// Open Google Picker //
 	if (request.method === 'GET' && command === Command.OpenGooglePicker && platform === Platform.GoogleSheets) {
 		const accessToken = requestUrl.searchParams.get('access_token');
+		const readKey = requestUrl.searchParams.get('readKey');
 
-		if (!accessToken) {
-			return new Response('Missing access token URL param', {
+		if (!accessToken || !readKey) {
+			return new Response('Missing access token or read key URL param', {
 				status: 400,
 			});
 		}
 
-		return new Response(
-			getGooglePickerHTML({
-				accessToken,
-				developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
-				pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
-				clientId: env.GOOGLE_CLIENT_ID,
-			}),
-			{
-				headers: {
-					'Content-Type': 'text/html',
-				},
-			}
-		);
+		const pickerHtml = getGooglePickerHTML({
+			accessToken,
+			developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
+			pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
+			clientId: env.GOOGLE_CLIENT_ID,
+			readKey,
+		});
+
+		return new Response(pickerHtml, {
+			headers: {
+				'Content-Type': 'text/html',
+			},
+		});
 	}
 
 	// Poll Google Picker //
 	if (request.method === 'POST' && command === Command.PollGooglePicker && platform === Platform.GoogleSheets) {
-		return new Response('Polling Google Picker');
+		const readKey = requestUrl.searchParams.get('readKey');
+
+		if (!readKey) {
+			return new Response('Missing read key URL param', {
+				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
+			});
+		}
+
+		const spreadsheetId = await env.keyValueStore.get(`pickerReadKey:${readKey}`);
+
+		if (!spreadsheetId) {
+			return new Response(null, {
+				status: 404,
+				headers: { ...accessControlOrigin },
+			});
+		}
+
+		// Delete the stored spreadsheetId after retrieving it
+		await env.keyValueStore.delete(`pickerReadKey:${readKey}`);
+
+		return new Response(JSON.stringify({ spreadsheetId }), {
+			headers: {
+				'Content-Type': 'application/json',
+				...accessControlOrigin,
+			},
+		});
 	}
 
 	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
-		return new Response('Google Picker Callback');
+		const { spreadsheetId, readKey } = await request.json();
+		
+		if (!spreadsheetId || !readKey) {
+			return new Response('Missing spreadsheetId or readKey in request body', {
+				status: 400,
+			});
+		}
+
+		await env.keyValueStore.put(`pickerReadKey:${readKey}`, spreadsheetId, {
+			expirationTtl: 300, // 5 minutes
+		});
+
+		return new Response(JSON.stringify({ success: true }), {
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
 	}
 
 	if (request.method === 'GET' && requestUrl.pathname === '/') {
@@ -471,17 +516,20 @@ function getGooglePickerHTML({
 	developerAPIKey,
 	pickerCallbackURL,
 	clientId,
+	readKey,
 }: {
 	accessToken: string;
 	developerAPIKey: string;
 	pickerCallbackURL: string;
 	clientId: string;
+	readKey: string;
 }) {
 	return googlePickerHtml
 		.replace('{{ACCESS_TOKEN}}', accessToken)
 		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
 		.replace('{{CALLBACK_URL}}', pickerCallbackURL)
-		.replace('{{CLIENT_ID}}', clientId);
+		.replace('{{CLIENT_ID}}', clientId)
+		.replace('{{READ_KEY}}', readKey);
 }
 
 function getAuthorizationSuccessHTML(text: string) {
