@@ -623,8 +623,14 @@ export function useSpreadsheetsQuery() {
 			if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
 			try {
+				const params = new URLSearchParams({
+					q: "mimeType='application/vnd.google-apps.spreadsheet'",
+					fields: "files(id, name)",
+					spaces: "drive",
+				});
+
 				const response = await fetch(
-					"https://www.googleapis.com/drive/v3/files?q=mimeType%3D%27application%2Fvnd.google-apps.spreadsheet%27",
+					`https://www.googleapis.com/drive/v3/files?${params.toString()}`,
 					{
 						headers: {
 							Authorization: `Bearer ${googleSheetsAccessToken}`,
