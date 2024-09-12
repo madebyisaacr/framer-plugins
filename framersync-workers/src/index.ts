@@ -442,10 +442,12 @@ async function handleRequest(request: Request, env: Env) {
 	}
 
 	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
-		const { spreadsheetId, readKey } = await request.json();
-		
+		const readKey = requestUrl.searchParams.get('readKey');
+		const spreadsheetId = requestUrl.searchParams.get('spreadsheetId');
+
+		console.log('Received spreadsheetId:', spreadsheetId, readKey);
 		if (!spreadsheetId || !readKey) {
-			return new Response('Missing spreadsheetId or readKey in request body', {
+			return new Response('Missing spreadsheetId or readKey URL param', {
 				status: 400,
 			});
 		}
