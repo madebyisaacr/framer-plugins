@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Button from "@shared/Button";
 import { openGooglePicker, getFullSheet, getSheetsList } from "./googleSheets";
 import Window from "../general/Window";
+
 const apiBaseUrl =
 	window.location.hostname === "localhost"
 		? "http://localhost:8787/google-sheets"
@@ -26,6 +27,7 @@ export function SelectDatabasePage() {
 
 	const pollForPickerResult = async () => {
 		try {
+			console.log(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`);
 			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`, {
 				method: "POST",
 			});
