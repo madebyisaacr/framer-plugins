@@ -1,5 +1,5 @@
 import { getHTMLTemplate } from './getHTMLTemplate';
-import { getGooglePickerHTML } from './getGooglePickerHTML';
+import googlePickerHtml from './googlePicker.html';
 import { generateRandomId, generateAirtableChallengeParams } from './generateAirtableChallenge';
 
 enum Platform {
@@ -14,6 +14,9 @@ enum Command {
 	Refresh = 'refresh',
 	Redirect = 'redirect',
 	API = 'api',
+	OpenGooglePicker = 'open-picker',
+	PollGooglePicker = 'poll-picker',
+	GooglePickerCallback = 'picker-callback',
 }
 
 async function handleRequest(request: Request, env: Env) {
@@ -81,10 +84,7 @@ async function handleRequest(request: Request, env: Env) {
 				googleAuthorizeParams.append('client_id', env.GOOGLE_CLIENT_ID);
 				googleAuthorizeParams.append('redirect_uri', redirectURI);
 				googleAuthorizeParams.append('response_type', 'code');
-				googleAuthorizeParams.append(
-					'scope',
-					'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly'
-				);
+				googleAuthorizeParams.append('scope', 'https://www.googleapis.com/auth/drive.file');
 				googleAuthorizeParams.append('access_type', 'offline');
 				googleAuthorizeParams.append('include_granted_scopes', 'true');
 				googleAuthorizeParams.append('state', writeKey);
@@ -176,19 +176,19 @@ async function handleRequest(request: Request, env: Env) {
 			case Platform.Notion:
 				const notionTokenParams = {
 					code: authorizationCode,
-					grant_type: "authorization_code",
-					redirect_uri: redirectURI
+					grant_type: 'authorization_code',
+					redirect_uri: redirectURI,
 				};
 
-				tokenResponse = await fetch("https://api.notion.com/v1/oauth/token", {
-					method: "POST",
+				tokenResponse = await fetch('https://api.notion.com/v1/oauth/token', {
+					method: 'POST',
 					headers: {
-						'Authorization': `Basic ${btoa(`${env.NOTION_CLIENT_ID}:${env.NOTION_SECRET}`)}`,
+						Authorization: `Basic ${btoa(`${env.NOTION_CLIENT_ID}:${env.NOTION_SECRET}`)}`,
 						'Content-Type': 'application/json',
-						'Notion-Version': '2022-06-28'
+						'Notion-Version': '2022-06-28',
 					},
 					body: JSON.stringify(notionTokenParams),
-				})
+				});
 				break;
 			case Platform.Airtable:
 				const { challengeVerifier } = JSON.parse(storedValue);
@@ -379,6 +379,40 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
+	// Open Google Picker //
+	if (request.method === 'GET' && command === Command.OpenGooglePicker && platform === Platform.GoogleSheets) {
+		const accessToken = requestUrl.searchParams.get('access_token');
+
+		if (!accessToken) {
+			return new Response('Missing access token URL param', {
+				status: 400,
+			});
+		}
+
+		return new Response(
+			getGooglePickerHTML({
+				accessToken,
+				developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
+				pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
+				clientId: env.GOOGLE_CLIENT_ID,
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/html',
+				},
+			}
+		);
+	}
+
+	// Poll Google Picker //
+	if (request.method === 'POST' && command === Command.PollGooglePicker && platform === Platform.GoogleSheets) {
+		return new Response('Polling Google Picker');
+	}
+
+	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
+		return new Response('Google Picker Callback');
+	}
+
 	if (request.method === 'GET' && requestUrl.pathname === '/') {
 		return new Response('✅ OAuth Worker is up and running!');
 	}
@@ -427,4 +461,22 @@ function objectToURLParams(object: Record<string, string>) {
 		params.append(key, value);
 	}
 	return params.toString();
+}
+
+function getGooglePickerHTML({
+	accessToken,
+	developerAPIKey,
+	pickerCallbackURL,
+	clientId,
+}: {
+	accessToken: string;
+	developerAPIKey: string;
+	pickerCallbackURL: string;
+	clientId: string;
+}) {
+	return googlePickerHtml
+		.replace('{{ACCESS_TOKEN}}', accessToken)
+		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
+		.replace('{{PICKER_CALLBACK_URL}}', pickerCallbackURL)
+		.replace('{{CLIENT_ID}}', clientId);
 }

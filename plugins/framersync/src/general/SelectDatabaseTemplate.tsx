@@ -186,7 +186,7 @@ function DatabaseButton({
 				<div className="flex-col px-1 pb-1 pt-1.5 relative">
 					<div className="absolute top-0 inset-x-2 h-px bg-divider-secondary" />
 					{isLoadingSubdatabases ? (
-						<div className="flex-row items-center justify-center flex-1 gap-2 min-h-7 text-secondary">
+						<div className="flex-row items-center justify-center flex-1 gap-2 min-h-6 text-secondary">
 							<Spinner inline />
 							Loading {subdatabasesLabel}...
 						</div>
