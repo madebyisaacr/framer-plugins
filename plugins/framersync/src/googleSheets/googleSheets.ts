@@ -716,7 +716,7 @@ export async function getSheetsList(spreadsheetId: string) {
 		const response = await googleAPIFetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
 			"GET",
-			LOCAL
+			PROXY
 		);
 
 		if (!response.ok) {
