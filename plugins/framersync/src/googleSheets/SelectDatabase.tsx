@@ -56,9 +56,9 @@ export function SelectDatabasePage() {
 		setIsLoading(false);
 	};
 
-	const handleSheetSelect = async (sheetId) => {
+	const handleSheetSelect = async () => {
 		setIsLoading(true);
-		const fullSheet = await getFullSheet(selectedSpreadsheetId, sheetId);
+		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.sheetId);
 
 		updatePluginContext({
 			integrationContext: {
@@ -93,10 +93,9 @@ export function SelectDatabasePage() {
 				<BackButton onClick={onBackButtonClick} />
 				<h1 className="text-base font-bold text-primary">Select a Google Sheet</h1>
 				{selectedSpreadsheetId ? (
-					<>
-						<p>Select a sheet:</p>
-						<div className="flex-col p-1 relative flex-1 bg-secondary rounded">
-							<div className="absolute top-0 inset-x-2 h-px bg-divider-secondary" />
+					<div className="flex-col gap-2">
+						<p>Select a sheet to sync:</p>
+						<div className="flex-col p-1 relative bg-secondary rounded">
 							{sheets.length === 0 ? (
 								<div className="flex-row items-center justify-center flex-1 gap-2 min-h-6 text-secondary">
 									<Spinner inline />
@@ -107,7 +106,7 @@ export function SelectDatabasePage() {
 									<div
 										key={sheet.properties.sheetId}
 										className={classNames(
-											"rounded h-6 flex-row items-center px-2",
+											"rounded h-6 flex-row items-center px-2 cursor-pointer",
 											selectedSheet === sheet
 												? "bg-segmented-control text-accent dark:text-primary font-semibold segmented-control-shadow"
 												: "text-secondary font-medium"
@@ -121,7 +120,7 @@ export function SelectDatabasePage() {
 								))
 							)}
 						</div>
-					</>
+					</div>
 				) : (
 					<>
 						<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
@@ -162,7 +161,7 @@ export function SelectDatabasePage() {
 			{selectedSpreadsheetId && (
 				<div className="p-3 relative">
 					<div className="absolute top-0 inset-x-3 h-px bg-divider" />
-					<Button primary onClick={handleSelectSheet} loading={isLoading} disabled={isLoading}>
+					<Button primary onClick={handleSheetSelect} disabled={!selectedSheet}>
 						Next: Configure Collection Fields
 					</Button>
 				</div>
