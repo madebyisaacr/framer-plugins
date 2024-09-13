@@ -714,9 +714,9 @@ export async function getSheetsList(spreadsheetId: string) {
 
 	try {
 		const response = await googleAPIFetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties`,
 			"GET",
-			PROXY
+			LOCAL
 		);
 
 		if (!response.ok) {
@@ -724,6 +724,12 @@ export async function getSheetsList(spreadsheetId: string) {
 		}
 
 		const data = await response.json();
+
+		if (data.error) {
+			console.error("Error fetching sheets list:", data.error);
+			return [];
+		}
+
 		console.log("sheets list", data);
 		return data.sheets;
 	} catch (error) {
