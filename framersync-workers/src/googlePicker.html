@@ -25,6 +25,7 @@
 					.setDeveloperKey('{{DEVELOPER_API_KEY}}')
 					.setCallback(pickerCallback)
 					.setTitle('Select a Google Sheet to sync with Framer')
+					.enableFeature(google.picker.Feature.NAV_HIDDEN)
 					.build();
 
 				picker.setVisible(true);

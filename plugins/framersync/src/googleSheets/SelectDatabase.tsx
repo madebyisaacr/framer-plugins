@@ -47,7 +47,9 @@ export function SelectDatabasePage() {
 	const processPickerResult = async (result) => {
 		const { spreadsheetId } = result;
 		setSelectedSpreadsheetId(spreadsheetId);
+		console.log("spreadsheetId", spreadsheetId);
 		const sheetsList = await getSheetsList(spreadsheetId);
+		console.log("sheets list pt 2", sheetsList);
 		setSheets(sheetsList);
 		setIsLoading(false);
 	};
@@ -82,17 +84,11 @@ export function SelectDatabasePage() {
 			className="flex-col gap-2 p-3 size-full items-center justify-center"
 		>
 			{!selectedSpreadsheetId && (
-				<Button
-					primary
-					onClick={handleSelectSheet}
-					loading={isLoading}
-					disabled={isLoading}
-					className="w-[200px]"
-				>
+				<Button primary onClick={handleSelectSheet} loading={isLoading} disabled={isLoading}>
 					Select a Google Sheet
 				</Button>
 			)}
-			{selectedSpreadsheetId && sheets.length > 0 && (
+			{selectedSpreadsheetId && sheets?.length > 0 && (
 				<>
 					<h2 className="text-base font-bold">Select a sheet:</h2>
 					<ul className="list-none p-0">
@@ -110,66 +106,5 @@ export function SelectDatabasePage() {
 				</>
 			)}
 		</Window>
-	);
-}
-
-export function SelectDatabasePageOld() {
-	const { updatePluginContext } = usePluginContext();
-
-	const { data, refetch, isRefetching, isLoading } = useSpreadsheetsQuery();
-
-	const onSubmit = async (spreadsheetId: string, sheet: object) => {
-		const spreadsheet = data?.find((spreadsheet) => spreadsheet.id === spreadsheetId);
-		if (!spreadsheet || !sheet) {
-			return;
-		}
-
-		const fullSheet = await getFullSheet(spreadsheetId, sheet.id);
-
-		updatePluginContext({
-			integrationContext: {
-				spreadsheet,
-				sheet: fullSheet,
-				spreadsheetId,
-				sheetId: fullSheet.properties.sheetId,
-			},
-		});
-	};
-
-	const getSubdatabases = async (spreadsheetId: string) => {
-		const sheets = await getSheetsList(spreadsheetId);
-		return sheets
-			? sheets.map((sheet) => ({ id: sheet.properties.title, name: sheet.properties.title }))
-			: null;
-	};
-
-	const spreadsheets =
-		isLoading || !Array.isArray(data)
-			? []
-			: data.map((sheet) => ({
-					id: sheet.id,
-					title: sheet.name,
-			  }));
-
-	useEffect(() => {
-		if (!isLoading && !spreadsheets.length) {
-			openGooglePicker();
-		}
-	}, [isLoading]);
-
-	return (
-		<SelectDatabasePageTemplate
-			databases={spreadsheets}
-			refetch={refetch}
-			isLoading={isLoading}
-			isRefetching={isRefetching}
-			onSubmit={onSubmit}
-			title="Select a Google Sheet to sync"
-			databasesLabel="Sheets"
-			subdatabases
-			getSubdatabases={getSubdatabases}
-			subdatabasesLabel="Sheets"
-			connectMoreDatabases={openGooglePicker}
-		/>
 	);
 }

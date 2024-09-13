@@ -425,7 +425,7 @@ async function handleRequest(request: Request, env: Env) {
 
 		if (!spreadsheetId) {
 			return new Response(null, {
-				status: 418,
+				status: 404,
 				headers: { ...accessControlOrigin },
 			});
 		}
