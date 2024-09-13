@@ -1,54 +1,65 @@
 import { usePluginContext } from "../general/PluginContext";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@shared/Button";
-import { openGooglePicker, getFullSheet, getSheetsList } from "./googleSheets";
+import { getSheetsList, getFullSheet, getGoogleAccessToken } from "./googleSheets";
 import Window from "../general/Window";
-
-const apiBaseUrl =
-	window.location.hostname === "localhost"
-		? "http://localhost:8787/google-sheets"
-		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
 export function SelectDatabasePage() {
 	const { updatePluginContext } = usePluginContext();
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedSpreadsheetId, setSelectedSpreadsheetId] = useState(null);
 	const [sheets, setSheets] = useState([]);
-	const pollIntervalRef = useRef(null);
-	const readKeyRef = useRef(null);
+	const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+	const [pickerOpen, setPickerOpen] = useState(false);
 
-	const handleSelectSheet = async () => {
-		setIsLoading(true);
-		readKeyRef.current = openGooglePicker();
+	useEffect(() => {
+		const script = document.createElement("script");
+		script.src = "https://apis.google.com/js/api.js";
+		script.async = true;
+		script.onload = () => {
+			gapi.load("picker", () => setIsScriptLoaded(true));
+		};
+		document.body.appendChild(script);
 
-		// Start polling for the picker result
-		pollIntervalRef.current = setInterval(pollForPickerResult, 2500);
+		return () => {
+			document.body.removeChild(script);
+		};
+	}, []);
+
+	const handleSelectSheet = () => {
+		if (!isScriptLoaded) return;
+
+		setPickerOpen(true);
+
+		const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+			.setMimeTypes("application/vnd.google-apps.spreadsheet")
+			.setIncludeFolders(true)
+			.setSelectFolderEnabled(false);
+
+		const picker = new google.picker.PickerBuilder()
+			.addView(view)
+			.setOAuthToken(getGoogleAccessToken())
+			.setDeveloperKey(import.meta.env.VITE_GOOGLE_API_KEY)
+			.setAppId(import.meta.env.VITE_GOOGLE_APP_ID)
+			.setCallback(pickerCallback)
+			.setTitle("Select a Google Sheet to sync with Framer")
+			.build();
+
+		picker.setVisible(true);
 	};
 
-	const pollForPickerResult = async () => {
-		try {
-			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`, {
-				method: "POST",
-			});
-			if (response.status === 200) {
-				const result = await response.json();
-				if (result && result.spreadsheetId) {
-					clearInterval(pollIntervalRef.current);
-					readKeyRef.current = null;
-					await processPickerResult(result);
-				}
-			}
-		} catch (error) {
-			console.error("Error polling for picker result:", error);
+	const pickerCallback = async (data) => {
+		if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+			const doc = data[google.picker.Response.DOCUMENTS][0];
+			const spreadsheetId = doc.id;
+			setSelectedSpreadsheetId(spreadsheetId);
+
+			setIsLoading(true);
+			const sheetsList = await getSheetsList(spreadsheetId);
+			setSheets(sheetsList);
+			setIsLoading(false);
 		}
-	};
-
-	const processPickerResult = async (result) => {
-		const { spreadsheetId } = result;
-		setSelectedSpreadsheetId(spreadsheetId);
-		const sheetsList = await getSheetsList(spreadsheetId);
-		setSheets(sheetsList);
-		setIsLoading(false);
+		setPickerOpen(false);
 	};
 
 	const handleSheetSelect = async (sheetId) => {
@@ -67,17 +78,9 @@ export function SelectDatabasePage() {
 		setIsLoading(false);
 	};
 
-	useEffect(() => {
-		return () => {
-			if (pollIntervalRef.current) {
-				clearInterval(pollIntervalRef.current);
-			}
-		};
-	}, []);
-
 	return (
 		<Window
-			page="SelectDatabase"
+			page={pickerOpen ? "GooglePicker" : "SelectDatabase"}
 			className="flex-col gap-2 p-3 size-full items-center justify-center"
 		>
 			{!selectedSpreadsheetId && (
@@ -85,7 +88,7 @@ export function SelectDatabasePage() {
 					primary
 					onClick={handleSelectSheet}
 					loading={isLoading}
-					disabled={isLoading}
+					disabled={isLoading || !isScriptLoaded}
 					className="w-[200px]"
 				>
 					Select a Google Sheet

@@ -27,6 +27,10 @@ const pageSizes = {
 		width: 350,
 		height: 600,
 	},
+	GooglePicker: {
+		width: 800,
+		height: 600,
+	},
 };
 
 export default function Window({ page, className, children }) {
