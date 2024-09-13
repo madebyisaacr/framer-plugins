@@ -445,7 +445,6 @@ async function handleRequest(request: Request, env: Env) {
 		const readKey = requestUrl.searchParams.get('readKey');
 		const spreadsheetId = requestUrl.searchParams.get('spreadsheetId');
 
-		console.log('Received spreadsheetId:', spreadsheetId, readKey);
 		if (!spreadsheetId || !readKey) {
 			return new Response('Missing spreadsheetId or readKey URL param', {
 				status: 400,

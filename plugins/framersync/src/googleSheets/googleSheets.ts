@@ -194,7 +194,6 @@ export async function refreshGoogleSheetsToken() {
 		const responseJson = await response.json();
 		const { access_token } = responseJson;
 
-		console.log("access_token", access_token);
 		googleSheetsAccessToken = access_token;
 		return true;
 	} catch (error) {
@@ -649,7 +648,6 @@ export function useSpreadsheetsQuery() {
 				}
 
 				const data = await response.json();
-				console.log("data", data);
 				return data.files || [];
 			} catch (error) {
 				console.error("Error fetching spreadsheets:", error);
@@ -712,20 +710,6 @@ export function getColumnLetter(index: number): string {
 export async function getSheetsList(spreadsheetId: string) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
-	console.log(`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties`);
-
-	const response1 = await googleAPIFetch(
-		`https://www.googleapis.com/drive/v3/files/${spreadsheetId}`,
-		"GET",
-		PROXY
-	);
-
-	console.log("response1", response1);
-
-	const data1 = await response1.json();
-
-	console.log("data1", data1);
-
 	try {
 		const response = await googleAPIFetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
@@ -744,7 +728,6 @@ export async function getSheetsList(spreadsheetId: string) {
 			return [];
 		}
 
-		console.log("sheets list", data);
 		return data.sheets;
 	} catch (error) {
 		console.error("Error fetching sheets list:", error);
@@ -769,8 +752,6 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	if (!sheet) {
 		throw new Error("Failed to fetch sheet data");
 	}
-
-	console.log("Sheet data", sheet);
 
 	return sheet;
 }

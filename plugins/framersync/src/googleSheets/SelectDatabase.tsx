@@ -27,7 +27,6 @@ export function SelectDatabasePage() {
 
 	const pollForPickerResult = async () => {
 		try {
-			console.log(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`);
 			const response = await fetch(`${apiBaseUrl}/poll-picker?readKey=${readKeyRef.current}`, {
 				method: "POST",
 			});
@@ -47,9 +46,7 @@ export function SelectDatabasePage() {
 	const processPickerResult = async (result) => {
 		const { spreadsheetId } = result;
 		setSelectedSpreadsheetId(spreadsheetId);
-		console.log("spreadsheetId", spreadsheetId);
 		const sheetsList = await getSheetsList(spreadsheetId);
-		console.log("sheets list pt 2", sheetsList);
 		setSheets(sheetsList);
 		setIsLoading(false);
 	};
