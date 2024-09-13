@@ -724,6 +724,7 @@ export async function getSheetsList(spreadsheetId: string) {
 		}
 
 		const data = await response.json();
+		console.log("sheets list", data);
 		return data.sheets;
 	} catch (error) {
 		console.error("Error fetching sheets list:", error);

@@ -84,7 +84,13 @@ export function SelectDatabasePage() {
 			className="flex-col gap-2 p-3 size-full items-center justify-center"
 		>
 			{!selectedSpreadsheetId && (
-				<Button primary onClick={handleSelectSheet} loading={isLoading} disabled={isLoading}>
+				<Button
+					primary
+					onClick={handleSelectSheet}
+					loading={isLoading}
+					disabled={isLoading}
+					className="w-[200px]"
+				>
 					Select a Google Sheet
 				</Button>
 			)}
