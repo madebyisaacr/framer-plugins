@@ -252,7 +252,9 @@ export async function authorize() {
 
 					clearInterval(intervalId);
 					googleSheetsAccessToken = access_token;
-					localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
+					if (refresh_token) {
+						localStorage.setItem(googleSheetsRefreshTokenKey, refresh_token);
+					}
 				}
 
 				resolve();
