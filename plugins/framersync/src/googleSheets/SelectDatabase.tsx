@@ -59,6 +59,13 @@ export function SelectDatabasePage() {
 
 	const handleSheetSelect = async () => {
 		setIsLoading(true);
+
+		if (!selectedSpreadsheetId || !selectedSheet) {
+			return;
+		}
+
+		console.log("selectedSheet", selectedSheet);
+
 		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.sheetId);
 
 		updatePluginContext({
