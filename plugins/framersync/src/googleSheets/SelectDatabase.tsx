@@ -64,8 +64,6 @@ export function SelectDatabasePage() {
 			return;
 		}
 
-		console.log("selectedSheet", selectedSheet);
-
 		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.title);
 
 		updatePluginContext({
@@ -86,6 +84,12 @@ export function SelectDatabasePage() {
 			integrationContext: null,
 		});
 	};
+
+	useEffect(() => {
+		if (sheets.length === 1 && selectedSheet && selectedSpreadsheetId) {
+			handleSheetSelect();
+		}
+	}, [sheets, selectedSheet, selectedSpreadsheetId]);
 
 	useEffect(() => {
 		return () => {

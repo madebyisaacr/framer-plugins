@@ -49,8 +49,6 @@ function getFieldNameOverrides(pluginContext: PluginContext): Record<string, str
 		result[fieldId] = collectionFieldsById[fieldId].name;
 	}
 
-	console.log(result);
-
 	return result;
 }
 
