@@ -712,11 +712,25 @@ export function getColumnLetter(index: number): string {
 export async function getSheetsList(spreadsheetId: string) {
 	if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
 
+	console.log(`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties`);
+
+	const response1 = await googleAPIFetch(
+		`https://www.googleapis.com/drive/v3/files/${spreadsheetId}`,
+		"GET",
+		PROXY
+	);
+
+	console.log("response1", response1);
+
+	const data1 = await response1.json();
+
+	console.log("data1", data1);
+
 	try {
 		const response = await googleAPIFetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties`,
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties.title`,
 			"GET",
-			LOCAL
+			PROXY
 		);
 
 		if (!response.ok) {

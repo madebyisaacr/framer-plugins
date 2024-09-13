@@ -528,7 +528,7 @@ function getGooglePickerHTML({
 	readKey: string;
 }) {
 	return googlePickerHtml
-		.replace('{{ACCESS_TOKEN}}', accessToken)
+		.replace(/{{ACCESS_TOKEN}}/g, accessToken)
 		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
 		.replace('{{CALLBACK_URL}}', pickerCallbackURL)
 		.replace('{{CLIENT_ID}}', clientId)
