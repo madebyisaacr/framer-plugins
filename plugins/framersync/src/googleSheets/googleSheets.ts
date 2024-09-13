@@ -615,53 +615,6 @@ export async function updatePluginData(pluginContext: PluginContext) {
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName);
 }
 
-export function useSpreadsheetsQuery() {
-	return useQuery({
-		queryKey: ["spreadsheets"],
-		queryFn: async () => {
-			if (!googleSheetsAccessToken) throw new Error("Google Sheets API token is missing");
-
-			try {
-				const params = new URLSearchParams({
-					q: "mimeType='application/vnd.google-apps.spreadsheet'",
-					fields: "files(id, name)",
-					spaces: "drive",
-				});
-
-				const response = await fetch(
-					`https://www.googleapis.com/drive/v3/files?${params.toString()}`,
-					{
-						headers: {
-							Authorization: `Bearer ${googleSheetsAccessToken}`,
-						},
-					}
-				);
-
-				if (response.status === 403) {
-					// TODO: Refresh the token instead of throwing an error
-					console.error("403 Forbidden error. Token may be invalid or expired.");
-					throw new Error("Authorization failed. Please log in again.");
-				}
-
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-
-				const data = await response.json();
-				return data.files || [];
-			} catch (error) {
-				console.error("Error fetching spreadsheets:", error);
-				throw error;
-			}
-		},
-		retry: false, // Disable automatic retries on failure
-		onError: (error) => {
-			console.error("Query error:", error);
-			// You can add additional error handling here if needed
-		},
-	});
-}
-
 export function hasFieldConfigurationChanged(
 	currentConfig: CollectionField[],
 	integrationContext: object,

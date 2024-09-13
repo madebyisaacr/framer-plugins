@@ -53,6 +53,7 @@ export function SelectDatabasePage() {
 		setSelectedSpreadsheetId(spreadsheetId);
 		const sheetsList = await getSheetsList(spreadsheetId);
 		setSheets(sheetsList);
+		setSelectedSheet(sheetsList[0]);
 		setIsLoading(false);
 	};
 
