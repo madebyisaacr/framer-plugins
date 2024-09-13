@@ -11,6 +11,7 @@ import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFiel
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
 import { FieldSettings } from "../general/FieldSettings";
 import { getFieldsById } from "../general/updateCollection";
+import { useMemo } from "react";
 
 const propertyTypeNames = {
 	BOOLEAN: "Boolean",
@@ -70,7 +71,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			for (let i = 1; i < sheet.data[0].rowData.length; i++) {
 				const cellValue = sheet.data[0].rowData[i].values[index];
 				if (cellValue) {
-					[conversionTypes, columnType, autoFieldType, autoFieldSettings] = getCellPropertyType(cellValue);
+					[conversionTypes, columnType, autoFieldType, autoFieldSettings] =
+						getCellPropertyType(cellValue);
 					break;
 				}
 			}
@@ -136,6 +138,8 @@ export function MapFieldsPage({
 	const { pluginContext } = usePluginContext();
 	const { spreadsheet, sheet } = pluginContext.integrationContext;
 
+	const fieldConfigList = useMemo(() => createFieldConfig(pluginContext), [pluginContext]);
+
 	return (
 		<MapFieldsPageTemplate
 			onSubmit={onSubmit}
@@ -143,7 +147,7 @@ export function MapFieldsPage({
 			error={error}
 			updatePluginData={updatePluginData}
 			getPossibleSlugFields={getPossibleSlugFields}
-			createFieldConfig={createFieldConfig}
+			fieldConfigList={fieldConfigList}
 			propertyLabelText="Sheet column"
 			slugFieldTitleText="Slug Field Column"
 			databaseName={`${spreadsheet.name} - ${sheet.properties.title}`}
