@@ -19,16 +19,18 @@
 					.setIncludeFolders(true)
 					.setSelectFolderEnabled(false);
 
-				picker = new google.picker.PickerBuilder()
+				const pickerBuilder = new google.picker.PickerBuilder()
 					.addView(view)
 					.setOAuthToken('{{ACCESS_TOKEN}}')
 					.setDeveloperKey('{{DEVELOPER_API_KEY}}')
 					.setCallback(pickerCallback)
-					.setAppId('830588332904')
+					.setAppId('{{APP_ID}}')
 					.setTitle('Select a Google Sheet to sync with Framer')
-					.enableFeature(google.picker.Feature.NAV_HIDDEN)
-					.build();
+					.enableFeature(google.picker.Feature.NAV_HIDDEN);
 
+				console.log('Picker URI:', pickerBuilder.toUri());
+
+				picker = pickerBuilder.build();
 				picker.setVisible(true);
 			}
 

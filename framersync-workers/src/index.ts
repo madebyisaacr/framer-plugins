@@ -249,7 +249,9 @@ async function handleRequest(request: Request, env: Env) {
 			expirationTtl: 300,
 		});
 
-		return new Response(getAuthorizationSuccessHTML('Authentication successful! You can close this window and return to Framer.'), {
+		const html = authorizationSuccessHtml.replace('{{text}}', 'Authentication successful! You can close this window and return to Framer.');
+
+		return new Response(html, {
 			headers: {
 				'Content-Type': 'text/html',
 			},
@@ -393,13 +395,13 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const pickerHtml = getGooglePickerHTML({
-			accessToken,
-			developerAPIKey: env.GOOGLE_DEVELOPER_API_KEY,
-			pickerCallbackURL: `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`,
-			clientId: env.GOOGLE_CLIENT_ID,
-			readKey,
-		});
+		const pickerHtml = googlePickerHtml
+			.replace('{{ACCESS_TOKEN}}', accessToken)
+			.replace('{{DEVELOPER_API_KEY}}', env.GOOGLE_DEVELOPER_API_KEY)
+			.replace('{{CALLBACK_URL}}', `${env.REDIRECT_URI}/${Platform.GoogleSheets}/${Command.GooglePickerCallback}`)
+			.replace('{{CLIENT_ID}}', env.GOOGLE_CLIENT_ID)
+			.replace('{{READ_KEY}}', readKey)
+			.replace('{{APP_ID}}', env.GOOGLE_APP_ID);
 
 		return new Response(pickerHtml, {
 			headers: {
@@ -511,29 +513,4 @@ function objectToURLParams(object: Record<string, string>) {
 		params.append(key, value);
 	}
 	return params.toString();
-}
-
-function getGooglePickerHTML({
-	accessToken,
-	developerAPIKey,
-	pickerCallbackURL,
-	clientId,
-	readKey,
-}: {
-	accessToken: string;
-	developerAPIKey: string;
-	pickerCallbackURL: string;
-	clientId: string;
-	readKey: string;
-}) {
-	return googlePickerHtml
-		.replace(/{{ACCESS_TOKEN}}/g, accessToken)
-		.replace('{{DEVELOPER_API_KEY}}', developerAPIKey)
-		.replace('{{CALLBACK_URL}}', pickerCallbackURL)
-		.replace('{{CLIENT_ID}}', clientId)
-		.replace('{{READ_KEY}}', readKey);
-}
-
-function getAuthorizationSuccessHTML(text: string) {
-	return authorizationSuccessHtml.replace('{{text}}', text);
 }

@@ -11,6 +11,7 @@ kv_namespaces = [
 [vars]
 NOTION_CLIENT_ID = "c213633a-8eee-47e0-b126-6a25b2d5a622"
 AIRTABLE_CLIENT_ID = "35ec7164-6375-4dc2-9083-5dbdc5fc590f"
+GOOGLE_APP_ID = "830588332904"
 GOOGLE_CLIENT_ID = "830588332904-7i1eb1jjv2ped73sniikp1od2d9ri0vl.apps.googleusercontent.com"
 PLUGIN_URI = "https://plugin.framersync.com"
 REDIRECT_URI = "https://framersync-workers.isaac-b49.workers.dev"
