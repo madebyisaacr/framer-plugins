@@ -66,7 +66,7 @@ export function SelectDatabasePage() {
 
 		console.log("selectedSheet", selectedSheet);
 
-		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.sheetId);
+		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.title);
 
 		updatePluginContext({
 			integrationContext: {
