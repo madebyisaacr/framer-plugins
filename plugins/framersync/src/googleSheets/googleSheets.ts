@@ -636,6 +636,10 @@ export function hasFieldConfigurationChanged(
 	const properties = headerRow.filter((_, index) => !disabledFieldIds.includes(index.toString()));
 
 	if (properties.length !== fields.length) {
+		console.log("properties", properties);
+		console.log("fields", fields);
+		console.log("headerRow", headerRow);
+		console.log("disabledFieldIds", disabledFieldIds);
 		console.log("Configuration changed: properties.length !== fields.length", {
 			propertiesLength: properties.length,
 			fieldsLength: fields.length,
