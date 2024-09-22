@@ -101,8 +101,6 @@ function HomePage() {
 	const [colorStyleID, setColorStyleID] = useState<string | null>(null);
 	const [customColor, setCustomColor] = useState("#000000");
 
-	const theme = useTheme();
-
 	const scrollContainerRef = useRef(null);
 	const rowsVisibleRef = useRef(rowsVisible);
 
@@ -598,7 +596,6 @@ function CustomizationMenu({
 	const [selectedCustomColor, setSelectedCustomColor] = useState(customColor);
 
 	const [colorStyles, setColorStyles] = useState<ColorStyle[]>([]);
-	const theme = useTheme();
 
 	useEffect(() => {
 		framer.getColorStyles().then(setColorStyles);
