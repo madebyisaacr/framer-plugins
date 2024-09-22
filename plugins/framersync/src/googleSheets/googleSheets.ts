@@ -635,7 +635,13 @@ export function hasFieldConfigurationChanged(
 	const headerRow = sheet.data[0].rowData[0].values;
 	const properties = headerRow.filter((_, index) => !disabledFieldIds.includes(index.toString()));
 
-	if (properties.length !== fields.length) return true;
+	if (properties.length !== fields.length) {
+		console.log("Configuration changed: properties.length !== fields.length", {
+			propertiesLength: properties.length,
+			fieldsLength: fields.length,
+		});
+		return true;
+	}
 
 	const includedProperties = properties.filter((_, index) =>
 		currentFieldsById.has(index.toString())
@@ -644,10 +650,19 @@ export function hasFieldConfigurationChanged(
 	for (let i = 0; i < includedProperties.length; i++) {
 		const property = includedProperties[i];
 		const currentField = currentFieldsById.get(i.toString());
-		if (!currentField) return true;
+		if (!currentField) {
+			console.log("Configuration changed: currentField not found", { index: i });
+			return true;
+		}
 
 		const propertyType = property.effectiveFormat?.numberFormat?.type || "TEXT";
-		if (!propertyConversionTypes[propertyType].includes(currentField.type)) return true;
+		if (!propertyConversionTypes[propertyType].includes(currentField.type)) {
+			console.log("Configuration changed: property type mismatch", {
+				propertyType,
+				currentFieldType: currentField.type,
+			});
+			return true;
+		}
 	}
 
 	return false;
@@ -803,13 +818,13 @@ export function openGooglePicker(): string {
 
 export async function getSpreadsheetMetadata(spreadsheetId: string) {
 	const response = await googleAPIFetch(
-			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title`,
-			"GET",
-			PROXY
+		`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title`,
+		"GET",
+		PROXY
 	);
 
 	if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
+		throw new Error(`HTTP error! status: ${response.status}`);
 	}
 
 	return response.json();

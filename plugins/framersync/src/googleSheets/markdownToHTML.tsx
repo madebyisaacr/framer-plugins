@@ -19,6 +19,7 @@ export function markdownToHTML(richText: string) {
 	let inCodeBlock = false;
 	let codeBlockContent: string[] = [];
 	let codeBlockLanguage: string | null = null;
+	let currentParagraph: string[] = [];
 
 	for (const line of richText.split("\n")) {
 		// Dividers
@@ -64,6 +65,15 @@ export function markdownToHTML(richText: string) {
 			continue;
 		}
 
+		// Handle empty lines
+		if (line.trim() === '') {
+			if (currentParagraph.length > 0) {
+				lines.push(`<p>${currentParagraph.join(' ')}</p>`);
+				currentParagraph = [];
+			}
+			continue;
+		}
+
 		// Add support for markdown images
 		const imageMatch = line.match(/!\[([^\]]*)\]\(([^)]+)\)/);
 		if (imageMatch) {
@@ -104,9 +114,14 @@ export function markdownToHTML(richText: string) {
 			if (tag) {
 				lines.push(`<${tag}>${text}</${tag}>`);
 			} else {
-				lines.push(text);
+				currentParagraph.push(text);
 			}
 		}
+	}
+
+	// Handle any remaining paragraph content
+	if (currentParagraph.length > 0) {
+		lines.push(`<p>${currentParagraph.join(' ')}</p>`);
 	}
 
 	// Close any remaining open lists
