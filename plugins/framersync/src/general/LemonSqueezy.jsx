@@ -36,7 +36,7 @@ export function LemonSqueezyProvider({ children }) {
 		let error = null;
 		let instanceId = null;
 
-		if (licenseKey.toLowerCase() === "a") {
+		if (isTestLicenseKey(licenseKey)) {
 			activated = true;
 			instanceId = "a";
 		} else {
@@ -109,7 +109,7 @@ export async function validateLicenseKey() {
 
 	let valid = false;
 
-	if (licenseKey.toLowerCase() === "a") {
+	if (isTestLicenseKey(licenseKey)) {
 		valid = true;
 	} else {
 		const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
@@ -136,4 +136,8 @@ export async function validateLicenseKey() {
 		framer.setPluginData(PluginDataInstanceId, null);
 		return false;
 	}
+}
+
+function isTestLicenseKey(licenseKey) {
+	return window.location.hostname === "localhost" && licenseKey.toLowerCase() === "a";
 }
