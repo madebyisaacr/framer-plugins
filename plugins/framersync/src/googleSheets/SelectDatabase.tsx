@@ -1,7 +1,12 @@
 import { usePluginContext } from "../general/PluginContext";
 import { useEffect, useRef, useState } from "react";
 import Button from "@shared/Button";
-import { openGooglePicker, getFullSheet, getSheetsList } from "./googleSheets";
+import {
+	openGooglePicker,
+	getFullSheet,
+	getSheetsList,
+	getSpreadsheetMetadata,
+} from "./googleSheets";
 import Window from "../general/Window";
 import { GoogleSheetsLogo, FramerLogo } from "../assets/AppIcons";
 import BackButton from "../components/BackButton";
@@ -66,9 +71,12 @@ export function SelectDatabasePage() {
 
 		const fullSheet = await getFullSheet(selectedSpreadsheetId, selectedSheet.properties.title);
 
+		// Fetch the spreadsheet metadata to get the correct name
+		const spreadsheetMetadata = await getSpreadsheetMetadata(selectedSpreadsheetId);
+
 		updatePluginContext({
 			integrationContext: {
-				spreadsheet: { id: selectedSpreadsheetId, name: fullSheet.properties.title },
+				spreadsheet: { id: selectedSpreadsheetId, name: spreadsheetMetadata.properties.title },
 				sheet: fullSheet,
 				spreadsheetId: selectedSpreadsheetId,
 				sheetId: fullSheet.properties.sheetId,

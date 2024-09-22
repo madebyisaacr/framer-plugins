@@ -800,3 +800,17 @@ export function openGooglePicker(): string {
 
 	return readKey;
 }
+
+export async function getSpreadsheetMetadata(spreadsheetId: string) {
+	const response = await googleAPIFetch(
+			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title`,
+			"GET",
+			PROXY
+	);
+
+	if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+	}
+
+	return response.json();
+}
