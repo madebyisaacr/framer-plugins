@@ -633,7 +633,9 @@ export function hasFieldConfigurationChanged(
 	}
 
 	const headerRow = sheet.data[0].rowData[0].values;
-	const properties = headerRow.filter((_, index) => !disabledFieldIds.includes(index.toString()));
+	const properties = headerRow.filter(
+		(cell, index) => cell.formattedValue && !disabledFieldIds.includes(index.toString())
+	);
 
 	if (properties.length !== fields.length) {
 		console.log("properties", properties);
