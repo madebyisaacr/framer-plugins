@@ -1,6 +1,6 @@
 {
     "id": "Kd2XEn",
     "name": "FramerSync",
-    "modes": ["configureManagedCollection", "syncManagedCollection", "canvas"],
+    "modes": ["configureManagedCollection", "syncManagedCollection"],
     "icon": "/icon.svg"
 }
