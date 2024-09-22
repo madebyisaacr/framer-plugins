@@ -97,16 +97,24 @@ const allFieldSettings = [
 		fieldType: "enum",
 		[FieldSettings.NoneOption]: true,
 	},
+	{
+		propertyType: "richText",
+		fieldType: "formattedText",
+		[FieldSettings.CodeBlockLanguage]: {
+			message:
+				"Code blocks in the text will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
+		},
+	},
 ];
 
 const imageFileMimeTypes = [
-  "image/jpeg",
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/apng",
-  "image/webp",
-  "image/svg+xml"
+	"image/jpeg",
+	"image/jpeg",
+	"image/png",
+	"image/gif",
+	"image/apng",
+	"image/webp",
+	"image/svg+xml",
 ];
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {

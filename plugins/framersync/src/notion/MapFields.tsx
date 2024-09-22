@@ -426,4 +426,12 @@ const allFieldSettings = [
 		fieldType: "enum",
 		[FieldSettings.NoneOption]: true,
 	},
+	{
+		propertyType: "page-content",
+		fieldType: "formattedText",
+		[FieldSettings.CodeBlockLanguage]: {
+			message:
+				"Code blocks with an unsupported language will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
+		},
+	},
 ];

@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { framer } from "framer-plugin";
 import { FieldSettings } from "./FieldSettings";
 import { getFieldsById } from "./updateCollection";
+import codeBlockLanguages from "./codeBlockLanguages";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -814,6 +815,11 @@ function EditFieldMenu({
 	const settings = fieldSettings[id] || {};
 
 	const fieldConversionMessage = getFieldConversionMessage(fieldConfig, fieldType);
+	const fieldSettingMessages = allFieldSettings.find(
+		(setting) =>
+			(!setting.propertyType || setting.propertyType === fieldConfig.property.type) &&
+			(!setting.fieldType || setting.fieldType === fieldType)
+	);
 
 	const applicableSettings = useMemo(() => {
 		const filteredSettings = allFieldSettings.filter((setting) => {
@@ -934,9 +940,7 @@ function EditFieldMenu({
 								)}
 							>
 								{
-									allFieldSettings.find(
-										(setting) => setting.propertyType === fieldConfig.property.type
-									)?.[FieldSettings.MultipleFields]?.[
+									fieldSettingMessages?.[FieldSettings.MultipleFields]?.[
 										settings[FieldSettings.MultipleFields] === false ? "false" : "true"
 									]
 								}
@@ -1000,6 +1004,36 @@ function EditFieldMenu({
 								)}
 							</SegmentedControl>
 						</PropertyControl>
+					)}
+					{applicableSettings.includes(FieldSettings.CodeBlockLanguage) && (
+						<>
+							<PropertyControl title="Code Block Language">
+								<select
+									className="w-full"
+									value={settings?.[FieldSettings.CodeBlockLanguage] ?? "JavaScript"}
+									onChange={(e) => {
+										setFieldSettings({
+											...fieldSettings,
+											[id]: { ...settings, [FieldSettings.CodeBlockLanguage]: e.target.value },
+										});
+									}}
+								>
+									{codeBlockLanguages.map((language) => (
+										<option key={language} value={language}>
+											{language}
+										</option>
+									))}
+								</select>
+							</PropertyControl>
+							<div
+								className={classNames(
+									"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
+									disabled && "opacity-50"
+								)}
+							>
+								{fieldSettingMessages?.[FieldSettings.CodeBlockLanguage]?.message}
+							</div>
+						</>
 					)}
 				</div>
 			</div>

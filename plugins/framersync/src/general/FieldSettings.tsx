@@ -3,4 +3,5 @@ export enum FieldSettings {
 	MultipleFields = "multipleFields",
 	NoneOption = "noneOption",
 	ImportMarkdownOrHTML = "importMarkdownOrHTML",
+	CodeBlockLanguage = "codeBlockLanguage",
 }

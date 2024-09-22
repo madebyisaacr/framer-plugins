@@ -1,3 +1,5 @@
+import codeBlockLanguages from "../general/codeBlockLanguages";
+
 const PrefixTags = {
 	"#": "h1",
 	"##": "h2",
@@ -12,7 +14,7 @@ const PrefixTags = {
 	">": "blockquote",
 };
 
-export function markdownToHTML(richText: string) {
+export function markdownToHTML(richText: string, defaultCodeBlockLanguage: string = "JavaScript") {
 	let lines: string[] = [];
 	let listStack: { type: string; level: number }[] = [];
 	let currentListType: string | null = null;
@@ -21,6 +23,8 @@ export function markdownToHTML(richText: string) {
 	let codeBlockLanguage: string | null = null;
 	let currentParagraph: string[] = [];
 	let isParagraphStart = true;
+
+	defaultCodeBlockLanguage = defaultCodeBlockLanguage || "JavaScript";
 
 	for (const line of richText.split("\n")) {
 		// Dividers
@@ -39,7 +43,7 @@ export function markdownToHTML(richText: string) {
 					},
 					language: {
 						type: "enum",
-						value: codeBlockLanguage || "JSX",
+						value: codeBlockLanguage || defaultCodeBlockLanguage,
 					},
 				};
 
@@ -53,8 +57,8 @@ export function markdownToHTML(richText: string) {
 			} else {
 				const languageMatch = line.trim().match(/^```(\w+)/);
 				codeBlockLanguage = languageMatch ? languageMatch[1] : null;
-				if (codeBlockLanguage && !framerCodeLanguages.includes(codeBlockLanguage)) {
-					codeBlockLanguage = "JSX";
+				if (codeBlockLanguage && !codeBlockLanguages.includes(codeBlockLanguage)) {
+					codeBlockLanguage = defaultCodeBlockLanguage;
 				}
 			}
 			inCodeBlock = !inCodeBlock;
@@ -197,39 +201,3 @@ function markdownToText(line: string) {
 
 	return line;
 }
-
-const framerCodeLanguages = [
-	"Angular",
-	"C",
-	"C#",
-	"C++",
-	"CSS",
-	"Go",
-	"Haskell",
-	"HTML",
-	"Java",
-	"JavaScript",
-	"JSX",
-	"Julia",
-	"Kotlin",
-	"Less",
-	"Lua",
-	"Markdown",
-	"MATLAB",
-	"Nginx",
-	"Objective-C",
-	"Perl",
-	"PHP",
-	"Python",
-	"Ruby",
-	"Rust",
-	"Scala",
-	"SCSS",
-	"Shell",
-	"SQL",
-	"Swift",
-	"TSX",
-	"TypeScript",
-	"Vue",
-	"YAML",
-];
