@@ -20,6 +20,7 @@ export function markdownToHTML(richText: string) {
 	let codeBlockContent: string[] = [];
 	let codeBlockLanguage: string | null = null;
 	let currentParagraph: string[] = [];
+	let isParagraphStart = true;
 
 	for (const line of richText.split("\n")) {
 		// Dividers
@@ -66,10 +67,11 @@ export function markdownToHTML(richText: string) {
 		}
 
 		// Handle empty lines
-		if (line.trim() === '') {
+		if (line.trim() === "") {
 			if (currentParagraph.length > 0) {
-				lines.push(`<p>${currentParagraph.join(' ')}</p>`);
+				lines.push(`<p>${currentParagraph.join("")}</p>`);
 				currentParagraph = [];
+				isParagraphStart = true;
 			}
 			continue;
 		}
@@ -112,16 +114,25 @@ export function markdownToHTML(richText: string) {
 				currentListType = null;
 			}
 			if (tag) {
+				if (currentParagraph.length > 0) {
+					lines.push(`<p>${currentParagraph.join("")}</p>`);
+					currentParagraph = [];
+				}
 				lines.push(`<${tag}>${text}</${tag}>`);
+				isParagraphStart = true;
 			} else {
+				if (!isParagraphStart) {
+					currentParagraph.push("<br>");
+				}
 				currentParagraph.push(text);
+				isParagraphStart = false;
 			}
 		}
 	}
 
 	// Handle any remaining paragraph content
 	if (currentParagraph.length > 0) {
-		lines.push(`<p>${currentParagraph.join(' ')}</p>`);
+		lines.push(`<p>${currentParagraph.join("")}</p>`);
 	}
 
 	// Close any remaining open lists
@@ -221,4 +232,4 @@ const framerCodeLanguages = [
 	"TypeScript",
 	"Vue",
 	"YAML",
-]
+];
