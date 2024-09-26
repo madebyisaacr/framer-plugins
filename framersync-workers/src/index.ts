@@ -26,7 +26,7 @@ async function handleRequest(request: Request, env: Env) {
 	const platform = sections[0] as Platform;
 	const command = (platform ? sections[1] : sections[0]) as Command;
 
-	const accessControlOrigin = { 'Access-Control-Allow-Origin': env.PLUGIN_URI };
+	const accessControlOrigin = getAccessControlAllowOrigin(request);
 	const redirectURI = `${env.REDIRECT_URI}/${platform}/${Command.Redirect}/`;
 
 	// Generate an authorization URL to login into the provider, and a set of
@@ -443,6 +443,7 @@ async function handleRequest(request: Request, env: Env) {
 		});
 	}
 
+	// Google Picker Callback //
 	if (request.method === 'POST' && command === Command.GooglePickerCallback && platform === Platform.GoogleSheets) {
 		const readKey = requestUrl.searchParams.get('readKey');
 		const spreadsheetId = requestUrl.searchParams.get('spreadsheetId');
@@ -482,9 +483,7 @@ async function handleRequest(request: Request, env: Env) {
 
 	return new Response('Page not found', {
 		status: 404,
-		headers: {
-			...accessControlOrigin,
-		},
+		headers: accessControlOrigin,
 	});
 }
 
@@ -493,11 +492,11 @@ export default {
 		return handleRequest(request, env).catch((error) => {
 			const message = error instanceof Error ? error.message : 'Unknown';
 
+			const accessControlOrigin = getAccessControlAllowOrigin(request);
+
 			return new Response(`😔 Internal error: ${message}`, {
 				status: 500,
-				headers: {
-					'Access-Control-Allow-Origin': env.PLUGIN_URI,
-				},
+				headers: accessControlOrigin,
 			});
 		});
 	},
@@ -513,4 +512,12 @@ function objectToURLParams(object: Record<string, string>) {
 		params.append(key, value);
 	}
 	return params.toString();
+}
+
+function getAccessControlAllowOrigin(request: Request) {
+	const origin = request.headers.get('Origin');
+	if (origin && (origin === 'https://plugin.framersync.com' || origin.endsWith('.framercdn.com'))) {
+		return { 'Access-Control-Allow-Origin': origin };
+	}
+	return {};
 }
