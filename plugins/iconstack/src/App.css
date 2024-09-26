@@ -1,5 +1,9 @@
 @import url("@shared/shared.css");
 
+body {
+	--color-accent: var(--framer-color-tint);
+}
+
 .icon-img {
 	@apply size-[24px] relative object-center top-[14px] left-[14px] pointer-events-none;
 }

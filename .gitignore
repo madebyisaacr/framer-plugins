@@ -4,3 +4,4 @@
 plugins/**/dist
 localhost-key.pem
 localhost.pem
+**/plugin.zip
