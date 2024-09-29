@@ -17,8 +17,7 @@ const TRANSITION = {
 };
 
 framer.showUI({
-	title: "Framestack",
-	position: "center",
+	position: "top left",
 	width: 300,
 	height: 550,
 	minHeight: 400,
@@ -26,18 +25,25 @@ framer.showUI({
 });
 
 const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
-const TAG_COLORS = ["#8636FF", "#3666FF", "#25A1FF", "#39C7C7", "#43D066", "#FFB300", "#FF8822", "#FF4488"];
+const TAG_COLORS = [
+	"#8636FF",
+	"#3666FF",
+	"#25A1FF",
+	"#39C7C7",
+	"#43D066",
+	"#FFB300",
+	"#FF8822",
+	"#FF4488",
+];
 
 export function App() {
 	const [selectedComponent, setSelectedComponent] = useState(null);
-	const [activeComponent, setActiveComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
 	const [tagMenuOpen, setTagMenuOpen] = useState(false);
 	const containerRef = useRef(null);
 	const searchContainerRef = useRef(null);
 	const tagRefs = useRef([]);
 	const selectedTagIndexRef = useRef(-1);
-	const selectedComponentButtonRef = useRef(null);
 
 	const tagMotionValues = tags.map(() => useMotionValue(0));
 
@@ -82,42 +88,38 @@ export function App() {
 		selectedTagIndexRef.current = index;
 	};
 
-	const onComponentClick = (component, event) => {
-		setSelectedComponent(component);
-		setActiveComponent(component);
-		selectedComponentButtonRef.current = event.currentTarget;
-	};
-
-	const onComponentTransitionEnd = () => {
-		if (activeComponent && !selectedComponent) {
-			setActiveComponent(null);
-			console.log("activeComponent", activeComponent);
-		}
-	};
-
 	return (
 		<main className="relative size-full select-none">
 			<motion.div
-				className={classNames("flex flex-col gap-2 flex-1 size-full overflow-hidden", selectedComponent && "pointer-events-none")}
-				animate={{
-					scale: selectedComponent ? 0.95 : 1,
-				}}
-				initial={false}
-				transition={TRANSITION}
-				onTransitionEnd={onComponentTransitionEnd}
+				className={classNames(
+					"flex flex-col gap-2 flex-1 size-full overflow-hidden",
+					selectedComponent && "pointer-events-none"
+				)}
 			>
-				<SearchBar placeholder="Search Components..." value={searchText} onChange={setSearchText} className="mx-3" />
-				<div key="search-container" className={classNames("relative flex-1 overflow-hidden", !searchText && "hidden")}>
-					<div ref={searchContainerRef} className="relative flex flex-col overflow-y-auto gap-6 px-3 h-full">
+				<SearchBar
+					placeholder="Search Components..."
+					value={searchText}
+					onChange={setSearchText}
+					className="mx-3"
+				/>
+				<div
+					key="search-container"
+					className={classNames("relative flex-1 overflow-hidden", !searchText && "hidden")}
+				>
+					<div
+						ref={searchContainerRef}
+						className="relative flex flex-col overflow-y-auto gap-6 px-3 h-full"
+					>
 						<TileGrid>
 							{components
-								.filter((component) => component.name.toLowerCase().includes(searchText.toLowerCase()))
+								.filter((component) =>
+									component.name.toLowerCase().includes(searchText.toLowerCase())
+								)
 								.map((component, _) => (
 									<ComponentTile
 										key={component.name}
 										component={component}
-										active={activeComponent === component}
-										onClick={(event) => onComponentClick(component, event)}
+										onClick={() => setSelectedComponent(component)}
 									/>
 								))}
 						</TileGrid>
@@ -125,7 +127,12 @@ export function App() {
 					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 				</div>
-				<div className={classNames("relative w-full flex flex-col flex-1 overflow-hidden", searchText && "hidden")}>
+				<div
+					className={classNames(
+						"relative w-full flex flex-col flex-1 overflow-hidden",
+						searchText && "hidden"
+					)}
+				>
 					<motion.div
 						ref={containerRef}
 						key="main-container"
@@ -200,8 +207,7 @@ export function App() {
 												<ComponentTile
 													key={component.name}
 													component={component}
-													active={activeComponent === component}
-													onClick={(event) => onComponentClick(component, event)}
+													onClick={() => setSelectedComponent(component)}
 												/>
 											))}
 									</TileGrid>
@@ -213,12 +219,10 @@ export function App() {
 					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 				</div>
 			</motion.div>
-			<AnimatePresence onExitComplete={onComponentTransitionEnd}>
+			<AnimatePresence>
 				{selectedComponent && (
 					<ComponentWindow
 						component={selectedComponent}
-						element={selectedComponentButtonRef.current}
-						containerOffsetTop={(searchText ? searchContainerRef : containerRef).current.getBoundingClientRect().top}
 						onClose={() => setSelectedComponent(null)}
 					/>
 				)}
@@ -229,13 +233,18 @@ export function App() {
 
 function TileGrid({ children, className = "" }) {
 	return (
-		<div className={classNames("grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 bg-primary", className)}>
+		<div
+			className={classNames(
+				"grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 bg-primary",
+				className
+			)}
+		>
 			{children}
 		</div>
 	);
 }
 
-function ComponentTile({ component, active, className = "", onClick = null }) {
+function ComponentTile({ component, className = "", onClick = null }) {
 	const icon = getComponentIcon(component);
 
 	const element = (
@@ -244,13 +253,16 @@ function ComponentTile({ component, active, className = "", onClick = null }) {
 			onClick={onClick}
 			className={classNames(
 				"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
-				active ? "opacity-0" : "opacity-100",
 				onClick && "cursor-pointer",
 				className
 			)}
 		>
-			{icon && <img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />}
-			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-primary font-semibold">{component.name}</span>
+			{icon && (
+				<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
+			)}
+			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-primary font-semibold">
+				{component.name}
+			</span>
 			{component.free && (
 				<div
 					style={{
@@ -278,84 +290,45 @@ function ComponentTile({ component, active, className = "", onClick = null }) {
 	);
 }
 
-function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
-	const imgRef = useRef(null);
+function ComponentWindow({ component, element, onClose }) {
 	const session = null;
 
-	const [offsetTop, setOffsetTop] = useState(0);
-	const offsetTopValue = useMotionValue(0);
-
 	const [loading, setLoading] = useState(false);
-
-	const [clipTop, imgHeight] = useMemo(() => {
-		if (!element) {
-			return [0, 0];
-		}
-
-		return [Math.max(0, containerOffsetTop - element.getBoundingClientRect().top), element.offsetHeight];
-	}, []);
-
-	useEffect(() => {
-		if (!element || !imgRef.current) {
-			return;
-		}
-
-		const elementRect = element.getBoundingClientRect();
-		const imgRect = imgRef.current.getBoundingClientRect();
-
-		const offset = Math.max(containerOffsetTop, elementRect.top) - imgRect.top;
-
-		offsetTopValue.jump(offset);
-		animate(offsetTopValue, 0, TRANSITION);
-		setOffsetTop(offset);
-	}, []);
-
-	const onButtonClick = async () => {
-		if (component.url) {
-			setLoading(true);
-
-			if (component.detach) {
-				await framer.addDetachedComponentLayers({ url: component.url, layout: true });
-			} else {
-				await framer.addComponentInstance({ url: component.url });
-			}
-
-			onClose?.();
-		}
-	};
 
 	const isLocked = !session || (component.pro && tier !== "pro");
 
 	const color = TAG_COLORS[tags.indexOf(component.tag)];
+	const icon = getComponentIcon(component);
 
-	function onInsertComponentClick() {
-		framer.addComponent(component.componentURL);
-		framer.closePlugin(`${component.name} component inserted`, {
-			variant: "success",
-		});
+	async function onInsertComponentClick() {
+		setLoading(true);
+		await framer.addComponent(component.componentURL);
+		setLoading(false);
 	}
 
-	function onCopyOverrideClick() {
+	async function onCopyOverrideClick() {
+		setLoading(true);
 		let code = component.code;
 		for (const propertyId in component.controls) {
 			const property = component.controls[propertyId];
 			code = code.replace(`[[${propertyId}]]`, property.defaultValue);
 		}
 
-		navigator.clipboard.writeText(code);
+		await navigator.clipboard.writeText(code);
+		setLoading(false);
 	}
 
-	function onCodeSnippetClick() {
+	async function onCodeSnippetClick() {
+		setLoading(true);
 		let code = component.code;
 		for (const propertyId in component.controls) {
 			const property = component.controls[propertyId];
 			code = code.replace(`[[${propertyId}]]`, property.defaultValue);
 		}
 
-		framer.setCustomCode({ html: code, location: "headStart" });
+		await framer.setCustomCode({ html: code, location: "headStart" });
+		setLoading(false);
 	}
-
-	const left = getChildIndex(element) % 2 == 0;
 
 	return (
 		<motion.div
@@ -373,51 +346,86 @@ function ComponentWindow({ component, element, containerOffsetTop, onClose }) {
 				animate={{ opacity: 1 }}
 				transition={TRANSITION}
 			>
-				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-70" />
+				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-80" />
 			</motion.div>
 			<motion.div
-				className="relative flex flex-col gap-3 justify-center px-3 pointer-events-none"
-				style={{ translateY: offsetTopValue }}
-				exit={{ translateY: offsetTop }}
-				transition={TRANSITION}
+				className="relative flex flex-col gap-3 justify-center px-3"
+							initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
+							exit={{ opacity: 0, y: 20, filter: "blur(5px)" }}
+							animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+							transition={TRANSITION}
 			>
-				<div className={classNames("flex flex-col gap-2", left ? "items-start" : "items-end")}>
+				<div className={classNames("flex flex-col gap-3 items-start")}>
+					<div className="flex flex-col gap-1">
+						<h1 className="text-primary text-xl font-bold">{component.name}</h1>
+						<motion.div className={classNames("w-full flex flex-col gap-2")}>
+							<p className="text-secondary flex-1">{component.description}</p>
+						</motion.div>
+					</div>
 					<motion.div
-						ref={imgRef}
-						initial={{ height: imgHeight - clipTop }}
-						exit={{ height: imgHeight - clipTop }}
-						animate={{ height: imgHeight }}
-						className="rounded-xl overflow-hidden w-[calc(50%-5px)] relative flex flex-col justify-end"
+						className="rounded-xl overflow-hidden w-full relative flex flex-col justify-end"
 						transition={TRANSITION}
 					>
-						<ComponentTile component={component} className="pointer-events-auto shrink-0" />
-					</motion.div>
-					<motion.div
-						className={classNames(
-							"w-fit max-w-full flex flex-col gap-2 bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] p-2 rounded-xl",
-							left ? "mr-3 origin-top-left" : "ml-3 origin-top-right"
-						)}
-						initial={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
-						exit={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
-						animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-						transition={TRANSITION}
-					>
-						<div className="w-full flex flex-row gap-2 p-1">
-							<p className="font-semibold text-primary flex-1">{component.description}</p>
+						<div
+							className={classNames(
+								"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"
+							)}
+						>
+							{icon && (
+								<img
+									src={icon}
+									alt={component.name}
+									className="w-full flex-1 pointer-events-none"
+								/>
+							)}
+							{component.free && (
+								<div
+									style={{
+										backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
+									}}
+									className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
+								>
+									FREE
+								</div>
+							)}
 						</div>
+					</motion.div>
+					<motion.div className="flex flex-col gap-2 w-full">
 						{(component.type == "component" || component.type == "componentAndOverride") && (
-							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onInsertComponentClick}>
+							<Button
+								primary
+								style={{ backgroundColor: color }}
+								shadowColor={color}
+								onClick={onInsertComponentClick}
+								isLoading={loading}
+							>
 								Insert Component
 							</Button>
 						)}
 						{component.type == "override" && (
-							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onCopyOverrideClick}>
+							<Button
+								primary
+								style={{ backgroundColor: color }}
+								shadowColor={color}
+								onClick={onCopyOverrideClick}
+								isLoading={loading}
+							>
 								Copy Code Override
 							</Button>
 						)}
-						{component.type == "componentAndOverride" && <Button onClick={onCopyOverrideClick}>Copy Code Override</Button>}
+						{component.type == "componentAndOverride" && (
+							<Button onClick={onCopyOverrideClick} isLoading={loading}>
+								Copy Code Override
+							</Button>
+						)}
 						{component.type == "codeSnippet" && (
-							<Button primary style={{ backgroundColor: color }} shadowColor={color} onClick={onCodeSnippetClick}>
+							<Button
+								primary
+								style={{ backgroundColor: color }}
+								shadowColor={color}
+								onClick={onCodeSnippetClick}
+								isLoading={loading}
+							>
 								Add Code Snippet to Site Settings
 							</Button>
 						)}
@@ -435,7 +443,10 @@ function getComponentIcon(component) {
 		icon = icon.replace(/#0075FF/g, color);
 
 		if (icon.includes('<feColorMatrix type="matrix"')) {
-			icon = icon.replace(/0 0 0 0 0 0 0 0 0 0.458824 0 0 0 0 1 0 0 0 0.2 0/g, hexToColorMatrixWithOpacity(color));
+			icon = icon.replace(
+				/0 0 0 0 0 0 0 0 0 0.458824 0 0 0 0 1 0 0 0 0.2 0/g,
+				hexToColorMatrixWithOpacity(color)
+			);
 		}
 
 		if (icon.includes("#AEAEAE")) {
@@ -465,41 +476,4 @@ function hexToColorMatrixWithOpacity(hex) {
 
 	// Construct the color matrix values
 	return `0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 0.25 0`;
-}
-
-export function WindowTopBar({ title, children = null, hideDivider = false, onClose = null }) {
-	return (
-		<div
-			className={classNames(
-				"min-h-10 max-h-10 flex flex-row items-center justify-between px-3",
-				!hideDivider && "border-b border-divider"
-			)}
-		>
-			<span className="text-primary z-20 flex-1">{title}</span>
-			{children}
-			<div className={classNames("flex flex-row items-center justify-end z-20", !children && "flex-1")}>
-				<XIcon onClick={onClose} />
-			</div>
-		</div>
-	);
-}
-
-function getChildIndex(child) {
-	if (!child) {
-		return -1;
-	}
-
-	let parent = child.parentNode;
-	if (!parent) {
-		return -1; // Child has no parent
-	}
-
-	let children = parent.children;
-	for (let i = 0; i < children.length; i++) {
-		if (children[i] === child) {
-			return i;
-		}
-	}
-
-	return -1; // Child not found in parent
 }

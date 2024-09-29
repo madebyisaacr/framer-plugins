@@ -2,7 +2,7 @@
   "id": "d1105a",
   "name": "Framestack",
   "modes": [
-    "default"
+    "canvas"
   ],
   "icon": "/icon.svg"
 }

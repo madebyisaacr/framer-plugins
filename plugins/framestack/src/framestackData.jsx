@@ -462,28 +462,6 @@ export function TruncatedText(Component): ComponentType {
 }`,
 	},
 	{
-		name: "Balanced Text",
-		tag: "Text",
-		type: OVERRIDE,
-		free: true,
-		description: "Balances the length of each line of text to create a more even appearance for headings.",
-		code: `import type { ComponentType } from "react"
-
-export function BalancedText(Component): ComponentType {
-	return (props) => {
-		return (
-			<Component
-				{...props}
-				style={{
-					...props.style,
-					textWrap: "balance",
-				}}
-			/>
-		)
-	}
-}`,
-	},
-	{
 		name: "Drop Cap",
 		tag: "Text",
 		type: OVERRIDE,
@@ -558,41 +536,6 @@ export function DropCap(Component): ComponentType {
 		wide: true,
 		description:
 			"Cycles through a list of text lines by vertically animating between each line, with options for direction, alignment, edge fading, and motion.",
-	},
-	{
-		name: "Justified Text",
-		tag: "Text",
-		type: OVERRIDE,
-		free: true,
-		description: "Aligns text in a paragraph to fill the entire width of the container, creating a better reading experience.",
-		controls: {
-			lastLine: {
-				type: ControlType.Enum,
-				defaultValue: "default",
-				options: ["default", "justify"],
-				optionTitles: ["Default Alignment", "Justify"],
-				displaySegmentedControl: true,
-				segmentedControlDirection: "vertical",
-			},
-		},
-		code: `import type { ComponentType } from "react";
-
-const lastLine = "[[lastLine]]";
-
-export function JustifiedText(Component): ComponentType {
-	return (props) => {
-		const textProps = props.children?.props?.children?.props;
-		if (textProps) {
-			textProps.style = {
-				...textProps.style,
-				textAlign: "justify",
-				textAlignLast: lastLine == "justify" ? "justify" : "var(--framer-text-alignment)",
-			};
-		}
-		return <Component {...props} />;
-	};
-}
-`,
 	},
 	{
 		name: "CMS Item Counter",
