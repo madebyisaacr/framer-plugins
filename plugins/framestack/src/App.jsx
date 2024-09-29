@@ -7,6 +7,8 @@ import { SearchBar } from "@shared/components";
 import Button from "@shared/Button";
 import "./App.css";
 import classNames from "classnames";
+import { useSupabase } from "./supabase";
+import Tier from "./tier";
 
 const TRANSITION = {
 	type: "spring",
@@ -134,7 +136,7 @@ export function App() {
 				<div
 					className={classNames(
 						"relative w-full flex flex-col flex-1 overflow-hidden",
-						searchText && "hidden"
+						searchText && "!hidden"
 					)}
 				>
 					<motion.div
@@ -298,11 +300,11 @@ function ComponentTile({ component, className = "", onClick = null }) {
 }
 
 function ComponentWindow({ component, onClose }) {
-	const session = null;
+	const { tier } = useSupabase();
 
 	const [loading, setLoading] = useState(false);
 
-	const isLocked = !session || (component.pro && tier !== "pro");
+	const isLocked = component.free ? tier < Tier.Free : tier < Tier.Pro;
 
 	const color = TAG_COLORS[tags.indexOf(component.tag)];
 	const icon = getComponentIcon(component);
@@ -456,40 +458,48 @@ function ComponentWindow({ component, onClose }) {
 					{component.description}
 				</motion.p>
 				<motion.div className="flex flex-col gap-2 w-full" {...motionProps(3)}>
-					{(component.type == "component" || component.type == "componentAndOverride") && (
-						<Button
-							customColor={color}
-							onClick={onInsertComponentClick}
-							loading={loading}
-							className="text-reversed"
-						>
-							Insert Component
+					{isLocked ? (
+						<Button customColor={color} className="text-reversed">
+							{component.free ? "Sign Up to Unlock for Free" : "Upgrade to Pro"}
 						</Button>
-					)}
-					{component.type == "override" && (
-						<Button
-							customColor={color}
-							onClick={onCopyOverrideClick}
-							loading={loading}
-							className="text-reversed"
-						>
-							Copy Code Override
-						</Button>
-					)}
-					{component.type == "componentAndOverride" && (
-						<Button onClick={onCopyOverrideClick} loading={loading}>
-							Copy Code Override
-						</Button>
-					)}
-					{component.type == "codeSnippet" && (
-						<Button
-							customColor={color}
-							onClick={onCodeSnippetClick}
-							loading={loading}
-							className="text-reversed"
-						>
-							Add Code Snippet to Site Settings
-						</Button>
+					) : (
+						<>
+							{(component.type == "component" || component.type == "componentAndOverride") && (
+								<Button
+									customColor={color}
+									onClick={onInsertComponentClick}
+									loading={loading}
+									className="text-reversed"
+								>
+									Insert Component
+								</Button>
+							)}
+							{component.type == "override" && (
+								<Button
+									customColor={color}
+									onClick={onCopyOverrideClick}
+									loading={loading}
+									className="text-reversed"
+								>
+									Copy Code Override
+								</Button>
+							)}
+							{component.type == "componentAndOverride" && (
+								<Button onClick={onCopyOverrideClick} loading={loading}>
+									Copy Code Override
+								</Button>
+							)}
+							{component.type == "codeSnippet" && (
+								<Button
+									customColor={color}
+									onClick={onCodeSnippetClick}
+									loading={loading}
+									className="text-reversed"
+								>
+									Add Code Snippet to Site Settings
+								</Button>
+							)}
+						</>
 					)}
 				</motion.div>
 			</motion.div>
