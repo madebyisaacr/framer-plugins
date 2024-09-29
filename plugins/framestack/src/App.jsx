@@ -256,46 +256,35 @@ function TileGrid({ children, className = "" }) {
 function ComponentTile({ component, className = "", onClick = null }) {
 	const icon = getComponentIcon(component);
 
-	const element = (
-		<div
-			key={component.name}
-			onClick={onClick}
-			className={classNames(
-				"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
-				onClick && "cursor-pointer",
-				className
-			)}
-		>
-			{icon && (
-				<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
-			)}
-			<span className="w-full text-center px-1.5 pb-3 text-[11px] text-primary font-semibold">
-				{component.name}
-			</span>
-			{component.free && (
-				<div
-					style={{
-						backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
-					}}
-					className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
-				>
-					FREE
-				</div>
-			)}
-		</div>
-	);
-
-	return component.type == "component" ? (
-		<Draggable
-			data={{
-				type: "component",
-				moduleUrl: component.componentURL,
-			}}
-		>
-			{element}
-		</Draggable>
-	) : (
-		element
+	return (
+		<ComponentDraggable component={component}>
+			<div
+				key={component.name}
+				onClick={onClick}
+				className={classNames(
+					"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
+					onClick && "cursor-pointer",
+					className
+				)}
+			>
+				{icon && (
+					<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
+				)}
+				<span className="w-full text-center px-1.5 pb-3 text-[11px] text-primary font-semibold">
+					{component.name}
+				</span>
+				{component.free && (
+					<div
+						style={{
+							backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
+						}}
+						className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
+					>
+						FREE
+					</div>
+				)}
+			</div>
+		</ComponentDraggable>
 	);
 }
 
@@ -504,6 +493,25 @@ function ComponentWindow({ component, onClose }) {
 				</motion.div>
 			</motion.div>
 		</motion.div>
+	);
+}
+
+function ComponentDraggable({ component, children }) {
+	const { tier } = useSupabase();
+
+	const isLocked = component.free ? tier < Tier.Free : tier < Tier.Pro;
+
+	return component.type === "component" && !isLocked ? (
+		<Draggable
+			data={{
+				type: "component",
+				moduleUrl: component.componentURL,
+			}}
+		>
+			{children}
+		</Draggable>
+	) : (
+		children
 	);
 }
 
