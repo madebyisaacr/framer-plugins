@@ -95,6 +95,10 @@ export function App() {
 					"flex flex-col gap-2 flex-1 size-full overflow-hidden",
 					selectedComponent && "pointer-events-none"
 				)}
+				animate={{
+					scale: selectedComponent ? 0.95 : 1,
+				}}
+				transition={TRANSITION}
 			>
 				<SearchBar
 					placeholder="Search Components..."
@@ -124,8 +128,8 @@ export function App() {
 								))}
 						</TileGrid>
 					</div>
-					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5 pointer-events-none" />
+					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5 pointer-events-none" />
 				</div>
 				<div
 					className={classNames(
@@ -300,6 +304,33 @@ function ComponentWindow({ component, element, onClose }) {
 	const color = TAG_COLORS[tags.indexOf(component.tag)];
 	const icon = getComponentIcon(component);
 
+	const motionProps = (index) => ({
+		variants: {
+			in: {
+				opacity: 1,
+				y: 0,
+				filter: "blur(0px)",
+				scale: 1,
+				transition: {
+					type: "spring",
+					duration: 0.4,
+					bounce: 0,
+					delay: index * 0.025,
+				},
+			},
+			out: {
+				opacity: 0,
+				y: 30,
+				filter: "blur(5px)",
+				scale: 0.9,
+				transition: { type: "spring", duration: 0.2, bounce: 0 },
+			},
+		},
+		initial: "out",
+		animate: "in",
+		exit: "out",
+	});
+
 	async function onInsertComponentClick() {
 		setLoading(true);
 		await framer.addComponent(component.componentURL);
@@ -332,105 +363,101 @@ function ComponentWindow({ component, element, onClose }) {
 
 	return (
 		<motion.div
-			className="absolute inset-0 flex flex-col justify-center"
-			initial={{ backdropFilter: "blur(0px)" }}
-			exit={{ backdropFilter: "blur(0px)" }}
-			animate={{ backdropFilter: "blur(8px)" }}
+			className="absolute inset-0 flex flex-col justify-center z-10"
+			variants={{
+				in: { backdropFilter: "blur(8px)" },
+				out: { backdropFilter: "blur(0px)" },
+			}}
+			initial="out"
+			animate="in"
+			exit="out"
 			transition={TRANSITION}
 		>
 			<motion.div
 				onClick={onClose}
 				className="absolute inset-0"
-				initial={{ opacity: 0 }}
-				exit={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
+				variants={{
+					in: { opacity: 1 },
+					out: { opacity: 0 },
+				}}
+				initial="out"
+				animate="in"
+				exit="out"
 				transition={TRANSITION}
 			>
 				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-80" />
 			</motion.div>
-			<motion.div
-				className="relative flex flex-col gap-3 justify-center px-3"
-							initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
-							exit={{ opacity: 0, y: 20, filter: "blur(5px)" }}
-							animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-							transition={TRANSITION}
-			>
-				<div className={classNames("flex flex-col gap-3 items-start")}>
-					<div className="flex flex-col gap-1">
-						<h1 className="text-primary text-xl font-bold">{component.name}</h1>
-						<motion.div className={classNames("w-full flex flex-col gap-2")}>
-							<p className="text-secondary flex-1">{component.description}</p>
-						</motion.div>
-					</div>
-					<motion.div
-						className="rounded-xl overflow-hidden w-full relative flex flex-col justify-end"
-						transition={TRANSITION}
+			<motion.div className="relative flex flex-col gap-3 justify-center px-3">
+				<motion.h1 className="text-primary text-xl font-bold" {...motionProps(0)}>
+					{component.name}
+				</motion.h1>
+				<motion.div
+					className="rounded-xl overflow-hidden w-full relative flex flex-col justify-end"
+					{...motionProps(1)}
+				>
+					<div
+						className={classNames(
+							"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"
+						)}
 					>
-						<div
-							className={classNames(
-								"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"
-							)}
+						{icon && (
+							<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
+						)}
+						{component.free && (
+							<div
+								style={{
+									backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
+								}}
+								className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
+							>
+								FREE
+							</div>
+						)}
+					</div>
+				</motion.div>
+				<motion.p className="text-secondary w-full" {...motionProps(1)}>
+					{component.description}
+				</motion.p>
+				<motion.div className="flex flex-col gap-2 w-full" {...motionProps(3)}>
+					{(component.type == "component" || component.type == "componentAndOverride") && (
+						<Button
+							primary
+							style={{ backgroundColor: color }}
+							shadowColor={color}
+							onClick={onInsertComponentClick}
+							isLoading={loading}
 						>
-							{icon && (
-								<img
-									src={icon}
-									alt={component.name}
-									className="w-full flex-1 pointer-events-none"
-								/>
-							)}
-							{component.free && (
-								<div
-									style={{
-										backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
-									}}
-									className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
-								>
-									FREE
-								</div>
-							)}
-						</div>
-					</motion.div>
-					<motion.div className="flex flex-col gap-2 w-full">
-						{(component.type == "component" || component.type == "componentAndOverride") && (
-							<Button
-								primary
-								style={{ backgroundColor: color }}
-								shadowColor={color}
-								onClick={onInsertComponentClick}
-								isLoading={loading}
-							>
-								Insert Component
-							</Button>
-						)}
-						{component.type == "override" && (
-							<Button
-								primary
-								style={{ backgroundColor: color }}
-								shadowColor={color}
-								onClick={onCopyOverrideClick}
-								isLoading={loading}
-							>
-								Copy Code Override
-							</Button>
-						)}
-						{component.type == "componentAndOverride" && (
-							<Button onClick={onCopyOverrideClick} isLoading={loading}>
-								Copy Code Override
-							</Button>
-						)}
-						{component.type == "codeSnippet" && (
-							<Button
-								primary
-								style={{ backgroundColor: color }}
-								shadowColor={color}
-								onClick={onCodeSnippetClick}
-								isLoading={loading}
-							>
-								Add Code Snippet to Site Settings
-							</Button>
-						)}
-					</motion.div>
-				</div>
+							Insert Component
+						</Button>
+					)}
+					{component.type == "override" && (
+						<Button
+							primary
+							style={{ backgroundColor: color }}
+							shadowColor={color}
+							onClick={onCopyOverrideClick}
+							isLoading={loading}
+						>
+							Copy Code Override
+						</Button>
+					)}
+					{component.type == "componentAndOverride" && (
+						<Button onClick={onCopyOverrideClick} isLoading={loading}>
+							Copy Code Override
+						</Button>
+					)}
+					{component.type == "codeSnippet" && (
+						<Button
+							primary
+							style={{ backgroundColor: color }}
+							shadowColor={color}
+							onClick={onCodeSnippetClick}
+							isLoading={loading}
+						>
+							Add Code Snippet to Site Settings
+						</Button>
+					)}
+				</motion.div>
 			</motion.div>
 		</motion.div>
 	);
