@@ -13,7 +13,7 @@ export default {
 	id: "rss",
 
 	// synchronizeDatabase,
-	// isAuthenticated,
+	isAuthenticated: () => true,
 	// getIntegrationContext,
 	// useSynchronizeDatabaseMutation,
 	// hasFieldConfigurationChanged,

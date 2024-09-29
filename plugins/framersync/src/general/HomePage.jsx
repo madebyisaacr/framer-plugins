@@ -1,5 +1,5 @@
 import Window from "./Window";
-import { NotionLogo, AirtableLogo, GoogleSheetsLogo } from "../assets/AppIcons";
+import { NotionLogo, AirtableLogo, GoogleSheetsLogo, RSSLogo } from "../assets/AppIcons";
 import Button from "@shared/Button";
 import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
@@ -58,7 +58,7 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 				</div>
 			</div>
 			<p className="mb-1">Select an app to get started:</p>
-			<div className="grid grid-cols-3 gap-2 w-full">
+			<div className="grid grid-cols-4 gap-2 w-full">
 				<AppButton
 					icon={<NotionLogo size={40} />}
 					title="Notion"
@@ -73,6 +73,11 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 					icon={<GoogleSheetsLogo size={40} />}
 					title="Google Sheets"
 					onClick={() => onIntegrationSelected("google-sheets")}
+				/>
+				<AppButton
+					icon={<RSSLogo size={40} />}
+					title="RSS Feeds"
+					onClick={() => onIntegrationSelected("rss")}
 				/>
 			</div>
 			{!licenseKeyValidLoading && !licenseKeyValid && (

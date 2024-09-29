@@ -4,8 +4,8 @@ import classNames from "classnames";
 
 const pageSizes = {
 	Integrations: {
-		width: 450,
-		height: 450,
+		width: 600,
+		height: 480,
 	},
 	Authenticate: {
 		width: 350,

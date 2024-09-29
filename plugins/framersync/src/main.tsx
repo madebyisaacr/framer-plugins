@@ -6,16 +6,18 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "react-error-boundary";
 import { CenteredSpinner } from "./components/CenteredSpinner";
+import { PluginContext } from "./general/PluginContext";
+
 import Airtable from "./airtable/AirtableIntegration";
 import Notion from "./notion/NotionIntegration";
 import GoogleSheets from "./googleSheets/GoogleSheetsIntegration";
-import { PluginContext, PluginContextUpdate } from "./general/PluginContext";
+import RSS from "./rss/RSSIntegration";
 
 import { framer, ManagedCollection, CollectionField } from "framer-plugin";
 import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert, jsonStringToArray } from "./utils";
-import IntegrationsPage from "./general/IntegrationsPage";
+import IntegrationsPage from "./general/HomePage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import { LemonSqueezyProvider, validateLicenseKey } from "./general/LemonSqueezy";
@@ -24,6 +26,7 @@ export const integrations = {
 	notion: Notion,
 	airtable: Airtable,
 	"google-sheets": GoogleSheets,
+	rss: RSS,
 };
 
 const root = document.getElementById("root");
