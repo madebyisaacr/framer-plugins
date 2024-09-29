@@ -14,7 +14,7 @@ const Button = forwardRef(function Button(
 		onClick = null,
 		loading = false,
 		disabled = false,
-		shadowColor = "",
+		customColor = "",
 		...otherProps
 	},
 	ref
@@ -22,31 +22,39 @@ const Button = forwardRef(function Button(
 	const Element = href.length ? "a" : "button";
 	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
 
-	shadowColor = shadowColor || (primary ? "var(--color-accent)" : null);
+	customColor = customColor || (primary ? "var(--color-accent)" : null);
 
 	return (
 		<Element
 			ref={ref}
-			style={style}
 			className={classNames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
 				primary
 					? "bg-accent text-[#FFF] rounded transition-[filter] hover:!bg-accent active:!bg-accent focus:!bg-accent"
+					: customColor
+					? ""
 					: "bg-secondary text-primary hover:bg-tertiary active:!bg-tertiary transition-colors",
 				disabled ? "opacity-60" : "cursor-pointer",
 				!disabled && primary && "hover:brightness-110",
 				className
 			)}
+			style={{
+				background: customColor,
+				...style,
+			}}
 			disabled={disabled}
 			{...elementProps}
 			{...otherProps}
 		>
-			{shadowColor && (
+			{customColor && (
 				<div
 					className="absolute inset-0 rounded-[inherit] opacity-30 pointer-events-none"
 					style={{
-						boxShadow: `0px 4px 8px 0px ${shadowColor}`,
+						background: customColor,
+						filter: "blur(8px)",
+						transform: "translateY(4px)",
+						zIndex: -1, // Add this line
 					}}
 				/>
 			)}

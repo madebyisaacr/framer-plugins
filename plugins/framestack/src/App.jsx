@@ -402,7 +402,7 @@ function ComponentWindow({ component, onClose }) {
 				exit="out"
 				transition={TRANSITION}
 			>
-				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-80" />
+				<div className="absolute inset-0 bg-primary opacity-80" />
 			</motion.div>
 			<motion.div className="relative flex flex-col gap-3 justify-center px-3">
 				<motion.div className="flex flex-col w-full gap-2" {...motionProps(0)}>
@@ -451,22 +451,20 @@ function ComponentWindow({ component, onClose }) {
 				<motion.div className="flex flex-col gap-2 w-full" {...motionProps(3)}>
 					{(component.type == "component" || component.type == "componentAndOverride") && (
 						<Button
-							primary
-							style={{ backgroundColor: color }}
-							shadowColor={color}
+							customColor={color}
 							onClick={onInsertComponentClick}
 							isLoading={loading}
+							className="text-reversed"
 						>
 							Insert Component
 						</Button>
 					)}
 					{component.type == "override" && (
 						<Button
-							primary
-							style={{ backgroundColor: color }}
-							shadowColor={color}
+							customColor={color}
 							onClick={onCopyOverrideClick}
 							isLoading={loading}
+							className="text-reversed"
 						>
 							Copy Code Override
 						</Button>
@@ -478,11 +476,10 @@ function ComponentWindow({ component, onClose }) {
 					)}
 					{component.type == "codeSnippet" && (
 						<Button
-							primary
-							style={{ backgroundColor: color }}
-							shadowColor={color}
+							customColor={color}
 							onClick={onCodeSnippetClick}
 							isLoading={loading}
+							className="text-reversed"
 						>
 							Add Code Snippet to Site Settings
 						</Button>

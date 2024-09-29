@@ -1,9 +1,9 @@
 @import url("@shared/shared.css");
 
 html {
-	--color-accent: #0066FF;
+	--color-accent: linear-gradient(70deg, #6019FA, #00CCFF);
 }
 
 .bg-accent {
-	background: linear-gradient(70deg, #6019FA, #00CCFF);
+	background: var(--color-accent);
 }
