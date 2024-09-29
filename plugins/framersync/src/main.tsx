@@ -18,7 +18,6 @@ import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/IntegrationsPage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
-import CanvasPage from "./general/CanvasPage";
 import { LemonSqueezyProvider, validateLicenseKey } from "./general/LemonSqueezy";
 
 export const integrations = {
@@ -201,11 +200,6 @@ function App() {
 }
 
 async function runPlugin() {
-	if (framer.mode === "canvas") {
-		renderPlugin(<CanvasPage />);
-		return;
-	}
-
 	collection = await framer.getManagedCollection();
 	[
 		collectionFields,
