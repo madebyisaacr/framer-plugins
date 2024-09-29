@@ -54,13 +54,13 @@ const Button = forwardRef(function Button(
 						background: customColor,
 						filter: "blur(8px)",
 						transform: "translateY(4px)",
-						zIndex: -1, // Add this line
+						zIndex: -1,
 					}}
 				/>
 			)}
 			{loading ? (
 				<div className="absolute top-0 right-0 left-0 bottom-0 flex items-center justify-center">
-					<Spinner color={primary ? "light" : "system"} />
+					<Spinner color={primary || className?.includes("text-reversed") ? "light" : "system"} />
 				</div>
 			) : (
 				children

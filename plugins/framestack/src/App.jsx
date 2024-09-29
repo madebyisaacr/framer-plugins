@@ -350,8 +350,12 @@ function ComponentWindow({ component, onClose }) {
 
 	async function onInsertComponentClick() {
 		setLoading(true);
-		await framer.addComponent(component.componentURL);
+		await framer.addComponentInstance({ url: component.componentURL });
+		framer.notify(`Inserted ${component.name}`, {
+			variant: "success",
+		});
 		setLoading(false);
+		onClose();
 	}
 
 	async function onCopyOverrideClick() {
@@ -363,6 +367,9 @@ function ComponentWindow({ component, onClose }) {
 		}
 
 		await navigator.clipboard.writeText(code);
+		framer.notify(`Copied ${component.name} code to clipboard`, {
+			variant: "success",
+		});
 		setLoading(false);
 	}
 
@@ -453,7 +460,7 @@ function ComponentWindow({ component, onClose }) {
 						<Button
 							customColor={color}
 							onClick={onInsertComponentClick}
-							isLoading={loading}
+							loading={loading}
 							className="text-reversed"
 						>
 							Insert Component
@@ -463,14 +470,14 @@ function ComponentWindow({ component, onClose }) {
 						<Button
 							customColor={color}
 							onClick={onCopyOverrideClick}
-							isLoading={loading}
+							loading={loading}
 							className="text-reversed"
 						>
 							Copy Code Override
 						</Button>
 					)}
 					{component.type == "componentAndOverride" && (
-						<Button onClick={onCopyOverrideClick} isLoading={loading}>
+						<Button onClick={onCopyOverrideClick} loading={loading}>
 							Copy Code Override
 						</Button>
 					)}
@@ -478,7 +485,7 @@ function ComponentWindow({ component, onClose }) {
 						<Button
 							customColor={color}
 							onClick={onCodeSnippetClick}
-							isLoading={loading}
+							loading={loading}
 							className="text-reversed"
 						>
 							Add Code Snippet to Site Settings
