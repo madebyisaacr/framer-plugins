@@ -1,5 +1,5 @@
 import { authorize } from "./airtable";
-import { AirtableLogo } from "../assets/AppIcons";
+import { Logo } from "../assets/AppIcons";
 import { AuthenticatePageTemplate } from "../general/AuthenticateTemplate";
 
 export function AuthenticatePage({ onAuthenticated }) {
@@ -9,7 +9,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 		integrationName="Airtable"
 		accountPlatformName="Airtable"
 		databaseLabel="base"
-		logo={<AirtableLogo size={50} />}
+		logo={<Logo id="airtable" size={50} />}
 		steps={[
 			"Log in to your Airtable account",
 			"Pick the base you want to import",

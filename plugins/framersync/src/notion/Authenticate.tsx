@@ -1,5 +1,5 @@
 import { authorize } from "./notion";
-import { NotionLogo } from "../assets/AppIcons";
+import { Logo } from "../assets/AppIcons";
 import { AuthenticatePageTemplate } from "../general/AuthenticateTemplate";
 
 export function AuthenticatePage({ onAuthenticated }) {
@@ -9,7 +9,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 		integrationName="Notion"
 		accountPlatformName="Notion"
 		databaseLabel="database"
-		logo={<NotionLogo size={50} />}
+		logo={<Logo id="notion" size={50} />}
 		steps={[
 			"Log in to your Notion account",
 			"Pick the database you want to import",

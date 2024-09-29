@@ -1,5 +1,5 @@
 import { authorize } from "./googleSheets";
-import { GoogleSheetsLogo } from "../assets/AppIcons";
+import { Logo } from "../assets/AppIcons";
 import { AuthenticatePageTemplate } from "../general/AuthenticateTemplate";
 
 export function AuthenticatePage({ onAuthenticated }) {
@@ -10,7 +10,7 @@ export function AuthenticatePage({ onAuthenticated }) {
 			integrationName="Google"
 			accountPlatformName="Google"
 			databaseLabel="sheet"
-			logo={<GoogleSheetsLogo size={50} />}
+			logo={<Logo id="google-sheets" size={50} />}
 			steps={[
 				"Log in to your Google account",
 				"Pick the sheet you want to import",

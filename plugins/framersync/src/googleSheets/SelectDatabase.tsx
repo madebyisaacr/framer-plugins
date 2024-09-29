@@ -8,7 +8,7 @@ import {
 	getSpreadsheetMetadata,
 } from "./googleSheets";
 import Window from "../general/Window";
-import { GoogleSheetsLogo, FramerLogo } from "../assets/AppIcons";
+import { Logo, FramerLogo } from "../assets/AppIcons";
 import BackButton from "../components/BackButton";
 import { Spinner } from "@shared/spinner/Spinner";
 import classNames from "classnames";
@@ -144,7 +144,7 @@ export function SelectDatabasePage() {
 				) : (
 					<>
 						<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
-							<GoogleSheetsLogo size={50} />
+							<Logo id="google-sheets" size={50} />
 							<svg
 								xmlns="http://www.w3.org/2000/svg"
 								width="24"

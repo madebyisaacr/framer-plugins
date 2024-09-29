@@ -1,5 +1,5 @@
 import Window from "./Window";
-import { NotionLogo, AirtableLogo, GoogleSheetsLogo, RSSLogo } from "../assets/AppIcons";
+import { Logo } from "../assets/AppIcons";
 import Button from "@shared/Button";
 import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
@@ -28,11 +28,11 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 	) : (
 		<Window page="Integrations" className="flex-col p-3 pt-0 gap-2 overflow-y-auto items-center">
 			<div className="flex-1 flex-col gap-1 w-full items-center justify-center text-center text-balance">
-				<Logo />
+				<PluginLogo />
 				<h1 className="text-lg font-bold mt-3">Sync your content with the Framer CMS</h1>
 				<p>
-					FramerSync connects other apps with Framer so you can focus on
-					building your website, not managing data between apps.
+					FramerSync connects other apps with Framer so you can focus on building your website, not
+					managing data between apps.
 				</p>
 				<div
 					className={classNames(
@@ -60,22 +60,22 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 			<p className="mb-1">Select an app to get started:</p>
 			<div className="grid grid-cols-4 gap-2 w-full">
 				<AppButton
-					icon={<NotionLogo size={40} />}
+					icon={<Logo id="notion" size={40} />}
 					title="Notion"
 					onClick={() => onIntegrationSelected("notion")}
 				/>
 				<AppButton
-					icon={<AirtableLogo size={40} />}
+					icon={<Logo id="airtable" size={40} />}
 					title="Airtable"
 					onClick={() => onIntegrationSelected("airtable")}
 				/>
 				<AppButton
-					icon={<GoogleSheetsLogo size={40} />}
+					icon={<Logo id="google-sheets" size={40} />}
 					title="Google Sheets"
 					onClick={() => onIntegrationSelected("google-sheets")}
 				/>
 				<AppButton
-					icon={<RSSLogo size={40} />}
+					icon={<Logo id="rss" size={40} />}
 					title="RSS Feeds"
 					onClick={() => onIntegrationSelected("rss")}
 				/>
@@ -112,7 +112,7 @@ function AppButton({ title, icon, onClick }) {
 	);
 }
 
-export function Logo() {
+export function PluginLogo() {
 	return (
 		<svg
 			width="80"

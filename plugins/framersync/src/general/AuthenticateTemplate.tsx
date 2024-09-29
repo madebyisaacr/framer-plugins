@@ -4,7 +4,7 @@ import { framer } from "framer-plugin";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import Window from "../general/Window";
 import BackButton from "../components/BackButton";
-import { FramerLogo } from "../assets/AppIcons";
+import { Logo, FramerLogo } from "../assets/AppIcons";
 
 export function AuthenticatePageTemplate({
 	onAuthenticated,
