@@ -1,9 +1,9 @@
 import { framer, Draggable } from "framer-plugin";
-import { useState, useRef, useEffect, Fragment, useMemo } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import { motion, useMotionValue, animate, AnimatePresence } from "framer-motion";
 import { tags, icons, components } from "./framestackData";
 import { ComponentIcons } from "./componentIcons";
-import { SearchBar, XIcon } from "@shared/components";
+import { SearchBar } from "@shared/components";
 import Button from "@shared/Button";
 import "./App.css";
 import classNames from "classnames";
@@ -304,6 +304,20 @@ function ComponentWindow({ component, element, onClose }) {
 	const color = TAG_COLORS[tags.indexOf(component.tag)];
 	const icon = getComponentIcon(component);
 
+	useEffect(() => {
+		const handleEscapeKey = (event) => {
+			if (event.key === "Escape") {
+				onClose();
+			}
+		};
+
+		document.addEventListener("keydown", handleEscapeKey);
+
+		return () => {
+			document.removeEventListener("keydown", handleEscapeKey);
+		};
+	}, []);
+
 	const motionProps = (index) => ({
 		variants: {
 			in: {
@@ -388,18 +402,31 @@ function ComponentWindow({ component, element, onClose }) {
 				<div className="absolute inset-0 bg-primary opacity-40 dark:opacity-80" />
 			</motion.div>
 			<motion.div className="relative flex flex-col gap-3 justify-center px-3">
-				<motion.h1 className="text-primary text-xl font-bold" {...motionProps(0)}>
-					{component.name}
-				</motion.h1>
+				<motion.div className="flex flex-col w-full gap-2" {...motionProps(0)}>
+					<span
+						onClick={onClose}
+						className={`text-tertiary flex-row items-center gap-1 cursor-pointer w-max pr-1`}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+							<g transform="translate(1.5 1)">
+								<path
+									d="M 3.5 0 L 0 4 L 3.5 7.5"
+									fill="transparent"
+									strokeWidth="1.5"
+									stroke="currentColor"
+									strokeLinecap="round"
+								></path>
+							</g>
+						</svg>
+						Back
+					</span>
+					<motion.h1 className="text-primary text-xl font-bold">{component.name}</motion.h1>
+				</motion.div>
 				<motion.div
 					className="rounded-xl overflow-hidden w-full relative flex flex-col justify-end"
 					{...motionProps(1)}
 				>
-					<div
-						className={classNames(
-							"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"
-						)}
-					>
+					<div className="relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]">
 						{icon && (
 							<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
 						)}
