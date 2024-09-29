@@ -1,9 +1,9 @@
 @import url("@shared/shared.css");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+html {
+	--color-accent: #0066FF;
+}
 
-main {
-	--framestack-color-text-middle: #999;
+.bg-accent {
+	background: linear-gradient(70deg, #6019FA, #00CCFF);
 }

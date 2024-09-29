@@ -222,6 +222,9 @@ export function App() {
 					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 				</div>
+				<div className="flex flex-col gap-2 px-3 pb-3">
+					<Button primary>Upgrade to Pro</Button>
+				</div>
 			</motion.div>
 			<AnimatePresence>
 				{selectedComponent && (
@@ -294,7 +297,7 @@ function ComponentTile({ component, className = "", onClick = null }) {
 	);
 }
 
-function ComponentWindow({ component, element, onClose }) {
+function ComponentWindow({ component, onClose }) {
 	const session = null;
 
 	const [loading, setLoading] = useState(false);
