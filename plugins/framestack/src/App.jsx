@@ -104,12 +104,19 @@ export function App() {
 				}}
 				transition={TRANSITION}
 			>
-				<SearchBar
-					placeholder="Search Components..."
-					value={searchText}
-					onChange={setSearchText}
-					className="mx-3"
-				/>
+				<div className="flex flex-row gap-2 w-full px-3">
+					<SearchBar
+						placeholder="Search Components..."
+						value={searchText}
+						onChange={setSearchText}
+						className="flex-1"
+					/>
+					{tier !== Tier.NoUser && (
+						<Button square>
+							<AccountIcon />
+						</Button>
+					)}
+				</div>
 				<div
 					key="search-container"
 					className={classNames("relative flex-1 overflow-hidden", !searchText && "hidden")}
@@ -579,4 +586,23 @@ function hexToColorMatrixWithOpacity(hex) {
 
 	// Construct the color matrix values
 	return `0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} 0 0 0 0.25 0`;
+}
+
+function AccountIcon() {
+	return (
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="18"
+			height="18"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2.2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		>
+			<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+			<circle cx="12" cy="7" r="4" />
+		</svg>
+	);
 }
