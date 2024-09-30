@@ -12,7 +12,9 @@ if (!root) throw new Error("Root element not found");
 ReactDOM.createRoot(root).render(
 	<React.StrictMode>
 		<SupabaseProvider>
-			<PageStack homePage={<App />} />
+			<div className="size-full select-none">
+				<PageStack homePage={<App />} />
+			</div>
 		</SupabaseProvider>
 	</React.StrictMode>
 );

@@ -9,7 +9,7 @@ export function SignUpPage({}) {
 		<AccountFormPage
 			type="signUp"
 			title="Sign Up"
-			subtitle="Create an account to get started"
+			subtitle="Create an account to get started."
 			buttonText="Sign Up"
 			errorMessage="Error signing up. Please try again."
 			passwordInput
@@ -24,7 +24,7 @@ export function LogInPage({}) {
 		<AccountFormPage
 			type="logIn"
 			title="Log In"
-			subtitle="Welcome back!"
+			subtitle="Welcome back to Framestack!"
 			buttonText="Log In"
 			errorMessage="Error logging in. Please try again."
 			passwordInput
@@ -141,9 +141,9 @@ function AccountFormPage({
 			)}
 		>
 			<BackButton className="absolute top-0 left-3" />
-			<div className="flex flex-col items-center text-center gap-1 px-2">
+			<div className="flex flex-col items-center text-center gap-1 px-2 text-balance">
 				<span className="font-bold text-xl mt-2">{title}</span>
-				{subtitle}
+				<p>{subtitle}</p>
 			</div>
 			<div className="flex flex-col gap-1 w-full text-start">
 				{googleSignIn && (
@@ -212,7 +212,7 @@ function AccountFormPage({
 						{buttonText}
 					</Button>
 				</form>
-				<div className="mt-2 flex flex-col w-full text-center text-secondary">
+				<div className="mt-2 flex flex-col gap-1 w-full text-center text-secondary">
 					{state == "error" && <p className="text-error mb-1">{errorMessage}</p>}
 					{type == "signUp" && (
 						<span>

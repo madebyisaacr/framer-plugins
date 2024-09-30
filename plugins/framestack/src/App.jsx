@@ -93,7 +93,7 @@ export function App() {
 	};
 
 	return (
-		<main className="relative size-full select-none">
+		<main className="relative size-full">
 			<motion.div
 				className={classNames(
 					"flex flex-col gap-2 flex-1 size-full overflow-hidden",

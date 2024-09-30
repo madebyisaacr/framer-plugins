@@ -1,6 +1,10 @@
 @import url("@shared/shared.css");
 
 html {
+	--color-accent: #0066FF;
+}
+
+button {
 	--color-accent: linear-gradient(70deg, #6019FA, #00CCFF);
 }
 

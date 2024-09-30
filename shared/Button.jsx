@@ -54,7 +54,6 @@ const Button = forwardRef(function Button(
 						background: customColor,
 						filter: "blur(8px)",
 						transform: "translateY(4px)",
-						zIndex: -1,
 					}}
 				/>
 			)}
@@ -63,7 +62,7 @@ const Button = forwardRef(function Button(
 					<Spinner color={primary || className?.includes("text-reversed") ? "light" : "system"} />
 				</div>
 			) : (
-				children
+				<div className="relative flex items-center gap-1.5 justify-center">{children}</div>
 			)}
 		</Element>
 	);
