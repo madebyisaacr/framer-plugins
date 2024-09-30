@@ -132,7 +132,7 @@ export function App() {
 								))}
 						</TileGrid>
 					</div>
-					<RoundedOverlay />
+					<RoundedOverlay bottom={tier < Tier.Pro} />
 				</div>
 				<div
 					className={classNames(
@@ -222,22 +222,26 @@ export function App() {
 							</Fragment>
 						))}
 					</motion.div>
-					<RoundedOverlay />
+					<RoundedOverlay bottom={tier < Tier.Pro} />
 				</div>
-				<div className="flex flex-row gap-2 px-3 pb-3 pt-1">
-					{tier == Tier.NoUser ? (
-						<>
-							<Button className="flex-1" onClick={() => openPage(<LogInPage />)}>
-								Log In
+				{tier < Tier.Pro && (
+					<div className="flex flex-row gap-2 px-3 pb-3 pt-1 items-center">
+						{tier == Tier.NoUser ? (
+							<>
+								<Button className="flex-1" onClick={() => openPage(<LogInPage />)}>
+									Log In
+								</Button>
+								<Button primary className="flex-1" onClick={() => openPage(<SignUpPage />)}>
+									Sign Up
+								</Button>
+							</>
+						) : (
+							<Button primary className="flex-1">
+								Upgrade to Pro
 							</Button>
-							<Button primary className="flex-1" onClick={() => openPage(<SignUpPage />)}>
-								Sign Up
-							</Button>
-						</>
-					) : (
-						<Button primary>Upgrade to Pro</Button>
-					)}
-				</div>
+						)}
+					</div>
+				)}
 			</motion.div>
 			<AnimatePresence>
 				{selectedComponent && (
@@ -520,13 +524,17 @@ function ComponentDraggable({ component, children }) {
 	);
 }
 
-function RoundedOverlay() {
+function RoundedOverlay({ bottom = true }) {
 	return (
 		<>
 			<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[20px] h-4 pointer-events-none" />
 			<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[20px] h-4 pointer-events-none" />
-			<div className="absolute -bottom-2 left-1 right-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
-			<div className="absolute -bottom-2 right-1 left-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
+			{bottom && (
+				<>
+					<div className="absolute -bottom-2 left-1 right-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
+					<div className="absolute -bottom-2 right-1 left-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
+				</>
+			)}
 		</>
 	);
 }
