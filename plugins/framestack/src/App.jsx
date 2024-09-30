@@ -12,10 +12,8 @@ import Tier from "./tier";
 
 const TRANSITION = {
 	type: "spring",
-	stiffness: "1000",
-	damping: "80",
-	delay: 0,
-	mass: 1,
+	duration: 0.4,
+	bounce: 0,
 };
 
 framer.showUI({
@@ -26,7 +24,6 @@ framer.showUI({
 	resizable: "height",
 });
 
-const FRAMESTACK_GRADIENT = "linear-gradient(70deg, #6019FA, #00CCFF)";
 const TAG_COLORS = [
 	"#8636FF",
 	"#3666FF",
@@ -157,7 +154,7 @@ export function App() {
 									style={{ y: tagMotionValues[index] }}
 								>
 									<div className="relative flex flex-row items-center px-2 pb-3 pt-2 gap-2 h-full z-30">
-										<div className="absolute inset-x-0 bottom-1 top-0 z-0 rounded-xl bg-secondary opacity-0 transition-opacity hover:opacity-100" />
+										<div className="absolute inset-x-0 bottom-1 top-0 z-0 rounded-lg bg-secondary opacity-0 transition-opacity hover:opacity-100" />
 										<div
 											style={{
 												background: TAG_COLORS[index],
@@ -252,7 +249,7 @@ function TileGrid({ children, className = "" }) {
 	return (
 		<div
 			className={classNames(
-				"grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-3 bg-primary",
+				"grid grid-cols-2 grid-rows-[min-content] gap-2 grid-flow-dense mb-2 bg-primary",
 				className
 			)}
 		>
@@ -387,13 +384,9 @@ function ComponentWindow({ component, onClose }) {
 	return (
 		<motion.div
 			className="absolute inset-0 flex flex-col justify-center z-10"
-			variants={{
-				in: { backdropFilter: "blur(8px)" },
-				out: { backdropFilter: "blur(0px)" },
-			}}
-			initial="out"
-			animate="in"
-			exit="out"
+			initial={{ backdropFilter: "blur(0px)" }}
+			animate={{ backdropFilter: "blur(8px)" }}
+			exit={{ backdropFilter: "blur(0px)", pointerEvents: "none" }}
 			transition={TRANSITION}
 		>
 			<motion.div
@@ -432,24 +425,22 @@ function ComponentWindow({ component, onClose }) {
 					<motion.h1 className="text-primary text-xl font-bold">{component.name}</motion.h1>
 				</motion.div>
 				<motion.div
-					className="rounded-xl overflow-hidden w-full relative flex flex-col justify-end"
+					className="relative flex flex-col items-center justify-center w-full rounded-lg bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"
 					{...motionProps(1)}
 				>
-					<div className="relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]">
-						{icon && (
-							<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
-						)}
-						{component.free && (
-							<div
-								style={{
-									backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
-								}}
-								className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
-							>
-								FREE
-							</div>
-						)}
-					</div>
+					{icon && (
+						<img src={icon} alt={component.name} className="w-full flex-1 pointer-events-none" />
+					)}
+					{component.free && (
+						<div
+							style={{
+								backgroundColor: TAG_COLORS[tags.indexOf(component.tag)],
+							}}
+							className="absolute top-1.5 right-1.5 rounded-[6px] px-1 py-0.5 font-bold text-[10px] text-reversed"
+						>
+							FREE
+						</div>
+					)}
 				</motion.div>
 				<motion.p className="text-secondary w-full" {...motionProps(1)}>
 					{component.description}
