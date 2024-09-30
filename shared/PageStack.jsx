@@ -2,13 +2,17 @@ import { useState, createContext, useContext, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import classNames from "classnames";
 
-export const PageStackContext = createContext({});
+const PageStackContext = createContext({});
 
 const TRANSITION = {
 	type: "tween",
 	ease: [0.25, 1, 0.4, 1],
 	duration: 0.35,
 };
+
+export function usePageStack() {
+	return useContext(PageStackContext);
+}
 
 // Page:
 // component
@@ -127,7 +131,7 @@ export function PageStack({ homePage }) {
 }
 
 export function BackButton({ className = "", onClick = null }) {
-	const { closePage, pageCount, modalOpen } = useContext(PageStackContext);
+	const { closePage, pageCount, modalOpen } = usePageStack();
 
 	const originalPageCount = useMemo(() => pageCount, []);
 

@@ -9,6 +9,8 @@ import "./App.css";
 import classNames from "classnames";
 import { useSupabase } from "./supabase";
 import Tier from "./tier";
+import { SignUpPage, LogInPage, ForgotPasswordPage } from "./AuthPages";
+import { usePageStack } from "@shared/PageStack";
 
 const TRANSITION = {
 	type: "spring",
@@ -36,6 +38,8 @@ const TAG_COLORS = [
 ];
 
 export function App() {
+	const { openPage } = usePageStack();
+
 	const [selectedComponent, setSelectedComponent] = useState(null);
 	const [searchText, setSearchText] = useState("");
 	const [tagMenuOpen, setTagMenuOpen] = useState(false);
@@ -220,11 +224,13 @@ export function App() {
 					</motion.div>
 					<RoundedOverlay />
 				</div>
-				<div className="flex flex-row gap-2 px-3 pb-3">
+				<div className="flex flex-row gap-2 px-3 pb-3 pt-1">
 					{tier == Tier.NoUser ? (
 						<>
-							<Button className="flex-1">Log In</Button>
-							<Button primary className="flex-1">
+							<Button className="flex-1" onClick={() => openPage(<LogInPage />)}>
+								Log In
+							</Button>
+							<Button primary className="flex-1" onClick={() => openPage(<SignUpPage />)}>
 								Sign Up
 							</Button>
 						</>
@@ -267,7 +273,7 @@ function ComponentTile({ component, className = "", onClick = null }) {
 				key={component.name}
 				onClick={onClick}
 				className={classNames(
-					"relative flex flex-col items-center justify-center w-full rounded-lg bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
+					"relative flex flex-col items-center justify-center w-full rounded-lg bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square hover:bg-tertiary",
 					onClick && "cursor-pointer",
 					className
 				)}
@@ -401,7 +407,7 @@ function ComponentWindow({ component, onClose }) {
 				exit="out"
 				transition={TRANSITION}
 			>
-				<div className="absolute inset-0 bg-primary opacity-80" />
+				<div className="absolute inset-0 bg-primary opacity-80 dark:opacity-90" />
 			</motion.div>
 			<motion.div className="relative flex flex-col gap-3 justify-center px-3">
 				<motion.div className="flex flex-col w-full gap-2" {...motionProps(0)}>
@@ -422,7 +428,7 @@ function ComponentWindow({ component, onClose }) {
 						</svg>
 						Back
 					</span>
-					<motion.h1 className="text-primary text-xl font-bold">{component.name}</motion.h1>
+					<h1 className="text-primary text-xl font-bold">{component.name}</h1>
 				</motion.div>
 				<motion.div
 					className="relative flex flex-col items-center justify-center w-full rounded-lg bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-[3/2]"

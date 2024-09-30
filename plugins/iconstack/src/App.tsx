@@ -1,11 +1,11 @@
 import { framer, ColorStyle } from "framer-plugin";
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
-import { iconPacks } from "./IconstackData.jsx";
-import { SearchBar, XIcon, SegmentedControl } from "@shared/components.jsx";
-import Button from "@shared/Button.jsx";
+import { iconPacks } from "./IconstackData";
+import { SearchBar, XIcon, SegmentedControl } from "@shared/components";
+import Button from "@shared/Button";
 import classNames from "classnames";
-import { PageStack, PageStackContext } from "@shared/PageStack.jsx";
+import { PageStack, usePageStack } from "@shared/PageStack";
 
 import TablerIcons from "./icon-packs/TablerIcons.json";
 import FeatherIcons from "./icon-packs/FeatherIcons.json";
@@ -88,7 +88,7 @@ export function App() {
 }
 
 function HomePage() {
-	const { openModal } = useContext(PageStackContext);
+	const { openModal } = usePageStack();
 
 	const [iconPack, setIconPack] = useState(iconPacks[0]);
 	const [iconType, setIconType] = useState(0);
@@ -466,7 +466,7 @@ function HomePage() {
 }
 
 function IconPackInfoPage({ iconPack }) {
-	const { closeModal } = useContext(PageStackContext);
+	const { closeModal } = usePageStack();
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
 
@@ -589,7 +589,7 @@ function CustomizationMenu({
 	setColorStyleID,
 	setCustomColor,
 }) {
-	const { closeModal } = useContext(PageStackContext);
+	const { closeModal } = usePageStack();
 
 	const [size, setSize] = useState(iconSize);
 	const [selectedColorStyleID, setSelectedColorStyleID] = useState<string | null>(colorStyleID);
