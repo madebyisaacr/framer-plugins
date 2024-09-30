@@ -46,6 +46,7 @@ export function App() {
 	const searchContainerRef = useRef(null);
 	const tagRefs = useRef([]);
 	const selectedTagIndexRef = useRef(-1);
+	const { tier } = useSupabase();
 
 	const tagMotionValues = tags.map(() => useMotionValue(0));
 
@@ -224,8 +225,15 @@ export function App() {
 					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
 				</div>
-				<div className="flex flex-col gap-2 px-3 pb-3">
-					<Button primary>Upgrade to Pro</Button>
+				<div className="flex flex-row gap-2 px-3 pb-3">
+					{tier == Tier.NoUser ? (
+						<>
+							<Button className="flex-1">Log In</Button>
+							<Button primary className="flex-1">Sign Up</Button>
+						</>
+					) : (
+						<Button primary>Upgrade to Pro</Button>
+					)}
 				</div>
 			</motion.div>
 			<AnimatePresence>
