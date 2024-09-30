@@ -131,8 +131,7 @@ export function App() {
 								))}
 						</TileGrid>
 					</div>
-					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5 pointer-events-none" />
-					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5 pointer-events-none" />
+					<RoundedOverlay />
 				</div>
 				<div
 					className={classNames(
@@ -222,14 +221,15 @@ export function App() {
 							</Fragment>
 						))}
 					</motion.div>
-					<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
-					<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[25px] h-5" />
+					<RoundedOverlay />
 				</div>
 				<div className="flex flex-row gap-2 px-3 pb-3">
 					{tier == Tier.NoUser ? (
 						<>
 							<Button className="flex-1">Log In</Button>
-							<Button primary className="flex-1">Sign Up</Button>
+							<Button primary className="flex-1">
+								Sign Up
+							</Button>
 						</>
 					) : (
 						<Button primary>Upgrade to Pro</Button>
@@ -270,7 +270,7 @@ function ComponentTile({ component, className = "", onClick = null }) {
 				key={component.name}
 				onClick={onClick}
 				className={classNames(
-					"relative flex flex-col items-center justify-center w-full rounded-xl bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
+					"relative flex flex-col items-center justify-center w-full rounded-lg bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.08)] transition-colors aspect-square",
 					onClick && "cursor-pointer",
 					className
 				)}
@@ -520,6 +520,17 @@ function ComponentDraggable({ component, children }) {
 		</Draggable>
 	) : (
 		children
+	);
+}
+
+function RoundedOverlay() {
+	return (
+		<>
+			<div className="absolute -top-2 left-1 right-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[20px] h-4 pointer-events-none" />
+			<div className="absolute -top-2 right-1 left-[calc(50%-5px)] border-[10px] border-b-[0px] border-primary rounded-t-[20px] h-4 pointer-events-none" />
+			<div className="absolute -bottom-2 left-1 right-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
+			<div className="absolute -bottom-2 right-1 left-[calc(50%-5px)] border-[10px] border-t-[0px] border-primary rounded-b-[20px] h-4 pointer-events-none" />
+		</>
 	);
 }
 
