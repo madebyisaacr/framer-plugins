@@ -4,14 +4,14 @@ import { framer } from "framer-plugin";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import Window from "../general/Window";
 import BackButton from "../components/BackButton";
-import { Logo, FramerLogo } from "../assets/AppIcons";
+import IntegrationGraphic from "./IntegrationGraphic";
 
 export function AuthenticatePageTemplate({
 	onAuthenticated,
 	authorize,
+	integrationId,
 	integrationName,
 	accountPlatformName,
-	logo,
 	steps,
 	databaseLabel,
 }) {
@@ -67,32 +67,13 @@ export function AuthenticatePageTemplate({
 
 	return (
 		<Window page="Authenticate" className="flex-col justify-center gap-3 pb-3 px-3">
-			{!reauthenticating && <BackButton onClick={onBackButtonClick} />}
+			{!reauthenticating && <BackButton onClick={onBackButtonClick} className="-mb-1" />}
 			<h1 className="text-base font-bold text-primary">
 				{reauthenticating ? "Reconnect" : "Connect"} your {integrationName} account
 				<br />
 				with FramerSync
 			</h1>
-			<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
-				{logo}
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					className="text-tertiary"
-				>
-					<path d="M5 12l14 0" />
-					<path d="M13 18l6 -6" />
-					<path d="M13 6l6 6" />
-				</svg>
-				<FramerLogo size={42} />
-			</div>
+			<IntegrationGraphic integrationId={integrationId} />
 			<div className="flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
 					<span className="text-center max-w-[80%] block text-secondary">
@@ -112,7 +93,7 @@ export function AuthenticatePageTemplate({
 				)}
 			</div>
 			<Button primary onClick={handleAuth} loading={isLoading} disabled={isLoading}>
-				Log in to {accountPlatformName}
+				Connect your {accountPlatformName} account
 			</Button>
 		</Window>
 	);

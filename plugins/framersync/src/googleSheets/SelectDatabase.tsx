@@ -8,10 +8,10 @@ import {
 	getSpreadsheetMetadata,
 } from "./googleSheets";
 import Window from "../general/Window";
-import { Logo, FramerLogo } from "../assets/AppIcons";
 import BackButton from "../components/BackButton";
 import { Spinner } from "@shared/spinner/Spinner";
 import classNames from "classnames";
+import IntegrationGraphic from "../general/IntegrationGraphic";
 
 const apiBaseUrl =
 	window.location.hostname === "localhost"
@@ -110,7 +110,7 @@ export function SelectDatabasePage() {
 	return (
 		<Window page="Authenticate" className="flex-col size-full overflow-hidden">
 			<div className="flex-1 flex-col gap-3 px-3 pb-3 size-full overflow-y-auto">
-				<BackButton onClick={onBackButtonClick} />
+				<BackButton onClick={onBackButtonClick} className="-mb-1" />
 				<h1 className="text-base font-bold text-primary">Select a Google Sheet</h1>
 				{selectedSpreadsheetId ? (
 					<div className="flex-col gap-2">
@@ -143,26 +143,7 @@ export function SelectDatabasePage() {
 					</div>
 				) : (
 					<>
-						<div className="w-full aspect-[1.8] rounded bg-secondary flex-row items-center justify-center gap-3">
-							<Logo id="google-sheets" size={50} />
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="text-tertiary"
-							>
-								<path d="M5 12l14 0" />
-								<path d="M13 18l6 -6" />
-								<path d="M13 6l6 6" />
-							</svg>
-							<FramerLogo size={42} />
-						</div>
+						<IntegrationGraphic integrationId="google-sheets" />
 						<div className="flex-col items-center gap-2 flex-1 w-full">
 							{isLoading ? (
 								<span className="text-center max-w-[80%] block text-secondary text-balance flex-col justify-center items-center flex-1">
