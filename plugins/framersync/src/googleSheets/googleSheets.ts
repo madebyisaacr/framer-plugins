@@ -14,9 +14,6 @@ const apiBaseUrl =
 		? "http://localhost:8787/google-sheets"
 		: "https://framersync-workers.isaac-b49.workers.dev/google-sheets";
 
-const LOCAL = "local";
-const PROXY = "proxy";
-
 let googleSheetsAccessToken: string | null = null;
 
 // Storage for the Google Sheets API key.
@@ -78,19 +75,16 @@ const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
 
 const htmlTagRegex = /^<([a-z][a-z0-9]*)\b[^>]*>.*<\/([a-z][a-z0-9]*)>$/is;
 
-export async function googleAPIFetch(url: string, method: string, route: string, body?: object) {
-	const response = await fetch(
-		route == PROXY ? `${apiBaseUrl}/api/?url=${encodeURIComponent(url)}` : url,
-		{
-			method,
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: `Bearer ${googleSheetsAccessToken}`,
-			},
-			body: body ? JSON.stringify(body) : undefined,
-		}
-	);
+export async function googleAPIFetch(url: string, method: string, body?: object) {
+	const response = await fetch(`${apiBaseUrl}/api/?url=${encodeURIComponent(url)}`, {
+		method,
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "application/json",
+			Authorization: `Bearer ${googleSheetsAccessToken}`,
+		},
+		body: body ? JSON.stringify(body) : undefined,
+	});
 	// const data = await response.json();
 	return response;
 }
@@ -108,8 +102,7 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 		// First, fetch the sheet's name using its ID
 		const sheetMetadataResponse = await googleAPIFetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title,sheets.properties`,
-			"GET",
-			PROXY
+			"GET"
 		);
 
 		if (!sheetMetadataResponse.ok) {
@@ -134,8 +127,7 @@ export async function getIntegrationContext(integrationData: object, databaseNam
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${encodeURIComponent(
 				sheetTitle
 			)}&includeGridData=true&fields=sheets(properties,data)`,
-			"GET",
-			PROXY
+			"GET"
 		);
 
 		if (!response.ok) {
@@ -691,8 +683,7 @@ export async function getSheetsList(spreadsheetId: string) {
 	try {
 		const response = await googleAPIFetch(
 			`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=sheets.properties(title,sheetId)`,
-			"GET",
-			PROXY
+			"GET"
 		);
 
 		if (!response.ok) {
@@ -716,8 +707,7 @@ export async function getSheetsList(spreadsheetId: string) {
 export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	const response = await googleAPIFetch(
 		`${googleSheetsApiBaseUrl}/${spreadsheetId}?ranges=${sheetId}&includeGridData=true&fields=sheets(properties,data)`,
-		"GET",
-		PROXY
+		"GET"
 	);
 
 	if (!response.ok) {
@@ -827,8 +817,7 @@ export function openGooglePicker(): string {
 export async function getSpreadsheetMetadata(spreadsheetId: string) {
 	const response = await googleAPIFetch(
 		`${googleSheetsApiBaseUrl}/${spreadsheetId}?fields=properties.title`,
-		"GET",
-		PROXY
+		"GET"
 	);
 
 	if (!response.ok) {
