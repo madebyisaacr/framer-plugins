@@ -68,6 +68,8 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				index
 			);
 
+			console.log(sheet)
+
 			const property = {
 				id: index.toString(),
 				name: cell.formattedValue,
