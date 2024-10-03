@@ -330,8 +330,8 @@ export function MapFieldsPage({
 	);
 }
 
-function getPropertyTypeName(propertyType: string) {
-	return notionPropertyTypes[propertyType];
+function getPropertyTypeName(fieldConfig: CollectionFieldConfig) {
+	return notionPropertyTypes[fieldConfig.property.type];
 }
 
 function getFieldConversionMessage(

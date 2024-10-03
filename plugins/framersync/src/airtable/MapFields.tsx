@@ -5,6 +5,7 @@ import {
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
 	propertyConversionTypes,
+	getEffectivePropertyType,
 	updatePluginData,
 	fetchTableRecords,
 } from "./airtable";
@@ -152,7 +153,7 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 	const autoFileTypeFieldIds: string[] = [];
 
 	for (const property of table.fields) {
-		if (property.type == "multipleAttachments") {
+		if (getEffectivePropertyType(property) == "multipleAttachments") {
 			autoFileTypeFieldIds.push(property.id);
 		}
 	}
@@ -200,7 +201,8 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 		const property = table.fields[key];
 		assert(property);
 
-		const conversionTypes = propertyConversionTypes[property.type] ?? [];
+		const effectiveType = getEffectivePropertyType(property);
+		const conversionTypes = propertyConversionTypes[effectiveType] ?? [];
 
 		result.push({
 			originalFieldName: property.name,
@@ -212,6 +214,7 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 			conversionTypes,
 			isPageLevelField: false,
 			autoFieldType: autoFieldTypesById[property.id],
+			effectiveType,
 		});
 	}
 
@@ -249,8 +252,13 @@ function getLastSyncedTime(
 	return pluginContext.lastSyncedTime;
 }
 
-function getPropertyTypeName(propertyType: string) {
-	return propertyTypeNames[propertyType];
+function getPropertyTypeName(fieldConfig: CollectionFieldConfig, long: boolean = false) {
+	const name = propertyTypeNames[fieldConfig.property.type];
+	if (fieldConfig.property.type === "multipleLookupValues" && long) {
+		return `${name} (${propertyTypeNames[fieldConfig.effectiveType]})`;
+	}
+
+	return name;
 }
 
 export function MapFieldsPage({
@@ -273,6 +281,8 @@ export function MapFieldsPage({
 	}, [pluginContext]);
 
 	assert(table);
+
+	console.log(table);
 
 	return (
 		<MapFieldsPageTemplate
@@ -297,14 +307,12 @@ export function MapFieldsPage({
 }
 
 function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType: string) {
-	const { property } = fieldConfig;
-
 	let text = "";
 	let title = fieldConfig.unsupported
-		? `${propertyTypeNames[property.type]} is not supported`
-		: `${propertyTypeNames[property.type]} → ${cmsFieldTypeNames[fieldType]}`;
+		? `${propertyTypeNames[fieldConfig.effectiveType]} is not supported`
+		: `${propertyTypeNames[fieldConfig.effectiveType]} → ${cmsFieldTypeNames[fieldType]}`;
 
-	switch (property.type) {
+	switch (fieldConfig.effectiveType) {
 		case "singleCollaborator":
 		case "multipleCollaborators":
 			if (fieldType === "string") {
@@ -318,13 +326,10 @@ function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType
 			}
 			break;
 		case "multipleRecordLinks":
-			text = "Links to other records cannot be imported.";
+			text = "Links to other records cannot be imported. Use Lookup fields instead.";
 			break;
 		case "rollup":
 			text = "Rollup fields are not currently supported.";
-			break;
-		case "multipleLookupValues":
-			text = "Lookup fields are not currently supported.";
 			break;
 	}
 

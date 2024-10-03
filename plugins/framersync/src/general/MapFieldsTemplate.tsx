@@ -29,6 +29,7 @@ export interface CollectionFieldConfig {
 	autoFieldType?: string;
 	autoDisabled?: boolean;
 	autoFieldSettings?: Record<string, any>;
+	effectiveType: string;
 }
 
 const TRANSITION = {
@@ -367,7 +368,7 @@ function MapFieldsPage({
 									</div>
 									<div></div>
 									<span className="text-ellipsis text-nowrap overflow-hidden font-semibold">
-										Collection Field Name
+										CMS Field Name
 									</span>
 									<span className="text-ellipsis text-nowrap overflow-hidden font-semibold">
 										Field Type
@@ -394,9 +395,7 @@ function MapFieldsPage({
 												<span className="text-error">No slug field</span>
 											)}
 										</div>
-										<span className="text-tertiary">
-											{getPropertyTypeName(slugFieldConfig?.property?.type)}
-										</span>
+										<span className="text-tertiary">{getPropertyTypeName(slugFieldConfig)}</span>
 									</div>
 									<div className="flex items-center justify-center">
 										<IconChevron />
@@ -489,9 +488,7 @@ function MapFieldsPage({
 													>
 														{field.property.name}
 													</span>
-													<span className="text-tertiary">
-														{getPropertyTypeName(field.property.type)}
-													</span>
+													<span className="text-tertiary">{getPropertyTypeName(field, true)}</span>
 												</label>
 											))
 										) : (
@@ -805,7 +802,6 @@ function EditFieldMenu({
 	getFieldConversionMessage,
 	allFieldSettings,
 	getPropertyTypeName,
-	columnLetters = false,
 }) {
 	const id = fieldConfig.property.id;
 	const propertyType = fieldConfig.property.type;
@@ -815,15 +811,25 @@ function EditFieldMenu({
 	const settings = fieldSettings[id] || {};
 
 	const fieldConversionMessage = getFieldConversionMessage(fieldConfig, fieldType);
-	const fieldSettingMessages = allFieldSettings.find(
-		(setting) =>
-			(!setting.propertyType || setting.propertyType === fieldConfig.property.type) &&
+
+	const fieldSettingMessages = [];
+	for (const setting of allFieldSettings) {
+		if (
+			(!setting.propertyType ||
+				setting.propertyType === fieldConfig.property.type ||
+				setting.propertyType === fieldConfig.effectiveType) &&
 			(!setting.fieldType || setting.fieldType === fieldType)
-	);
+		) {
+			fieldSettingMessages.push(setting);
+		}
+	}
 
 	const applicableSettings = useMemo(() => {
 		const filteredSettings = allFieldSettings.filter((setting) => {
-			if (setting.propertyType === propertyType) {
+			if (
+				setting.propertyType === propertyType ||
+				setting.propertyType === fieldConfig.effectiveType
+			) {
 				if (setting.fieldType) {
 					return setting.fieldType === fieldType;
 				}
@@ -843,10 +849,7 @@ function EditFieldMenu({
 		<div className="flex-1 w-full flex-col overflow-hidden">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
-				<p className="mb-1 text-tertiary">
-					{getPropertyTypeName(fieldConfig.property.type)}
-					{columnLetters && ` • Column ${fieldConfig.property.columnLetter}`}
-				</p>
+				<p className="mb-1 text-tertiary">{getPropertyTypeName(fieldConfig, true)}</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
 			<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
@@ -916,6 +919,38 @@ function EditFieldMenu({
 							/>
 						</PropertyControl>
 					)}
+					{applicableSettings.includes(FieldSettings.CodeBlockLanguage) && (
+						<>
+							<PropertyControl title="Code Block Language">
+								<select
+									className="w-full"
+									value={settings?.[FieldSettings.CodeBlockLanguage] ?? "JavaScript"}
+									onChange={(e) => {
+										setFieldSettings({
+											...fieldSettings,
+											[id]: { ...settings, [FieldSettings.CodeBlockLanguage]: e.target.value },
+										});
+									}}
+								>
+									{codeBlockLanguages.map((language) => (
+										<option key={language} value={language}>
+											{language}
+										</option>
+									))}
+								</select>
+							</PropertyControl>
+							<div
+								className={classNames(
+									"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
+									disabled && "opacity-50"
+								)}
+							>
+								{fieldSettingMessages.find((msg) => msg[FieldSettings.CodeBlockLanguage])?.[
+									FieldSettings.CodeBlockLanguage
+								]?.message || ""}
+							</div>
+						</>
+					)}
 					{applicableSettings.includes(FieldSettings.MultipleFields) && (
 						<>
 							<PropertyControl title="Multiple Fields">
@@ -939,11 +974,9 @@ function EditFieldMenu({
 									disabled && "opacity-50"
 								)}
 							>
-								{
-									fieldSettingMessages?.[FieldSettings.MultipleFields]?.[
-										settings[FieldSettings.MultipleFields] === false ? "false" : "true"
-									]
-								}
+								{fieldSettingMessages.find((msg) => msg[FieldSettings.MultipleFields])?.[
+									FieldSettings.MultipleFields
+								][settings[FieldSettings.MultipleFields] === false ? "false" : "true"] || ""}
 								{settings[FieldSettings.MultipleFields] !== false && (
 									<p>
 										<span className="text-primary font-semibold">Preview:</span> {fieldName} 1,{" "}
@@ -1004,36 +1037,6 @@ function EditFieldMenu({
 								)}
 							</SegmentedControl>
 						</PropertyControl>
-					)}
-					{applicableSettings.includes(FieldSettings.CodeBlockLanguage) && (
-						<>
-							<PropertyControl title="Code Block Language">
-								<select
-									className="w-full"
-									value={settings?.[FieldSettings.CodeBlockLanguage] ?? "JavaScript"}
-									onChange={(e) => {
-										setFieldSettings({
-											...fieldSettings,
-											[id]: { ...settings, [FieldSettings.CodeBlockLanguage]: e.target.value },
-										});
-									}}
-								>
-									{codeBlockLanguages.map((language) => (
-										<option key={language} value={language}>
-											{language}
-										</option>
-									))}
-								</select>
-							</PropertyControl>
-							<div
-								className={classNames(
-									"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
-									disabled && "opacity-50"
-								)}
-							>
-								{fieldSettingMessages?.[FieldSettings.CodeBlockLanguage]?.message}
-							</div>
-						</>
 					)}
 				</div>
 			</div>
@@ -1115,7 +1118,7 @@ function FieldConfigRow({
 			<StaticInput
 				ref={(el) => (fieldElementRefs.current[id] = el)}
 				disabled={isDisabled}
-				leftText={getPropertyTypeName(property.type)}
+				leftText={getPropertyTypeName(fieldConfig)}
 				className={classNames("pl-6", property && !unsupported && "cursor-pointer")}
 				onClick={unsupported ? null : () => selectField(id)}
 			>

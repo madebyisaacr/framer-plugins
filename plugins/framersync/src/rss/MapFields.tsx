@@ -84,8 +84,8 @@ export function MapFieldsPage({
 	);
 }
 
-function getPropertyTypeName(propertyType: string) {
-	return rssPropertyTypes[propertyType];
+function getPropertyTypeName(fieldConfig: CollectionFieldConfig) {
+	return rssPropertyTypes[fieldConfig.property.type];
 }
 
 function getFieldConversionMessage(

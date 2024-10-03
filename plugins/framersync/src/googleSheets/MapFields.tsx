@@ -178,8 +178,10 @@ function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType
 		: null;
 }
 
-function getPropertyTypeName(propertyType: string) {
-	return propertyTypeNames[propertyType];
+function getPropertyTypeName(fieldConfig: CollectionFieldConfig) {
+	return `${propertyTypeNames[fieldConfig.property.type]} • Column ${
+		fieldConfig.property.columnLetter
+	}`;
 }
 
 const allFieldSettings = [

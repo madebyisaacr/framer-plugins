@@ -154,7 +154,7 @@ export async function airtableFetch(url: string, body?: object) {
  */
 export function getPossibleSlugFields(fieldConfigList: object[]) {
 	const options: object[] = fieldConfigList.filter((fieldConfig) =>
-		slugFieldTypes.includes(fieldConfig.property.type)
+		slugFieldTypes.includes(fieldConfig.effectiveType)
 	);
 
 	function getOrderIndex(type: string): number {
@@ -222,12 +222,17 @@ export function getCollectionFieldForProperty(
 	const fieldData = {};
 
 	if (type == "enum") {
+		const options =
+			property.type === "multipleLookupValues"
+				? property.options?.result?.options?.choices
+				: property.options?.choices;
+
 		fieldData.cases = [
 			{
 				id: noneOptionID,
 				name: fieldSettings?.noneOption ?? "None",
 			},
-			...property.options.choices.map((option) => ({
+			...options.map((option) => ({
 				id: option.id,
 				name: option.name,
 			})),
@@ -246,137 +251,133 @@ export function getCollectionFieldForProperty(
 
 export function getPropertyValue(
 	property: object,
-	value: any,
+	propertyValue: any,
 	fieldType: string,
 	fieldSettings: Record<string, any>
 ): unknown | undefined {
-	if (property === null || property === undefined || value === null || value === undefined) {
+	if (
+		property === null ||
+		property === undefined ||
+		propertyValue === null ||
+		propertyValue === undefined
+	) {
 		return null;
 	}
 
 	fieldSettings = fieldSettings || {};
 
-	const importArray = fieldSettings[FieldSettings.MultipleFields] !== false;
+	const importArray = fieldSettings[FieldSettings.MultipleFields];
 
-	switch (property.type) {
-		case "email":
-		case "autoNumber":
-		case "count":
-		case "checkbox":
-		case "number":
-		case "percent":
-		case "phoneNumber":
-		case "rating":
-		case "rollup":
-		case "singleLineText":
-		case "multilineText":
-		case "url":
-			return value;
-		case "currency":
-			if (fieldType === "string") {
-				const { precision = 2, symbol = "" } = property.options || {};
-				return `${symbol}${Number(value).toFixed(precision)}`;
-			} else {
-				return Number(value);
-			}
-		case "date":
-		case "dateTime":
-		case "createdTime":
-		case "lastModifiedTime":
-			return dateValue(value, fieldSettings);
-		case "richText":
-			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
-		case "aiText":
-			return value.value;
-		case "multipleAttachments":
-			if (importArray) {
-				return value.map((item) => item.url);
-			} else {
-				return value?.[0] ? value[0].url : null;
-			}
-		case "multipleRecordLinks":
-			return null;
-		case "barcode":
-			return value.text || "";
-		case "button":
-			return value.url || null;
-		case "singleCollaborator":
-		case "createdBy":
-		case "lastModifiedBy":
-			return value.name || null;
-		case "formula":
-			const isArray = Array.isArray(value);
-			switch (fieldType) {
-				case "string":
-				case "link":
-				case "image":
-				case "file":
-					return isArray ? (importArray ? value : String(value[0])) : String(value);
-				case "number":
-					return isArray ? (importArray ? value.map(Number) : Number(value[0])) : Number(value);
-				case "date":
-					return isArray
-						? importArray
-							? value.map((v) => dateValue(String(v), fieldSettings))
-							: dateValue(String(value[0]), fieldSettings)
-						: dateValue(String(value), fieldSettings);
-				case "boolean":
-					return isArray ? (importArray ? value.map(Boolean) : Boolean(value[0])) : Boolean(value);
-				default:
-					return null;
-			}
-		case "multipleLookupValues":
-			return null;
-		case "multipleCollaborators":
-		case "multipleSelects":
-			if (importArray) {
-				return fieldType == "enum" ? value.map((item) => getSelectOptionId(item, property)) : value;
-			} else {
-				return value?.[0]
-					? fieldType === "enum"
-						? getSelectOptionId(value[0], property)
-						: value[0]
-					: null;
-			}
-		case "singleSelect":
-			return fieldType === "enum" ? getSelectOptionId(value, property) : value;
-		case "externalSyncSource":
-			return value.name;
-		case "duration":
-			const hours = Math.floor(value / 3600);
-			const minutes = Math.floor((value % 3600) / 60);
-			const remainingSeconds = value % 60;
-			const seconds = Math.floor(remainingSeconds).toString().padStart(2, "0");
+	const values = Array.isArray(propertyValue)
+		? importArray
+			? propertyValue
+			: [propertyValue[0]]
+		: [propertyValue];
 
-			let result = "";
-			result += hours.toString();
-			result += ":" + minutes.toString().padStart(2, "0");
+	const result = values.map((value) => {
+		switch (property.type) {
+			case "email":
+			case "autoNumber":
+			case "count":
+			case "checkbox":
+			case "number":
+			case "percent":
+			case "phoneNumber":
+			case "rating":
+			case "rollup":
+			case "singleLineText":
+			case "multilineText":
+			case "url":
+				return value;
+			case "currency":
+				if (fieldType === "string") {
+					const { precision = 2, symbol = "" } = property.options || {};
+					return `${symbol}${Number(value).toFixed(precision)}`;
+				} else {
+					return Number(value);
+				}
+			case "date":
+			case "dateTime":
+			case "createdTime":
+			case "lastModifiedTime":
+				return dateValue(value, fieldSettings);
+			case "richText":
+				return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
+			case "aiText":
+				return value.value;
+			case "multipleAttachments":
+				return value.url || null;
+			case "multipleRecordLinks":
+				return null;
+			case "barcode":
+				return value.text || "";
+			case "button":
+				return value.url || null;
+			case "singleCollaborator":
+			case "createdBy":
+			case "lastModifiedBy":
+				return value.name || null;
+			case "formula":
+				switch (fieldType) {
+					case "string":
+					case "link":
+					case "image":
+					case "file":
+						return String(value);
+					case "number":
+						return Number(value);
+					case "date":
+						return dateValue(String(value), fieldSettings);
+					case "boolean":
+						return Boolean(value);
+					default:
+						return null;
+				}
+			case "multipleLookupValues":
+				return getPropertyValue(property.options?.result, value, fieldType, fieldSettings);
+			case "multipleCollaborators":
+			case "multipleSelects":
+				return value ? (fieldType === "enum" ? getSelectOptionId(value, property) : value) : null;
+			case "singleSelect":
+				return fieldType === "enum" ? getSelectOptionId(value, property) : value;
+			case "externalSyncSource":
+				return value.name;
+			case "duration":
+				const hours = Math.floor(value / 3600);
+				const minutes = Math.floor((value % 3600) / 60);
+				const remainingSeconds = value % 60;
+				const seconds = Math.floor(remainingSeconds).toString().padStart(2, "0");
 
-			// Handle seconds and milliseconds based on format
-			switch (property.options?.durationFormat) {
-				case "h:mm":
-					break;
-				case "h:mm:ss":
-					result += ":" + seconds;
-					break;
-				case "h:mm:ss.S":
-					result += ":" + seconds;
-					result += "." + (remainingSeconds % 1).toFixed(1).substring(2);
-					break;
-				case "h:mm:ss.SS":
-					result += ":" + seconds;
-					result += "." + (remainingSeconds % 1).toFixed(2).substring(2);
-					break;
-				case "h:mm:ss.SSS":
-					result += ":" + seconds;
-					result += "." + (remainingSeconds % 1).toFixed(3).substring(2);
-					break;
-			}
+				let result = "";
+				result += hours.toString();
+				result += ":" + minutes.toString().padStart(2, "0");
 
-			return result;
-	}
+				// Handle seconds and milliseconds based on format
+				switch (property.options?.durationFormat) {
+					case "h:mm":
+						break;
+					case "h:mm:ss":
+						result += ":" + seconds;
+						break;
+					case "h:mm:ss.S":
+						result += ":" + seconds;
+						result += "." + (remainingSeconds % 1).toFixed(1).substring(2);
+						break;
+					case "h:mm:ss.SS":
+						result += ":" + seconds;
+						result += "." + (remainingSeconds % 1).toFixed(2).substring(2);
+						break;
+					case "h:mm:ss.SSS":
+						result += ":" + seconds;
+						result += "." + (remainingSeconds % 1).toFixed(3).substring(2);
+						break;
+				}
 
-	return null;
+				return result;
+		}
+	});
+
+	return importArray ? result : result[0];
 }
 
 export interface SynchronizeMutationOptions {
@@ -527,7 +528,6 @@ export async function fetchTableRecords(baseId: string, tableId: string) {
 	return data.records;
 }
 
-
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
@@ -642,7 +642,8 @@ export function hasFieldConfigurationChanged(
 
 	const properties = Object.values(table.fields).filter(
 		(property) =>
-			!disabledFieldIds.includes(property.id) && propertyConversionTypes[property.type]?.length > 0
+			!disabledFieldIds.includes(property.id) &&
+			propertyConversionTypes[getEffectivePropertyType(property)]?.length > 0
 	);
 
 	if (properties.length !== fields.length) {
@@ -657,7 +658,8 @@ export function hasFieldConfigurationChanged(
 		const currentField = currentFieldsById[property.id];
 		if (!currentField) return true;
 
-		if (!propertyConversionTypes[property.type].includes(currentField.type)) return true;
+		if (!propertyConversionTypes[getEffectivePropertyType(property)].includes(currentField.type))
+			return true;
 	}
 
 	return false;
@@ -693,11 +695,30 @@ function getSelectOptionId(name: string, property: object) {
 		return noneOptionID;
 	}
 
-	for (const option of property.options.choices) {
-		if (option.name === name) {
-			return option.id;
+	const options =
+		property.type === "multipleLookupValues"
+			? property.options?.result?.options?.choices
+			: property.options?.choices;
+
+	if (options) {
+		for (const option of options) {
+			if (option.name === name) {
+				return option.id;
+			}
 		}
 	}
 
 	return noneOptionID;
+}
+
+export function getEffectivePropertyType(property: object) {
+	let effectiveType = property.type;
+	if (property.type === "multipleLookupValues") {
+		const type = property.options?.result?.type;
+		if (type) {
+			effectiveType = type;
+		}
+	}
+
+	return effectiveType;
 }
