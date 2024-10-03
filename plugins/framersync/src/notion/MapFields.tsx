@@ -185,6 +185,7 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 			conversionTypes,
 			isPageLevelField: false,
 			autoFieldType: autoFieldTypesById[property.id],
+			effectiveType: property.type,
 		});
 	}
 

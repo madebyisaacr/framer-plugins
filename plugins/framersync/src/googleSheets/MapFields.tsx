@@ -2,7 +2,7 @@ import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
-	getCellPropertyType,
+	getColumnPropertyType,
 	updatePluginData,
 	getColumnLetter,
 } from "./googleSheets";
@@ -62,20 +62,11 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				return;
 			}
 
-			let conversionTypes = [];
-			let columnType = "TEXT";
-			let autoFieldType = undefined;
-			let autoFieldSettings = undefined;
-
 			// Check the column values to determine the type
-			for (let i = 1; i < sheet.data[0].rowData.length; i++) {
-				const cellValue = sheet.data[0].rowData[i].values[index];
-				if (cellValue) {
-					[conversionTypes, columnType, autoFieldType, autoFieldSettings] =
-						getCellPropertyType(cellValue);
-					break;
-				}
-			}
+			const [conversionTypes, columnType, autoFieldType, autoFieldSettings] = getColumnPropertyType(
+				sheet.data[0].rowData,
+				index
+			);
 
 			const property = {
 				id: index.toString(),
@@ -94,6 +85,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				isPageLevelField: false,
 				autoFieldType,
 				autoFieldSettings,
+				effectiveType: columnType,
 			});
 		});
 	}

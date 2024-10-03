@@ -723,61 +723,78 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	return sheet;
 }
 
-export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
-	let columnType = "TEXT";
-	let autoFieldType = undefined;
-	let autoFieldSettings = undefined;
+export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex: number) {
+	let columnType: string | null = null;
+	let autoFieldType: string | undefined;
+	let autoFieldSettings: Record<string, any> | undefined;
+	let nonEmptyCellCount = 0;
 
-	const effectiveValue = cellValue.effectiveValue;
+	// First loop: Determine basic column type
+	for (const cellValue of rowData) {
+		const effectiveValue = cellValue.effectiveValue;
 
-	if (cellValue.effectiveFormat?.numberFormat?.type) {
-		const type = cellValue.effectiveFormat.numberFormat.type;
-		if (propertyTypes.includes(type)) {
-			columnType = type;
-		}
-	} else if (effectiveValue) {
-		if (typeof effectiveValue.numberValue === "number") {
-			columnType = "NUMBER";
+		if (!effectiveValue) continue;
+
+		nonEmptyCellCount++;
+
+		let currentCellType: string;
+
+		if (
+			cellValue.effectiveFormat?.numberFormat?.type &&
+			propertyTypes.includes(cellValue.effectiveFormat.numberFormat.type)
+		) {
+			currentCellType = cellValue.effectiveFormat.numberFormat.type;
+		} else if (typeof effectiveValue.numberValue === "number") {
+			currentCellType = "NUMBER";
 		} else if (typeof effectiveValue.boolValue === "boolean") {
-			columnType = "BOOLEAN";
+			currentCellType = "BOOLEAN";
 		} else if (
 			effectiveValue.stringValue &&
 			effectiveValue.stringValue.match(/^\d{4}-\d{2}-\d{2}$/)
 		) {
-			columnType = "DATE";
-		}
-	}
-
-	// Check for image type
-	if (cellValue.userEnteredValue?.formulaValue?.startsWith("=IMAGE(")) {
-		columnType = "IMAGE";
-	}
-
-	// Check for hyperlink type
-	if (
-		cellValue.hyperlink ||
-		(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
-	) {
-		const url = new URL(cellValue.hyperlink);
-		const extension = url.pathname.split(".").pop();
-		if (imageFileExtensions.includes(extension)) {
-			columnType = "IMAGE";
+			currentCellType = "DATE";
 		} else {
-			columnType = "HYPERLINK";
+			currentCellType = "TEXT";
+		}
+
+		if (columnType === null) {
+			columnType = currentCellType;
+		} else if (columnType !== currentCellType) {
+			columnType = "TEXT";
+			break;
 		}
 	}
 
-	// Detect formatted text in HTML or Markdown
-	if (columnType === "TEXT" && effectiveValue?.stringValue) {
-		if (htmlTagRegex.test(effectiveValue.stringValue.trim())) {
+	columnType = columnType || "TEXT";
+
+	// Second loop: Check for formatted text if column type is TEXT
+	if (columnType === "TEXT") {
+		let formattedTextCount = 0;
+		let htmlCount = 0;
+		let markdownCount = 0;
+
+		for (const cellValue of rowData) {
+			const effectiveValue = cellValue.effectiveValue;
+			if (
+				effectiveValue &&
+				effectiveValue.stringValue &&
+				effectiveValue.stringValue.trim() !== ""
+			) {
+				const trimmedString = effectiveValue.stringValue.trim();
+				if (htmlTagRegex.test(trimmedString)) {
+					htmlCount++;
+					formattedTextCount++;
+				} else if (isMarkdown(trimmedString)) {
+					markdownCount++;
+					formattedTextCount++;
+				}
+			}
+		}
+
+		if (formattedTextCount > nonEmptyCellCount / 2) {
 			autoFieldType = "formattedText";
 			autoFieldSettings = {
-				importMarkdownOrHTML: "html",
-			};
-		} else if (isMarkdown(effectiveValue.stringValue)) {
-			autoFieldType = "formattedText";
-			autoFieldSettings = {
-				importMarkdownOrHTML: "markdown",
+				importMarkdownOrHTML: htmlCount > markdownCount ? "html" : "markdown",
 			};
 		}
 	}
