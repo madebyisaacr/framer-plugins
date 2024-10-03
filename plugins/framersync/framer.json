@@ -2,5 +2,5 @@
     "id": "Kd2XEn",
     "name": "FramerSync",
     "modes": ["configureManagedCollection", "syncManagedCollection"],
-    "icon": "/icon.png"
+    "icon": "/icon.svg"
 }
