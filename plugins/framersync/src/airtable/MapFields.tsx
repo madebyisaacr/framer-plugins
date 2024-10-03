@@ -4,7 +4,7 @@ import {
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
 	hasFieldConfigurationChanged,
-	propertyConversionTypes,
+	getPropertyConversionTypes,
 	getEffectivePropertyType,
 	updatePluginData,
 	fetchTableRecords,
@@ -201,8 +201,7 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 		const property = table.fields[key];
 		assert(property);
 
-		const effectiveType = getEffectivePropertyType(property);
-		const conversionTypes = propertyConversionTypes[effectiveType] ?? [];
+		const conversionTypes = getPropertyConversionTypes(property) ?? [];
 
 		result.push({
 			originalFieldName: property.name,
@@ -214,7 +213,7 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 			conversionTypes,
 			isPageLevelField: false,
 			autoFieldType: autoFieldTypesById[property.id],
-			effectiveType,
+			effectiveType: getEffectivePropertyType(property),
 		});
 	}
 
@@ -313,10 +312,10 @@ export function MapFieldsPage({
 function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType: string) {
 	let text = "";
 	let title = fieldConfig.unsupported
-		? `${propertyTypeNames[fieldConfig.effectiveType]} is not supported`
-		: `${propertyTypeNames[fieldConfig.effectiveType]} → ${cmsFieldTypeNames[fieldType]}`;
+		? `${propertyTypeNames[fieldConfig.property.type]} is not supported`
+		: `${propertyTypeNames[fieldConfig.property.type]} → ${cmsFieldTypeNames[fieldType]}`;
 
-	switch (fieldConfig.effectiveType) {
+	switch (fieldConfig.property.type) {
 		case "singleCollaborator":
 		case "multipleCollaborators":
 			if (fieldType === "string") {
@@ -333,7 +332,15 @@ function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType
 			text = "Links to other records cannot be imported. Use Lookup fields instead.";
 			break;
 		case "rollup":
-			text = "Rollup fields are not currently supported.";
+		case "multipleLookupValues":
+			if (fieldConfig.effectiveType === "richText") {
+				title = `${propertyTypeNames[fieldConfig.property.type]} (${
+					propertyTypeNames[fieldConfig.effectiveType]
+				}) is not supported`;
+				text = `Due to a limitation in Airtable's API, ${
+					propertyTypeNames[fieldConfig.property.type]
+				} fields containing rich text with formatting cannot be imported into Framer.`;
+			}
 			break;
 	}
 

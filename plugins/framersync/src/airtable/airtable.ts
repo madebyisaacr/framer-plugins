@@ -30,7 +30,7 @@ const noneOptionID = "##NONE##";
 // TODO: Is this necessary with Airtable?
 const concurrencyLimit = 5;
 
-export const propertyConversionTypes: Record<string, string[]> = {
+const propertyConversionTypes: Record<string, string[]> = {
 	aiText: ["string"],
 	multipleAttachments: ["file", "image"],
 	autoNumber: ["number"],
@@ -284,7 +284,6 @@ export function getPropertyValue(
 			case "percent":
 			case "phoneNumber":
 			case "rating":
-			case "rollup":
 			case "singleLineText":
 			case "multilineText":
 			case "url":
@@ -643,8 +642,7 @@ export function hasFieldConfigurationChanged(
 
 	const properties = Object.values(table.fields).filter(
 		(property) =>
-			!disabledFieldIds.includes(property.id) &&
-			propertyConversionTypes[getEffectivePropertyType(property)]?.length > 0
+			!disabledFieldIds.includes(property.id) && getPropertyConversionTypes(property).length > 0
 	);
 
 	if (properties.length !== fields.length) {
@@ -659,8 +657,7 @@ export function hasFieldConfigurationChanged(
 		const currentField = currentFieldsById[property.id];
 		if (!currentField) return true;
 
-		if (!propertyConversionTypes[getEffectivePropertyType(property)].includes(currentField.type))
-			return true;
+		if (!getPropertyConversionTypes(property).includes(currentField.type)) return true;
 	}
 
 	return false;
@@ -722,4 +719,17 @@ export function getEffectivePropertyType(property: object) {
 	}
 
 	return effectiveType;
+}
+
+export function getPropertyConversionTypes(property: object) {
+	const effectiveType = getEffectivePropertyType(property);
+
+	if (
+		(property.type === "multipleLookupValues" || property.type === "rollup") &&
+		effectiveType === "richText"
+	) {
+		return [];
+	}
+
+	return propertyConversionTypes[effectiveType] || [];
 }
