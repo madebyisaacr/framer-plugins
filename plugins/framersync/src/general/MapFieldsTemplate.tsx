@@ -278,14 +278,10 @@ function MapFieldsPage({
 		}
 	}, [licenseKeyValidLoading]);
 
-	const newFields = fieldConfigList.filter(
-		(fieldConfig) => fieldConfig.isNewField && !fieldConfig.unsupported
-	);
 	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
 	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
 	const otherFields = fieldConfigList.filter(
-		(fieldConfig) =>
-			!fieldConfig.isPageLevelField && !fieldConfig.unsupported && !fieldConfig.isNewField
+		(fieldConfig) => !fieldConfig.isPageLevelField && !fieldConfig.unsupported
 	);
 
 	return (
@@ -417,10 +413,6 @@ function MapFieldsPage({
 										text={slugFieldConfig ? "Edit" : "Error"}
 									/>
 									{pageLevelFields.map(createFieldConfigRow)}
-									{newFields.length + otherFields.length > 0 && (
-										<div className="h-px bg-divider col-span-full"></div>
-									)}
-									{newFields.map(createFieldConfigRow)}
 									{otherFields.map(createFieldConfigRow)}
 									{unsupportedFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>
