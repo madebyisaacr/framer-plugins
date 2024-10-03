@@ -254,7 +254,11 @@ function getLastSyncedTime(
 
 function getPropertyTypeName(fieldConfig: CollectionFieldConfig, long: boolean = false) {
 	const name = propertyTypeNames[fieldConfig.property.type];
-	if (fieldConfig.property.type === "multipleLookupValues" && long) {
+	if (
+		(fieldConfig.property.type === "multipleLookupValues" ||
+			fieldConfig.property.type === "rollup") &&
+		long
+	) {
 		return `${name} (${propertyTypeNames[fieldConfig.effectiveType]})`;
 	}
 

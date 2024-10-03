@@ -223,7 +223,7 @@ export function getCollectionFieldForProperty(
 
 	if (type == "enum") {
 		const options =
-			property.type === "multipleLookupValues"
+			property.type === "multipleLookupValues" || property.type === "rollup"
 				? property.options?.result?.options?.choices
 				: property.options?.choices;
 
@@ -334,6 +334,7 @@ export function getPropertyValue(
 						return null;
 				}
 			case "multipleLookupValues":
+			case "rollup":
 				return getPropertyValue(property.options?.result, value, fieldType, fieldSettings);
 			case "multipleCollaborators":
 			case "multipleSelects":
@@ -696,7 +697,7 @@ function getSelectOptionId(name: string, property: object) {
 	}
 
 	const options =
-		property.type === "multipleLookupValues"
+		property.type === "multipleLookupValues" || property.type === "rollup"
 			? property.options?.result?.options?.choices
 			: property.options?.choices;
 
@@ -713,7 +714,7 @@ function getSelectOptionId(name: string, property: object) {
 
 export function getEffectivePropertyType(property: object) {
 	let effectiveType = property.type;
-	if (property.type === "multipleLookupValues") {
+	if (property.type === "multipleLookupValues" || property.type === "rollup") {
 		const type = property.options?.result?.type;
 		if (type) {
 			effectiveType = type;
