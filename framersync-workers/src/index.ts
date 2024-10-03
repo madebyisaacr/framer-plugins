@@ -516,7 +516,7 @@ function objectToURLParams(object: Record<string, string>) {
 
 function getAccessControlAllowOrigin(request: Request) {
 	const origin = request.headers.get('Origin');
-	if (origin && (origin === 'https://plugin.framersync.com' || origin.endsWith('.framercdn.com'))) {
+	if (origin && (origin === 'https://plugin.framersync.com' || origin === 'https://localhost:5173' || origin.endsWith('.framercdn.com'))) {
 		return { 'Access-Control-Allow-Origin': origin };
 	}
 	return {};

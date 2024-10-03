@@ -715,7 +715,6 @@ export async function getFullSheet(spreadsheetId: string, sheetId: string) {
 	}
 
 	const data = await response.json();
-	console.log("data", data);
 	const sheet = data.sheets[0];
 
 	if (!sheet) {
