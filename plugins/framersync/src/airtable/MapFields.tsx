@@ -8,6 +8,7 @@ import {
 	getEffectivePropertyType,
 	updatePluginData,
 	fetchTableRecords,
+	autoCalculatedFieldTypes,
 } from "./airtable";
 import { PluginContext, usePluginContext } from "../general/PluginContext";
 import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
@@ -253,11 +254,7 @@ function getLastSyncedTime(
 
 function getPropertyTypeName(fieldConfig: CollectionFieldConfig, long: boolean = false) {
 	const name = propertyTypeNames[fieldConfig.property.type];
-	if (
-		(fieldConfig.property.type === "multipleLookupValues" ||
-			fieldConfig.property.type === "rollup") &&
-		long
-	) {
+	if (autoCalculatedFieldTypes.includes(fieldConfig.property.type) && long) {
 		return `${name} (${propertyTypeNames[fieldConfig.effectiveType]})`;
 	}
 
@@ -333,13 +330,14 @@ function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType
 			break;
 		case "rollup":
 		case "multipleLookupValues":
+		case "formula":
 			if (fieldConfig.effectiveType === "richText") {
 				title = `${propertyTypeNames[fieldConfig.property.type]} (${
 					propertyTypeNames[fieldConfig.effectiveType]
 				}) is not supported`;
 				text = `Due to a limitation in Airtable's API, ${
 					propertyTypeNames[fieldConfig.property.type]
-				} fields containing rich text with formatting cannot be imported into Framer.`;
+				} fields containing rich text cannot be imported into Framer.`;
 			}
 			break;
 	}

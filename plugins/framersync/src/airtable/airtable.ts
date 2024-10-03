@@ -46,12 +46,9 @@ const propertyConversionTypes: Record<string, string[]> = {
 	dateTime: ["date"],
 	duration: ["string"],
 	email: ["string"],
-	formula: ["string", "number", "boolean", "date", "link", "image", "file"],
 	lastModifiedBy: ["string"],
 	lastModifiedTime: ["date"],
-	multipleRecordLinks: [],
 	multilineText: ["string"],
-	multipleLookupValues: [],
 	multipleCollaborators: ["string"],
 	multipleSelects: ["enum", "string"],
 	number: ["number"],
@@ -59,15 +56,17 @@ const propertyConversionTypes: Record<string, string[]> = {
 	phoneNumber: ["string"],
 	rating: ["number"],
 	richText: ["formattedText", "string"],
-	rollup: [],
 	singleLineText: ["string"],
 	singleSelect: ["enum", "string"],
 	externalSyncSource: ["string"],
 	url: ["link", "string"],
+	multipleRecordLinks: [],
 };
 
+export const autoCalculatedFieldTypes = ["formula", "multipleLookupValues", "rollup"];
+
 // The order in which we display slug fields
-const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText", "formula"];
+const slugFieldTypes = ["singleLineText", "multilineText", "autoNumber", "aiText"];
 
 const tableRecordsByTableId = {};
 
@@ -162,7 +161,7 @@ export function getPossibleSlugFields(fieldConfigList: object[]) {
 		return index === -1 ? slugFieldTypes.length : index;
 	}
 
-	options.sort((a, b) => getOrderIndex(a.type) - getOrderIndex(b.type));
+	options.sort((a, b) => getOrderIndex(a.effectiveType) - getOrderIndex(b.effectiveType));
 
 	return options;
 }
@@ -222,10 +221,9 @@ export function getCollectionFieldForProperty(
 	const fieldData = {};
 
 	if (type == "enum") {
-		const options =
-			property.type === "multipleLookupValues" || property.type === "rollup"
-				? property.options?.result?.options?.choices
-				: property.options?.choices;
+		const options = autoCalculatedFieldTypes.includes(property.type)
+			? property.options?.result?.options?.choices
+			: property.options?.choices;
 
 		fieldData.cases = [
 			{
@@ -317,21 +315,6 @@ export function getPropertyValue(
 			case "lastModifiedBy":
 				return value.name || null;
 			case "formula":
-				switch (fieldType) {
-					case "string":
-					case "link":
-					case "image":
-					case "file":
-						return String(value);
-					case "number":
-						return Number(value);
-					case "date":
-						return dateValue(String(value), fieldSettings);
-					case "boolean":
-						return Boolean(value);
-					default:
-						return null;
-				}
 			case "multipleLookupValues":
 			case "rollup":
 				return getPropertyValue(property.options?.result, value, fieldType, fieldSettings);
@@ -693,10 +676,9 @@ function getSelectOptionId(name: string, property: object) {
 		return noneOptionID;
 	}
 
-	const options =
-		property.type === "multipleLookupValues" || property.type === "rollup"
-			? property.options?.result?.options?.choices
-			: property.options?.choices;
+	const options = autoCalculatedFieldTypes.includes(property.type)
+		? property.options?.result?.options?.choices
+		: property.options?.choices;
 
 	if (options) {
 		for (const option of options) {
@@ -711,7 +693,7 @@ function getSelectOptionId(name: string, property: object) {
 
 export function getEffectivePropertyType(property: object) {
 	let effectiveType = property.type;
-	if (property.type === "multipleLookupValues" || property.type === "rollup") {
+	if (autoCalculatedFieldTypes.includes(property.type)) {
 		const type = property.options?.result?.type;
 		if (type) {
 			effectiveType = type;
@@ -724,10 +706,7 @@ export function getEffectivePropertyType(property: object) {
 export function getPropertyConversionTypes(property: object) {
 	const effectiveType = getEffectivePropertyType(property);
 
-	if (
-		(property.type === "multipleLookupValues" || property.type === "rollup") &&
-		effectiveType === "richText"
-	) {
+	if (autoCalculatedFieldTypes.includes(property.type) && effectiveType === "richText") {
 		return [];
 	}
 
