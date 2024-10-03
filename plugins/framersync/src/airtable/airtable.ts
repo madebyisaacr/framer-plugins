@@ -317,7 +317,10 @@ export function getPropertyValue(
 			case "formula":
 			case "multipleLookupValues":
 			case "rollup":
-				return getPropertyValue(property.options?.result, value, fieldType, fieldSettings);
+				return getPropertyValue(property.options?.result, value, fieldType, {
+					...fieldSettings,
+					[FieldSettings.MultipleFields]: false,
+				});
 			case "multipleCollaborators":
 			case "multipleSelects":
 				return value ? (fieldType === "enum" ? getSelectOptionId(value, property) : value) : null;
@@ -414,10 +417,11 @@ async function processItem(
 
 		if (fieldId === slugFieldId) {
 			const resolvedSlug = getPropertyValue(property, value, "string", {});
-			if (!resolvedSlug || typeof resolvedSlug !== "string") {
-				continue;
+			if (typeof resolvedSlug === "string") {
+				slugValue = slugify(resolvedSlug);
+			} else if (Array.isArray(resolvedSlug) && typeof resolvedSlug[0] === "string") {
+				slugValue = slugify(resolvedSlug[0]);
 			}
-			slugValue = slugify(resolvedSlug);
 		}
 
 		const field = fieldsById.get(fieldId);

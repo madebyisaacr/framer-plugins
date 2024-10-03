@@ -15,7 +15,11 @@ import { LicenseKeyMenu } from "./LicenceKeyPage";
 import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
 import { framer } from "framer-plugin";
-import { FieldSettings } from "./FieldSettings";
+import {
+	FieldSettings,
+	getApplicableFieldSettings,
+	defaultFieldSettingValues,
+} from "./FieldSettings";
 import { getFieldsById } from "./updateCollection";
 import codeBlockLanguages from "./codeBlockLanguages";
 
@@ -83,6 +87,7 @@ function MapFieldsPage({
 	getFieldConversionMessage,
 	getPropertyTypeName,
 	allFieldSettings,
+	getFieldSettings,
 	getCollectionFieldForProperty,
 	coverImage = null,
 	databaseIcon = null,
@@ -115,7 +120,7 @@ function MapFieldsPage({
 		createFieldTypesList(fieldConfigList, pluginContext)
 	);
 	const [fieldSettings, setFieldSettings] = useState(
-		getInitialFieldSettings(pluginContext, fieldConfigList)
+		getInitialFieldSettings(pluginContext, fieldConfigList, allFieldSettings)
 	);
 
 	const fieldElementRefs = useRef({});
@@ -796,13 +801,17 @@ function EditFieldMenu({
 	getPropertyTypeName,
 }) {
 	const id = fieldConfig.property.id;
-	const propertyType = fieldConfig.property.type;
 	const fieldType = fieldTypes[id];
 	const fieldName = fieldNames[id] || fieldConfig.property.name;
 	const disabled = disabledFieldIds.has(id);
 	const settings = fieldSettings[id] || {};
 
 	const fieldConversionMessage = getFieldConversionMessage(fieldConfig, fieldType);
+
+	const applicableSettings = useMemo(
+		() => getApplicableFieldSettings(fieldConfig, allFieldSettings),
+		[fieldConfig, allFieldSettings]
+	);
 
 	const fieldSettingMessages = [];
 	for (const setting of allFieldSettings) {
@@ -815,27 +824,6 @@ function EditFieldMenu({
 			fieldSettingMessages.push(setting);
 		}
 	}
-
-	const applicableSettings = useMemo(() => {
-		const filteredSettings = allFieldSettings.filter((setting) => {
-			if (
-				setting.propertyType === propertyType ||
-				setting.propertyType === fieldConfig.effectiveType
-			) {
-				if (setting.fieldType) {
-					return setting.fieldType === fieldType;
-				}
-				return true;
-			}
-			return false;
-		});
-
-		const list = Object.values(FieldSettings).filter((key) =>
-			filteredSettings.some((setting) => setting[key])
-		);
-
-		return list;
-	}, [propertyType, fieldType, allFieldSettings]);
 
 	return (
 		<div className="flex-1 w-full flex-col overflow-hidden">
@@ -900,7 +888,10 @@ function EditFieldMenu({
 							<input
 								type="text"
 								className="w-full"
-								value={settings?.[FieldSettings.NoneOption] ?? "None"}
+								value={
+									settings?.[FieldSettings.NoneOption] ??
+									defaultFieldSettingValues[FieldSettings.NoneOption]
+								}
 								placeholder="None"
 								onChange={(e) =>
 									setFieldSettings({
@@ -916,7 +907,10 @@ function EditFieldMenu({
 							<PropertyControl title="Code Block Language">
 								<select
 									className="w-full"
-									value={settings?.[FieldSettings.CodeBlockLanguage] ?? "JavaScript"}
+									value={
+										settings?.[FieldSettings.CodeBlockLanguage] ??
+										defaultFieldSettingValues[FieldSettings.CodeBlockLanguage]
+									}
 									onChange={(e) => {
 										setFieldSettings({
 											...fieldSettings,
@@ -950,7 +944,10 @@ function EditFieldMenu({
 									id={`multipleFields-${id}`}
 									items={[true, false]}
 									itemTitles={["Yes", "No"]}
-									currentItem={settings[FieldSettings.MultipleFields] ?? true}
+									currentItem={
+										settings[FieldSettings.MultipleFields] ??
+										defaultFieldSettingValues[FieldSettings.MultipleFields]
+									}
 									tint
 									onChange={(value) => {
 										setFieldSettings({
@@ -984,7 +981,7 @@ function EditFieldMenu({
 								id={`timeOption-${id}`}
 								items={[true, false]}
 								itemTitles={["Yes", "No"]}
-								currentItem={settings?.[FieldSettings.Time] ?? true}
+								currentItem={settings?.[FieldSettings.Time] ?? defaultFieldSettingValues[FieldSettings.Time]}
 								tint
 								onChange={(value) => {
 									setFieldSettings({
@@ -1001,7 +998,10 @@ function EditFieldMenu({
 								id={`importMarkdownOrHTML-${id}`}
 								items={["html", "markdown"]}
 								itemTitles={["HTML", "Markdown"]}
-								currentItem={settings?.[FieldSettings.ImportMarkdownOrHTML] ?? "html"}
+								currentItem={
+									settings?.[FieldSettings.ImportMarkdownOrHTML] ??
+									defaultFieldSettingValues[FieldSettings.ImportMarkdownOrHTML]
+								}
 								tint
 								vertical
 								onChange={(value) => {
@@ -1219,31 +1219,31 @@ function getDisabledFieldIds(
 
 function getInitialFieldSettings(
 	pluginContext: PluginContext,
-	fieldConfigList: CollectionFieldConfig[]
+	fieldConfigList: CollectionFieldConfig[],
+	allFieldSettings: object[]
 ) {
 	const { fieldSettings } = pluginContext;
-
-	if (pluginContext.type === "update") {
-		let settings = {};
-
-		for (const fieldConfig of fieldConfigList) {
-			const id = fieldConfig.property.id;
-			if (fieldConfig.isNewField) {
-				settings[id] = fieldConfig.autoFieldSettings;
-			} else {
-				settings[id] = fieldSettings[id];
-			}
-		}
-
-		return settings;
-	}
 
 	let settings = {};
 
 	for (const fieldConfig of fieldConfigList) {
 		const id = fieldConfig.property.id;
-		settings[id] = fieldConfig.autoFieldSettings;
+		if (pluginContext.type === "update") {
+			settings[id] = { ...fieldConfig.autoFieldSettings, ...fieldSettings[id] };
+		} else {
+			settings[id] = fieldConfig.autoFieldSettings || {};
+		}
+
+		const applicableSettings = getApplicableFieldSettings(fieldConfig, allFieldSettings);
+
+		for (const setting of applicableSettings) {
+			if (!settings[id].hasOwnProperty(setting)) {
+				settings[id][setting] = defaultFieldSettingValues[setting];
+			}
+		}
 	}
+
+	console.log(settings);
 
 	return settings;
 }

@@ -5,3 +5,32 @@ export enum FieldSettings {
 	ImportMarkdownOrHTML = "importMarkdownOrHTML",
 	CodeBlockLanguage = "codeBlockLanguage",
 }
+
+export const defaultFieldSettingValues: Record<FieldSettings, any> = {
+	[FieldSettings.Time]: false,
+	[FieldSettings.MultipleFields]: true,
+	[FieldSettings.NoneOption]: "",
+	[FieldSettings.ImportMarkdownOrHTML]: "html",
+	[FieldSettings.CodeBlockLanguage]: "JavaScript",
+};
+
+export function getApplicableFieldSettings(fieldConfig: object, allFieldSettings: object[]) {
+	const filteredSettings = allFieldSettings.filter((setting) => {
+		if (
+			setting.propertyType === fieldConfig.property.type ||
+			setting.propertyType === fieldConfig.effectiveType
+		) {
+			if (setting.fieldType) {
+				return setting.fieldType === fieldConfig.property.type;
+			}
+			return true;
+		}
+		return false;
+	});
+
+	const list = Object.values(FieldSettings).filter((key) =>
+		filteredSettings.some((setting) => setting[key])
+	);
+
+	return list;
+}
