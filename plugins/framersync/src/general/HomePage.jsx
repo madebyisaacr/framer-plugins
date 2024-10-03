@@ -60,22 +60,22 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 			<p className="mb-1">Select an app to get started:</p>
 			<div className="grid grid-cols-4 gap-2 w-full">
 				<AppButton
-					icon={<Logo id="notion" size={40} />}
+					iconId="notion"
 					title="Notion"
 					onClick={() => onIntegrationSelected("notion")}
 				/>
 				<AppButton
-					icon={<Logo id="airtable" size={40} />}
+					iconId="airtable"
 					title="Airtable"
 					onClick={() => onIntegrationSelected("airtable")}
 				/>
 				<AppButton
-					icon={<Logo id="google-sheets" size={40} />}
+					iconId="google-sheets"
 					title="Google Sheets"
 					onClick={() => onIntegrationSelected("google-sheets")}
 				/>
 				<AppButton
-					icon={<Logo id="rss" size={40} />}
+					iconId="rss"
 					title="RSS Feeds"
 					onClick={() => onIntegrationSelected("rss")}
 				/>
@@ -100,13 +100,13 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 
 ///////////////////////////////////////////////////////////////////////
 
-function AppButton({ title, icon, onClick }) {
+function AppButton({ title, iconId, onClick }) {
 	return (
 		<div
 			onClick={onClick}
 			className="flex-col items-center justify-center gap-3 bg-secondary rounded aspect-square font-semibold cursor-pointer hover:bg-tertiary transition-colors"
 		>
-			{icon}
+			<Logo id={iconId} size={40} shadow />
 			{title}
 		</div>
 	);
