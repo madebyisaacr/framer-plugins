@@ -15,7 +15,7 @@ import {
 import { isFullDatabase } from "@notionhq/client";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
-import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import { cmsFieldTypeNames, imageFileExtensions } from "../general/data";
 import getDatabaseIcon from "./getDatabaseIcon";
 import { FieldSettings } from "../general/FieldSettings";
 import { getFieldsById } from "../general/updateCollection";
@@ -47,8 +47,6 @@ const notionPropertyTypes = {
 	"page-cover": "Image",
 	"page-content": "Page Content",
 };
-
-const imageFileExtensions = ["jpg", "jpeg", "png", "gif", "apng", "webp", "svg"];
 
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
@@ -297,6 +295,8 @@ export function MapFieldsPage({
 	const { database } = pluginContext.integrationContext;
 	const [fieldConfig, setFieldConfig] = useState<CollectionFieldConfig[] | null>(null);
 
+	console.log(database);
+
 	assert(isFullDatabase(database));
 
 	useEffect(() => {
@@ -372,7 +372,7 @@ function getFieldConversionMessage(
 				"People fields cannot be imported because the FramerSync Notion integration does not have access to users' names.";
 			break;
 		case "relation":
-			text = "Relation fields cannot be imported.";
+			text = "Relation fields cannot be imported. Use Rollup fields instead.";
 			break;
 	}
 

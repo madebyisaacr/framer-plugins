@@ -1,4 +1,4 @@
-import codeBlockLanguages from "../general/codeBlockLanguages";
+import { codeBlockLanguages } from "../general/data";
 
 const PrefixTags = {
 	"#": "h1",

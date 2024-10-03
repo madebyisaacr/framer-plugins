@@ -8,7 +8,7 @@ import {
 } from "./googleSheets";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
-import { cmsFieldTypeNames } from "../general/CMSFieldTypes";
+import { cmsFieldTypeNames } from "../general/data";
 import { FieldSettings } from "../general/FieldSettings";
 import { getFieldsById } from "../general/updateCollection";
 import { useMemo } from "react";

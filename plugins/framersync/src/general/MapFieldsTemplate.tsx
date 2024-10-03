@@ -8,7 +8,7 @@ import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext";
 import Window from "./Window";
 import { SegmentedControl } from "@shared/components";
-import { cmsFieldTypeNames } from "./CMSFieldTypes";
+import { cmsFieldTypeNames } from "./data.js";
 import BackButton from "../components/BackButton";
 import { useLemonSqueezy } from "./LemonSqueezy";
 import { LicenseKeyMenu } from "./LicenceKeyPage";
@@ -21,7 +21,7 @@ import {
 	defaultFieldSettingValues,
 } from "./FieldSettings";
 import { getFieldsById } from "./updateCollection";
-import codeBlockLanguages from "./codeBlockLanguages";
+import { codeBlockLanguages } from "./data";
 
 export interface CollectionFieldConfig {
 	property: object;

@@ -6,8 +6,7 @@ import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
 import { markdownToHTML } from "./markdownToHTML";
-
-export type FieldId = string;
+import { imageFileExtensions } from "../general/data";
 
 const apiBaseUrl =
 	window.location.hostname === "localhost"
@@ -467,14 +466,14 @@ async function processItem(
 	};
 }
 
-type FieldsById = Map<FieldId, CollectionField>;
+type FieldsById = Map<string, CollectionField>;
 
 // Function to process all items concurrently with a limit
 async function processAllItems(
 	data: { values: GoogleSheetsColumn[] }[],
 	fieldsByKey: FieldsById,
 	slugFieldId: string,
-	unsyncedItemIds: Set<FieldId>,
+	unsyncedItemIds: Set<string>,
 	lastSyncedDate: string | null,
 	fieldSettings: Record<string, any>
 ) {
@@ -759,7 +758,13 @@ export function getCellPropertyType(cellValue: GoogleSheetsColumn) {
 		cellValue.hyperlink ||
 		(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
 	) {
-		columnType = "HYPERLINK";
+		const url = new URL(cellValue.hyperlink);
+		const extension = url.pathname.split(".").pop();
+		if (imageFileExtensions.includes(extension)) {
+			columnType = "IMAGE";
+		} else {
+			columnType = "HYPERLINK";
+		}
 	}
 
 	// Detect formatted text in HTML or Markdown

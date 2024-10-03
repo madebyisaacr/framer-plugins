@@ -5,8 +5,6 @@ import { getFieldsById } from "../general/updateCollection";
 
 const rssPropertyTypes = {};
 
-const imageFileExtensions = ["jpg", "jpeg", "png", "gif", "apng", "webp", "svg"];
-
 function sortField(fieldA: CollectionFieldConfig, fieldB: CollectionFieldConfig): number {
 	// Sort unsupported fields to bottom
 	if (!fieldA.field && !fieldB.field) {
