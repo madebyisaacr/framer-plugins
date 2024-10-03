@@ -296,8 +296,6 @@ export function MapFieldsPage({
 	const { database } = pluginContext.integrationContext;
 	const [fieldConfig, setFieldConfig] = useState<CollectionFieldConfig[] | null>(null);
 
-	console.log(database);
-
 	assert(isFullDatabase(database));
 
 	useEffect(() => {

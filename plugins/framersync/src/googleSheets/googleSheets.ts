@@ -631,14 +631,6 @@ export function hasFieldConfigurationChanged(
 	);
 
 	if (properties.length !== fields.length) {
-		console.log("properties", properties);
-		console.log("fields", fields);
-		console.log("headerRow", headerRow);
-		console.log("disabledFieldIds", disabledFieldIds);
-		console.log("Configuration changed: properties.length !== fields.length", {
-			propertiesLength: properties.length,
-			fieldsLength: fields.length,
-		});
 		return true;
 	}
 
@@ -753,6 +745,11 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 			effectiveValue.stringValue.match(/^\d{4}-\d{2}-\d{2}$/)
 		) {
 			currentCellType = "DATE";
+		} else if (
+			cellValue.hyperlink ||
+			(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
+		) {
+			currentCellType = "LINK";
 		} else {
 			currentCellType = "TEXT";
 		}

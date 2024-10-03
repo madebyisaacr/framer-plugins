@@ -1243,8 +1243,6 @@ function getInitialFieldSettings(
 		}
 	}
 
-	console.log(settings);
-
 	return settings;
 }
 
