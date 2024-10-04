@@ -760,7 +760,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 			cellValue.hyperlink ||
 			(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
 		) {
-			currentCellType = "LINK";
+			currentCellType = "HYPERLINK";
 		} else {
 			currentCellType = "TEXT";
 		}
