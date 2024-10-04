@@ -815,7 +815,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 				importMarkdownOrHTML: htmlCount > markdownCount ? "html" : "markdown",
 			};
 		}
-	} else if (columnType === "LINK") {
+	} else if (columnType === "HYPERLINK") {
 		let notAllImages = false;
 		let imageCount = 0;
 
