@@ -14,7 +14,7 @@ import { getFieldsById } from "../general/updateCollection";
 import { useMemo } from "react";
 
 const propertyTypeNames = {
-	BOOLEAN: "Boolean",
+	BOOLEAN: "Checkbox",
 	TEXT: "Text",
 	NUMBER: "Number",
 	DATE: "Date",
@@ -67,8 +67,6 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 				sheet.data[0].rowData,
 				index
 			);
-
-			console.log(sheet)
 
 			const property = {
 				id: index.toString(),

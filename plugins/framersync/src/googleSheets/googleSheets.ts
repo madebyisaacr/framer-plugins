@@ -721,11 +721,9 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 	let autoFieldSettings: Record<string, any> | undefined;
 	let nonEmptyCellCount = 0;
 
-	console.log(rowData);
-
 	// First loop: Determine basic column type
 	for (let i = 1; i < rowData.length; i++) {
-		const cellValue = rowData[i].values[columnIndex];
+		const cellValue = rowData[i];
 
 		if (!cellValue) {
 			continue;
@@ -761,6 +759,12 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 			(cellValue.textFormatRuns && cellValue.textFormatRuns.some((run) => run.format.link))
 		) {
 			currentCellType = "HYPERLINK";
+		} else if (
+			effectiveValue.formulaValue &&
+			effectiveValue.formulaValue.startsWith("=IMAGE(") &&
+			effectiveValue.formulaValue.endsWith(")")
+		) {
+			currentCellType = "IMAGE";
 		} else {
 			currentCellType = "TEXT";
 		}
@@ -810,6 +814,32 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 			autoFieldSettings = {
 				importMarkdownOrHTML: htmlCount > markdownCount ? "html" : "markdown",
 			};
+		}
+	} else if (columnType === "LINK") {
+		let notAllImages = false;
+		let imageCount = 0;
+
+		for (let i = 1; i < rowData.length; i++) {
+			const cellValue = rowData[i].values[columnIndex];
+
+			if (!cellValue || !cellValue.effectiveValue || !cellValue.effectiveValue.stringValue) {
+				continue;
+			}
+
+			const link = cellValue.effectiveValue.stringValue.trim().toLowerCase();
+			const extension = link.split(".").pop();
+			const isImage = imageFileExtensions.includes(extension);
+
+			if (isImage) {
+				imageCount++;
+			} else {
+				notAllImages = true;
+				break;
+			}
+		}
+
+		if (imageCount > 0 && !notAllImages) {
+			columnType = "IMAGE";
 		}
 	}
 
