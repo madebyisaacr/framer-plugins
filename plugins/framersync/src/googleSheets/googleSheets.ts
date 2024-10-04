@@ -839,7 +839,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 		}
 
 		if (imageCount > 0 && !notAllImages) {
-			columnType = "IMAGE";
+			autoFieldType = "image";
 		}
 	}
 
