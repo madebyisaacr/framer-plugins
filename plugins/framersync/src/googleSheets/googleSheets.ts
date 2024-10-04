@@ -721,22 +721,32 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 	let autoFieldSettings: Record<string, any> | undefined;
 	let nonEmptyCellCount = 0;
 
+	console.log(rowData);
+
 	// First loop: Determine basic column type
 	for (let i = 0; i < rowData.length; i++) {
 		const cellValue = rowData[i].values[columnIndex];
-		const effectiveValue = cellValue.effectiveValue;
 
-		if (!effectiveValue) continue;
+		if (!cellValue) {
+			continue;
+		}
+
+		const effectiveValue = cellValue.effectiveValue;
+		const effectiveFormat = cellValue.effectiveFormat;
+
+		if (!effectiveValue) {
+			continue;
+		}
 
 		nonEmptyCellCount++;
 
 		let currentCellType: string;
 
 		if (
-			cellValue.effectiveFormat?.numberFormat?.type &&
-			propertyTypes.includes(cellValue.effectiveFormat.numberFormat.type)
+			effectiveFormat?.numberFormat?.type &&
+			propertyTypes.includes(effectiveFormat.numberFormat.type)
 		) {
-			currentCellType = cellValue.effectiveFormat.numberFormat.type;
+			currentCellType = effectiveFormat.numberFormat.type;
 		} else if (typeof effectiveValue.numberValue === "number") {
 			currentCellType = "NUMBER";
 		} else if (typeof effectiveValue.boolValue === "boolean") {
@@ -773,6 +783,11 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 
 		for (let i = 0; i < rowData.length; i++) {
 			const cellValue = rowData[i].values[columnIndex];
+
+			if (!cellValue) {
+				continue;
+			}
+
 			const effectiveValue = cellValue.effectiveValue;
 			if (
 				effectiveValue &&
