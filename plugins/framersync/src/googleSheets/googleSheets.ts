@@ -724,7 +724,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 	console.log(rowData);
 
 	// First loop: Determine basic column type
-	for (let i = 0; i < rowData.length; i++) {
+	for (let i = 1; i < rowData.length; i++) {
 		const cellValue = rowData[i].values[columnIndex];
 
 		if (!cellValue) {
@@ -781,7 +781,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 		let htmlCount = 0;
 		let markdownCount = 0;
 
-		for (let i = 0; i < rowData.length; i++) {
+		for (let i = 1; i < rowData.length; i++) {
 			const cellValue = rowData[i].values[columnIndex];
 
 			if (!cellValue) {
