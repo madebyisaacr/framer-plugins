@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useLemonSqueezy } from "./LemonSqueezy";
 import classNames from "classnames";
 import ArrowRightIcon from "../assets/ArrowRightIcon";
+import { isReview } from "../utils";
 
 export function LicenseKeyPage({ closePage, checkout }) {
 	return (
@@ -76,6 +77,11 @@ export function LicenseKeyMenu({
 
 	const activateHeadingText = isValidated ? "Activated License Key!" : "Activate Your License Key";
 
+	let isSubmitButtonDisabled = licenseKey.length != 36;
+	if (isReview() && isSubmitButtonDisabled) {
+		isSubmitButtonDisabled = licenseKey != "ABC";
+	}
+
 	return (
 		<div className={classNames("flex-col justify-center px-3 pb-3 gap-2 w-full", className)}>
 			<div className="flex-col gap-2 flex-1 py-8 items-center justify-center w-full text-center">
@@ -137,11 +143,16 @@ export function LicenseKeyMenu({
 							onClick={onSubmitLicenseKey}
 							className="w-full"
 							loading={isActivating}
-							disabled={licenseKey != "a" && licenseKey.length != 36}
+							disabled={isSubmitButtonDisabled}
 						>
 							{isValidated ? "Success" : "Activate License Key"}
 						</Button>
 						{error && <p className="text-error text-center">{error}</p>}
+						{isReview() && (
+							<p className="text-center">
+								Licence key for plugin reviewer: <strong>ABC</strong>
+							</p>
+						)}
 					</>
 				)}
 			</div>

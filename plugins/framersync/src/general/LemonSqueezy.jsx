@@ -1,5 +1,6 @@
 import { useEffect, useContext, createContext, useState } from "react";
 import { framer } from "framer-plugin";
+import { isReview } from "../utils";
 
 const checkoutURL = "https://store.framestack.co/buy/24b67220-4e17-478b-9a4a-9cbf0e2db171";
 
@@ -139,5 +140,9 @@ export async function validateLicenseKey() {
 }
 
 function isTestLicenseKey(licenseKey) {
-	return window.location.hostname === "localhost" && licenseKey.toLowerCase() === "a";
+	if (isReview() || window.location.hostname === "localhost") {
+		return licenseKey === "ABC";
+	}
+
+	return false;
 }

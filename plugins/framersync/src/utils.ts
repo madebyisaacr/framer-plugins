@@ -105,3 +105,20 @@ export function removeTimeFromISO(isoString: string) {
 	// Return the formatted date string
 	return date.toISOString();
 }
+
+export function isReview() {
+	const pluginId = "cxmjflv066qj3p60chx5t4ufs";
+
+	if (!window.location.origin.includes(pluginId)) {
+		return false;
+	} else if (
+		window.location.origin
+			.replace(`https://${pluginId}`, "")
+			.replace(".plugins.framercdn.com", "")
+			.startsWith("-")
+	) {
+		return true;
+	}
+
+	return false;
+}
