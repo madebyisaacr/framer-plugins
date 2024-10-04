@@ -418,6 +418,7 @@ function MapFieldsPage({
 										text={slugFieldConfig ? "Edit" : "Error"}
 									/>
 									{pageLevelFields.map(createFieldConfigRow)}
+									{otherFields.length > 0 && <div className="h-px bg-divider col-span-full"></div>}
 									{otherFields.map(createFieldConfigRow)}
 									{unsupportedFields.length > 0 && (
 										<div className="h-px bg-divider col-span-full"></div>

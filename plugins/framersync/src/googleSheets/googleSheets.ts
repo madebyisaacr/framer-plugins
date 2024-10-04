@@ -723,7 +723,7 @@ export function getColumnPropertyType(rowData: GoogleSheetsColumn[], columnIndex
 
 	// First loop: Determine basic column type
 	for (let i = 1; i < rowData.length; i++) {
-		const cellValue = rowData[i];
+		const cellValue = rowData[i].values[columnIndex];
 
 		if (!cellValue) {
 			continue;
