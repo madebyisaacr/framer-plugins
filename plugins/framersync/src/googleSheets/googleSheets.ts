@@ -261,14 +261,14 @@ export async function authorize() {
  * That maps the Google Sheets column to the Framer CMS collection property type
  */
 export function getCollectionFieldForProperty(
-	column: GoogleSheetsColumn,
+	property: object,
 	name: string,
 	type: string,
 	fieldSettings: Record<string, any>
 ): CollectionField | null {
 	return {
 		type: type,
-		id: column.columnIndex!.toString(),
+		id: property.id,
 		name,
 	};
 }

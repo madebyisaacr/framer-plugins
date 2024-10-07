@@ -69,7 +69,7 @@ function createFieldConfig(pluginContext: PluginContext): CollectionFieldConfig[
 			);
 
 			const property = {
-				id: index.toString(),
+				id: generateColumnId(cell.formattedValue),
 				name: cell.formattedValue,
 				type: columnType,
 				columnIndex: index,
@@ -186,3 +186,22 @@ const allFieldSettings = [
 	},
 ];
 const fieldConversionMessages = {};
+
+function generateColumnId(inputString) {
+	// Use a cryptographic hash function (SHA-256)
+	function sha256(str) {
+		const encoder = new TextEncoder();
+		const data = encoder.encode(str);
+		return crypto.subtle.digest("SHA-256", data);
+	}
+
+	// Convert array buffer to hexadecimal string
+	function bufferToHex(buffer) {
+		return Array.from(new Uint8Array(buffer))
+			.map((b) => b.toString(16).padStart(2, "0"))
+			.join("");
+	}
+
+	// Generate the hash and return the first 32 characters
+	return sha256(inputString).then((buffer) => bufferToHex(buffer).slice(0, 32));
+}
