@@ -187,21 +187,16 @@ const allFieldSettings = [
 ];
 const fieldConversionMessages = {};
 
-function generateColumnId(inputString) {
-	// Use a cryptographic hash function (SHA-256)
-	function sha256(str) {
-		const encoder = new TextEncoder();
-		const data = encoder.encode(str);
-		return crypto.subtle.digest("SHA-256", data);
+function generateColumnId(inputString: string): string {
+	// Simple hash function
+	let hash = 0;
+	for (let i = 0; i < inputString.length; i++) {
+		const char = inputString.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash; // Convert to 32-bit integer
 	}
 
-	// Convert array buffer to hexadecimal string
-	function bufferToHex(buffer) {
-		return Array.from(new Uint8Array(buffer))
-			.map((b) => b.toString(16).padStart(2, "0"))
-			.join("");
-	}
-
-	// Generate the hash and return the first 32 characters
-	return sha256(inputString).then((buffer) => bufferToHex(buffer).slice(0, 32));
+	// Convert to hexadecimal and pad to ensure 32 characters
+	const hexHash = Math.abs(hash).toString(16).padStart(32, "0");
+	return hexHash.slice(0, 32);
 }
