@@ -8,7 +8,8 @@
         "build": "vite build --base=${PREFIX_BASE_PATH:+/$npm_package_name}/",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "typecheck": "tsc --noEmit",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "pack": "npx framer-plugin-tools@latest pack"
     },
     "dependencies": {
         "@notionhq/client": "^2.2.15",
