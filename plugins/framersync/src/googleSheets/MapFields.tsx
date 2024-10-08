@@ -5,6 +5,7 @@ import {
 	getColumnPropertyType,
 	updatePluginData,
 	getColumnLetter,
+	generateColumnId,
 } from "./googleSheets";
 import { usePluginContext, PluginContext } from "../general/PluginContext";
 import { MapFieldsPageTemplate, CollectionFieldConfig } from "../general/MapFieldsTemplate";
@@ -186,17 +187,3 @@ const allFieldSettings = [
 	},
 ];
 const fieldConversionMessages = {};
-
-function generateColumnId(inputString: string): string {
-	// Simple hash function
-	let hash = 0;
-	for (let i = 0; i < inputString.length; i++) {
-		const char = inputString.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash; // Convert to 32-bit integer
-	}
-
-	// Convert to hexadecimal and pad to ensure 32 characters
-	const hexHash = Math.abs(hash).toString(16).padStart(32, "0");
-	return hexHash.slice(0, 32);
-}

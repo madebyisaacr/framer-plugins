@@ -403,7 +403,8 @@ async function processItem(
 	unsyncedItemIds: Set<string>,
 	lastSyncedTime: string | null,
 	existingSlugs: Set<string>,
-	fieldSettings: Record<string, any>
+	fieldSettings: Record<string, any>,
+	headerRow: GoogleSheetsColumn[]
 ): Promise<CollectionItem | null> {
 	let slugValue: null | string = null;
 
@@ -413,7 +414,8 @@ async function processItem(
 	unsyncedItemIds.delete(rowIndex.toString());
 
 	row.values.forEach((cell, index) => {
-		if (index.toString() === slugFieldId) {
+		const columnId = generateColumnId(headerRow[index].formattedValue);
+		if (columnId === slugFieldId) {
 			const resolvedSlug = getCellValue(cell, "string", {});
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				return;
@@ -421,7 +423,7 @@ async function processItem(
 			slugValue = slugify(resolvedSlug);
 		}
 
-		const field = fieldsById.get(index.toString());
+		const field = fieldsById.get(columnId);
 
 		// We can continue if the column was not included in the field mapping
 		if (!field) {
@@ -475,7 +477,8 @@ async function processAllItems(
 	slugFieldId: string,
 	unsyncedItemIds: Set<string>,
 	lastSyncedDate: string | null,
-	fieldSettings: Record<string, any>
+	fieldSettings: Record<string, any>,
+	headerRow: GoogleSheetsColumn[]
 ) {
 	const limit = pLimit(concurrencyLimit);
 	const status: SyncStatus = {
@@ -495,7 +498,8 @@ async function processAllItems(
 				unsyncedItemIds,
 				lastSyncedDate,
 				existingSlugs,
-				fieldSettings
+				fieldSettings,
+				headerRow
 			)
 		)
 	);
@@ -520,7 +524,7 @@ export async function synchronizeDatabase(
 		slugFieldId,
 		fieldSettings,
 	} = pluginContext;
-	const { sheet, spreadsheetId, sheetId } = integrationContext;
+	const { sheet } = integrationContext;
 
 	assert(sheet && sheet.data && sheet.data[0].rowData);
 
@@ -533,6 +537,7 @@ export async function synchronizeDatabase(
 
 	const unsyncedItemIds = new Set(await collection.getItemIds());
 
+	const headerRow = sheet.data[0].rowData![0].values!;
 	// Filter out empty rows before processing
 	const data = sheet.data[0]
 		.rowData!.slice(1)
@@ -548,7 +553,8 @@ export async function synchronizeDatabase(
 		slugFieldId,
 		unsyncedItemIds,
 		lastSyncedTime,
-		fieldSettings
+		fieldSettings,
+		headerRow
 	);
 
 	console.log("Submitting sheet");
@@ -627,20 +633,21 @@ export function hasFieldConfigurationChanged(
 
 	const headerRow = sheet.data[0].rowData[0].values;
 	const properties = headerRow.filter(
-		(cell, index) => cell.formattedValue && !disabledFieldIds.includes(index.toString())
+		(cell) =>
+			cell.formattedValue && !disabledFieldIds.includes(generateColumnId(cell.formattedValue))
 	);
 
 	if (properties.length !== fields.length) {
 		return true;
 	}
 
-	const includedProperties = properties.filter((_, index) =>
-		currentFieldsById.has(index.toString())
+	const includedProperties = properties.filter((cell) =>
+		currentFieldsById.has(generateColumnId(cell.formattedValue))
 	);
 
 	for (let i = 0; i < includedProperties.length; i++) {
 		const property = includedProperties[i];
-		const currentField = currentFieldsById.get(i.toString());
+		const currentField = currentFieldsById.get(generateColumnId(property.formattedValue));
 		if (!currentField) {
 			console.log("Configuration changed: currentField not found", { index: i });
 			return true;
@@ -890,4 +897,22 @@ export async function getSpreadsheetMetadata(spreadsheetId: string) {
 	}
 
 	return response.json();
+}
+
+export function generateColumnId(inputString: string | undefined): string {
+	if (!inputString) {
+		return "";
+	}
+
+	// Simple hash function
+	let hash = 0;
+	for (let i = 0; i < inputString.length; i++) {
+		const char = inputString.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash; // Convert to 32-bit integer
+	}
+
+	// Convert to hexadecimal and pad to ensure 32 characters
+	const hexHash = Math.abs(hash).toString(16).padStart(32, "0");
+	return hexHash.slice(0, 32);
 }
