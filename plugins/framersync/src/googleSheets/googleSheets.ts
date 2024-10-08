@@ -355,6 +355,15 @@ export function getCellValue(
 				: value;
 		}
 
+		if (fieldType === "link") {
+			try {
+				new URL(value);
+				return value;
+			} catch {
+				return "";
+			}
+		}
+
 		return value;
 	}
 
