@@ -148,11 +148,11 @@ export function LicenseKeyMenu({
 							{isValidated ? "Success" : "Activate License Key"}
 						</Button>
 						{error && <p className="text-error text-center">{error}</p>}
-						{isReview() && (
+						{/* {isReview() && (
 							<p className="text-center">
 								Licence key for plugin reviewer: <strong>ABC</strong>
 							</p>
-						)}
+						)} */}
 					</>
 				)}
 			</div>
