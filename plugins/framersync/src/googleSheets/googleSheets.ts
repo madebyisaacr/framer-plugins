@@ -360,7 +360,7 @@ export function getCellValue(
 				new URL(value);
 				return value;
 			} catch {
-				return "";
+				return null;
 			}
 		}
 
