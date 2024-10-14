@@ -56,12 +56,16 @@ export function LemonSqueezyProvider({ children }) {
 			const data = await response.json();
 
 			if (data.meta?.store_id !== storeId || data.meta?.product_id !== productId) {
-				return { activated: false, error: "Invalid license key" };
+				activated = false
+				error = "Invalid license key"
+			} else if (data.error === "This license key has reached the activation limit.") {
+				activated = false;
+				error = "This license key is already in use in another Framer project.";
+			} else {
+				activated = data.activated;
+				error = data.error;
+				instanceId = data.instance.id;
 			}
-
-			activated = data.activated;
-			error = data.error;
-			instanceId = data.instance.id;
 		}
 
 		if (activated) {

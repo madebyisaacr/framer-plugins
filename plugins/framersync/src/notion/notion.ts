@@ -13,7 +13,7 @@ import {
 	PageObjectResponse,
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import { assert, formatDate, isDefined, isString, slugify, removeTimeFromISO } from "../utils";
+import { assert, formatDate, isDefined, isString, removeTimeFromISO } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { blocksToHtml, richTextToHTML } from "./blocksToHTML";
@@ -404,6 +404,16 @@ async function processItem(
 
 	assert(isFullPage(item));
 
+	for (const key in item.properties) {
+		const property = item.properties[key];
+		if (property.id === slugFieldId) {
+			const resolvedSlug = getPropertyValue(property, "string", {});
+			if (resolvedSlug && typeof resolvedSlug === "string") {
+				slugValue = resolvedSlug;
+			}
+		}
+	}
+
 	// TODO: Only skip reimporting page content, images, and files. Always reimport other fields.
 	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
 		status.info.push({
@@ -412,20 +422,17 @@ async function processItem(
 			)}, last synced: ${formatDate(lastSyncedTime!)}`,
 			url: item.url,
 		});
-		return null;
+
+		return {
+			id: item.id,
+			slug: slugValue,
+			noImport: true,
+		};
 	}
 
 	for (const key in item.properties) {
 		const property = item.properties[key];
 		assert(property);
-
-		if (property.id === slugFieldId) {
-			const resolvedSlug = getPropertyValue(property, "string", {});
-			if (!resolvedSlug || typeof resolvedSlug !== "string") {
-				continue;
-			}
-			slugValue = slugify(resolvedSlug);
-		}
 
 		const field = fieldsById.get(property.id);
 

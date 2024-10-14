@@ -9,8 +9,8 @@ import { isReview } from "../utils";
 
 export function LicenseKeyPage({ closePage, checkout }) {
 	return (
-		<Window page="LicenceKey" className="flex-col">
-			<BackButton onClick={closePage} className="absolute top-0 left-3" />
+		<Window page="LicenceKey" className="flex-col overflow-y-auto">
+			<BackButton onClick={closePage} className="ml-3" />
 			<LicenseKeyMenu closePage={closePage} checkout={checkout} className="flex-1" />
 		</Window>
 	);
@@ -84,7 +84,7 @@ export function LicenseKeyMenu({
 
 	return (
 		<div className={classNames("flex-col justify-center px-3 pb-3 gap-2 w-full", className)}>
-			<div className="flex-col gap-2 flex-1 py-8 items-center justify-center w-full text-center">
+			<div className="flex-col gap-2 flex-1 py-3 items-center justify-center w-full text-center">
 				<KeyIcon />
 				{paywallMode ? (
 					<>
@@ -137,6 +137,7 @@ export function LicenseKeyMenu({
 								}
 							}}
 							disabled={isValidated}
+							maxLength={36}
 						/>
 						<Button
 							primary
@@ -147,7 +148,7 @@ export function LicenseKeyMenu({
 						>
 							{isValidated ? "Success" : "Activate License Key"}
 						</Button>
-						{error && <p className="text-error text-center">{error}</p>}
+						{error && <p className="text-error text-center text-balance">{error}</p>}
 						{/* {isReview() && (
 							<p className="text-center">
 								Licence key for plugin reviewer: <strong>ABC</strong>

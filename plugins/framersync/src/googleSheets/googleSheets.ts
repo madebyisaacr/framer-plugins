@@ -1,7 +1,7 @@
 import pLimit from "p-limit";
-import { assert, formatDate, isDefined, isString, slugify } from "../utils";
+import { assert, isDefined, isString } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
@@ -411,7 +411,6 @@ async function processItem(
 	status: SyncStatus,
 	unsyncedItemIds: Set<string>,
 	lastSyncedTime: string | null,
-	existingSlugs: Set<string>,
 	fieldSettings: Record<string, any>,
 	headerRow: GoogleSheetsColumn[]
 ): Promise<CollectionItem | null> {
@@ -429,7 +428,7 @@ async function processItem(
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
 				return;
 			}
-			slugValue = slugify(resolvedSlug);
+			slugValue = resolvedSlug;
 		}
 
 		const field = fieldsById.get(columnId);
@@ -461,19 +460,10 @@ async function processItem(
 		return null;
 	}
 
-	// Handle duplicate slugs
-	let uniqueSlug = slugValue;
-	let counter = 1;
-	while (existingSlugs.has(uniqueSlug)) {
-		counter++;
-		uniqueSlug = `${slugValue}-${counter}`;
-	}
-	existingSlugs.add(uniqueSlug);
-
 	return {
 		id: rowIndex.toString(),
 		fieldData,
-		slug: uniqueSlug,
+		slug: slugValue,
 	};
 }
 
@@ -495,7 +485,6 @@ async function processAllItems(
 		info: [],
 		warnings: [],
 	};
-	const existingSlugs = new Set<string>();
 	const promises = data.map((row, index) =>
 		limit(() =>
 			processItem(
@@ -506,7 +495,6 @@ async function processAllItems(
 				status,
 				unsyncedItemIds,
 				lastSyncedDate,
-				existingSlugs,
 				fieldSettings,
 				headerRow
 			)

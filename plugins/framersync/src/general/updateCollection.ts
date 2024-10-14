@@ -1,5 +1,5 @@
 import { framer, CollectionItem, CollectionField } from "framer-plugin";
-import { createObject } from "../utils";
+import { createObject, slugify } from "../utils";
 import { PluginContext } from "./PluginContext";
 
 export const PluginDataKey = createObject([
@@ -24,10 +24,12 @@ export async function updateCollection(
 	const { collectionFields } = pluginContext;
 	const collection = await framer.getManagedCollection();
 
+	const syncedItems = collectionItems.filter((item) => !item.noImport);
+
 	// Generate dynamic fields (arrays and file types)
 	const arrayFieldIDs = new Set<string>();
 	const arrayFieldLengths = {};
-	for (const item of collectionItems) {
+	for (const item of syncedItems) {
 		for (const field of collectionFields) {
 			const value = item.fieldData[field.id];
 			if (Array.isArray(value)) {
@@ -40,9 +42,11 @@ export async function updateCollection(
 
 	const collectionFieldsById = getFieldsById(collectionFields);
 
-	const replaceFieldIds = collectionFields.map((field) => field.id).filter((fieldId) => arrayFieldIDs.has(fieldId));
+	const replaceFieldIds = collectionFields
+		.map((field) => field.id)
+		.filter((fieldId) => arrayFieldIDs.has(fieldId));
 
-	for (const item of collectionItems) {
+	for (const item of syncedItems) {
 		const fieldData = item.fieldData;
 		for (const fieldId of Object.keys(fieldData)) {
 			if (fieldData[fieldId] === null || fieldData[fieldId] === undefined) {
@@ -96,7 +100,22 @@ export async function updateCollection(
 	await collection.setFields(fields);
 	await updateCollectionPluginData(pluginContext, integrationData, databaseName, false);
 
-	await collection.addItems(collectionItems);
+	// Handle duplicate slugs
+	const existingSlugs = new Set<string>();
+	for (const item of collectionItems) {
+		let uniqueSlug = slugify(item.slug);
+
+		let counter = 1;
+		while (existingSlugs.has(uniqueSlug)) {
+			counter++;
+			uniqueSlug = `${item.slug}-${counter}`;
+		}
+		existingSlugs.add(uniqueSlug);
+
+		item.slug = uniqueSlug;
+	}
+
+	await collection.addItems(syncedItems);
 	if (itemsToDelete.length > 0) {
 		await collection.removeItems(itemsToDelete);
 	}

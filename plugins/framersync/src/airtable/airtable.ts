@@ -1,5 +1,5 @@
 import pLimit from "p-limit";
-import { isDefined, isString, slugify } from "../utils";
+import { isDefined, isString } from "../utils";
 import { CollectionField, CollectionItem, framer } from "framer-plugin";
 import { useMutation } from "@tanstack/react-query";
 import { richTextToPlainText, richTextToHTML } from "./richText";
@@ -418,9 +418,9 @@ async function processItem(
 		if (fieldId === slugFieldId) {
 			const resolvedSlug = getPropertyValue(property, value, "string", {});
 			if (typeof resolvedSlug === "string") {
-				slugValue = slugify(resolvedSlug);
+				slugValue = resolvedSlug;
 			} else if (Array.isArray(resolvedSlug) && typeof resolvedSlug[0] === "string") {
-				slugValue = slugify(resolvedSlug[0]);
+				slugValue = resolvedSlug[0];
 			}
 		}
 
