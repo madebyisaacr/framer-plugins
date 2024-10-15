@@ -324,13 +324,14 @@ export function getCellValue(
 
 	// Handle image type
 	const formulaValue = cell.effectiveValue?.formulaValue;
+	console.log(cell, formulaValue);
 	if (
 		formulaValue?.startsWith("=IMAGE(") &&
 		formulaValue?.endsWith(")") &&
 		propertyConversionTypes.IMAGE.includes(fieldType)
 	) {
 		const imageUrl = formulaValue.match(/=IMAGE\("(.+)"\)/)?.[1];
-		console.log(cell, formulaValue, imageUrl)
+		console.log(imageUrl);
 		if (imageUrl) {
 			value = imageUrl;
 		}
