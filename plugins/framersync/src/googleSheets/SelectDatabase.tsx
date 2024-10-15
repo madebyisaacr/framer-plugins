@@ -145,13 +145,11 @@ export function SelectDatabasePage() {
 					<>
 						<IntegrationGraphic integrationId="google-sheets" />
 						<div className="flex-col items-center gap-2 flex-1 w-full text-balance">
-							{isLoading ? (
-								<span className="text-center max-w-[80%] block text-secondary flex-col justify-center items-center flex-1">
-									Select a Google Sheet and return to this page to finish setup.
-								</span>
-							) : (
-								<p>Select a Google Sheet to sync with your Framer CMS collection.</p>
-							)}
+							<span className="text-center max-w-[80%] block text-secondary flex-col justify-center items-center flex-1">
+								{isLoading
+									? "Select a Google Sheet and return to this page to finish setup."
+									: "Select a Google Sheet to sync with your Framer CMS collection."}
+							</span>
 						</div>
 						<Button primary onClick={handleSelectSheet} loading={isLoading} disabled={isLoading}>
 							Select a Google Sheet
