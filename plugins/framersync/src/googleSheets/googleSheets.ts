@@ -330,6 +330,7 @@ export function getCellValue(
 		propertyConversionTypes.IMAGE.includes(fieldType)
 	) {
 		const imageUrl = formulaValue.match(/=IMAGE\("(.+)"\)/)?.[1];
+		console.log(cell, formulaValue, imageUrl)
 		if (imageUrl) {
 			value = imageUrl;
 		}
