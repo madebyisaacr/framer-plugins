@@ -144,9 +144,9 @@ export function SelectDatabasePage() {
 				) : (
 					<>
 						<IntegrationGraphic integrationId="google-sheets" />
-						<div className="flex-col items-center gap-2 flex-1 w-full">
+						<div className="flex-col items-center gap-2 flex-1 w-full text-balance">
 							{isLoading ? (
-								<span className="text-center max-w-[80%] block text-secondary text-balance flex-col justify-center items-center flex-1">
+								<span className="text-center max-w-[80%] block text-secondary flex-col justify-center items-center flex-1">
 									Select a Google Sheet and return to this page to finish setup.
 								</span>
 							) : (

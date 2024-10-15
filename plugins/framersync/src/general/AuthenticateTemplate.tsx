@@ -76,11 +76,11 @@ export function AuthenticatePageTemplate({
 			<IntegrationGraphic integrationId={integrationId} />
 			<div className="flex-col items-center gap-2 flex-1 justify-center w-full">
 				{isLoading ? (
-					<span className="text-center max-w-[80%] block text-secondary">
+					<span className="text-center max-w-[80%] block text-secondary text-balance">
 						Complete the authentication and return to this page.
 					</span>
 				) : reauthenticating ? (
-					<p className="text-secondary flex-1">
+					<p className="text-secondary flex-1 text-balance">
 						Your {integrationName} account was disconnected or no longer has access. Please
 						reconnect your account and share the {databaseLabel} that was previously connected.
 					</p>

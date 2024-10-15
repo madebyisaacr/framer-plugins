@@ -88,6 +88,7 @@ async function handleRequest(request: Request, env: Env) {
 				googleAuthorizeParams.append('access_type', 'offline');
 				googleAuthorizeParams.append('include_granted_scopes', 'true');
 				googleAuthorizeParams.append('state', writeKey);
+				googleAuthorizeParams.append('prompt', 'select_account consent');
 
 				// Generate the login URL for the provider.
 				const googleAuthorizeUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
