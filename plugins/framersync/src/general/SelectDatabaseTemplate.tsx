@@ -90,13 +90,10 @@ export default function SelectDatabasePageTemplate({
 					{!instructions && <BackButton onClick={onBackButtonClick} />}
 					<div className="flex items-center justify-between">
 						<span>{title}</span>
-						<button
-							className="w-[32px] bg-transparent flex items-center justify-center text-secondary"
-							type="button"
-							onClick={() => refetch()}
-						>
+						<Button className="w-[90px]" onClick={refetch}>
 							<ReloadIcon className={isRefetching || isLoading ? "animate-spin" : undefined} />
-						</button>
+							Refresh
+						</Button>
 					</div>
 					{isLoading ? (
 						<div className="flex-col items-center justify-center flex-1 gap-4">
