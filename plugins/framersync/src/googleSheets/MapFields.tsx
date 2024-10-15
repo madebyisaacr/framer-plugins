@@ -171,9 +171,8 @@ function getFieldConversionMessage(fieldConfig: CollectionFieldConfig, fieldType
 		: null;
 }
 
-function getPropertyTypeName(fieldConfig: CollectionFieldConfig, long: boolean = false) {
-	const typeName = propertyTypeNames[fieldConfig.property.type];
-	return long ? `${typeName} • Column ${fieldConfig.property.columnLetter}` : typeName;
+function getPropertyTypeName(fieldConfig: CollectionFieldConfig) {
+	return propertyTypeNames[fieldConfig.property.type];
 }
 
 const allFieldSettings = [

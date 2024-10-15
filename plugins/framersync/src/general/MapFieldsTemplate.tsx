@@ -800,6 +800,7 @@ function EditFieldMenu({
 	getFieldConversionMessage,
 	allFieldSettings,
 	getPropertyTypeName,
+	columnLetters,
 }) {
 	const id = fieldConfig.property.id;
 	const fieldType = fieldTypes[id];
@@ -830,7 +831,10 @@ function EditFieldMenu({
 		<div className="flex-1 w-full flex-col overflow-hidden">
 			<div className="relative flex-col gap-1 w-full px-3 pt-3 pb-2">
 				<h1 className="text-lg font-bold -mb-1">{fieldConfig.property.name}</h1>
-				<p className="mb-1 text-tertiary">{getPropertyTypeName(fieldConfig, true)}</p>
+				<p className="mb-1 text-tertiary">
+					{getPropertyTypeName(fieldConfig, true)}
+					{columnLetters && ` • Column ${fieldConfig.property.columnLetter}`}
+				</p>
 				<div className="absolute inset-x-3 bottom-0 h-px bg-divider" />
 			</div>
 			<div className="flex-col gap-2 overflow-y-auto w-full px-3 pb-3 flex-1">
