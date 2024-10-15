@@ -506,13 +506,27 @@ export async function fetchTableRecords(baseId: string, tableId: string) {
 		return tableRecordsByTableId[tableId];
 	}
 
-	const data = await airtableFetch(`${baseId}/${tableId}`, {
-		cellFormat: "json",
-		returnFieldsByFieldId: true,
-	});
+	let allRecords = [];
+	let offset = null;
 
-	tableRecordsByTableId[tableId] = data.records;
-	return data.records;
+	do {
+		const params: any = {
+			cellFormat: "json",
+			returnFieldsByFieldId: true,
+		};
+
+		if (offset) {
+			params.offset = offset;
+		}
+
+		const data = await airtableFetch(`${baseId}/${tableId}`, params);
+
+		allRecords = allRecords.concat(data.records);
+		offset = data.offset;
+	} while (offset);
+
+	tableRecordsByTableId[tableId] = allRecords;
+	return allRecords;
 }
 
 export async function synchronizeDatabase(
