@@ -99,7 +99,7 @@ export function AuthenticatePageTemplate({
 	);
 }
 
-export function useIsDocumentVisible() {
+function useIsDocumentVisible() {
 	const [isVisible, setIsVisible] = useState(document.visibilityState === "visible");
 
 	useEffect(() => {

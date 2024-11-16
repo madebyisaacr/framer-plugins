@@ -19,14 +19,16 @@ const Button = forwardRef(function Button(
 	},
 	ref
 ) {
-	const Element = href.length ? "a" : "button";
-	const elementProps = href.length ? { href, target: newTab ? "_blank" : undefined } : { onClick };
+	const Element = href ? "a" : "button";
 
 	customColor = customColor || (primary ? "var(--color-accent)" : null);
 
 	return (
 		<Element
 			ref={ref}
+			href={href}
+			target={href && newTab ? "_blank" : undefined}
+			onClick={onClick}
 			className={classNames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] overflow-visible",
 				square ? "min-w-6 max-w-6" : "px-2",
@@ -44,7 +46,6 @@ const Button = forwardRef(function Button(
 				...style,
 			}}
 			disabled={disabled}
-			{...elementProps}
 			{...otherProps}
 		>
 			{customColor && (

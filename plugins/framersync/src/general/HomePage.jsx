@@ -3,21 +3,20 @@ import { Logo } from "../assets/AppIcons";
 import Button from "@shared/Button";
 import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
-import { useLemonSqueezy } from "./LemonSqueezy";
+import { useLemonSqueezy, CHECKOUT_URL } from "./LemonSqueezy";
 import classNames from "classnames";
 import ArrowRightIcon from "../assets/ArrowRightIcon";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
 
-	const { openCheckout, licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
+	const { licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
 
 	const onLicenseKeyButtonClick = () => {
 		setLicenseKeyPageOpen(true);
 	};
 
 	const onBuyButtonClick = () => {
-		openCheckout();
 		setTimeout(() => {
 			setLicenseKeyPageOpen(true);
 		}, 400);
@@ -79,7 +78,7 @@ export default function IntegrationsPage({ onIntegrationSelected }) {
 						<Button className="flex-1" onClick={onLicenseKeyButtonClick}>
 							Activate a License Key
 						</Button>
-						<Button className="flex-1" primary onClick={onBuyButtonClick}>
+						<Button className="flex-1" primary onClick={onBuyButtonClick} href={CHECKOUT_URL}>
 							Buy Now
 							<ArrowRightIcon />
 						</Button>

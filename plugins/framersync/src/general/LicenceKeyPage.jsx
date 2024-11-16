@@ -2,22 +2,21 @@ import Window from "./Window";
 import Button from "@shared/Button";
 import BackButton from "../components/BackButton";
 import { useState, useEffect } from "react";
-import { useLemonSqueezy } from "./LemonSqueezy";
+import { useLemonSqueezy, CHECKOUT_URL } from "./LemonSqueezy";
 import classNames from "classnames";
 import ArrowRightIcon from "../assets/ArrowRightIcon";
 import { isReview } from "../utils";
 
-export function LicenseKeyPage({ closePage, checkout }) {
+export function LicenseKeyPage({ closePage }) {
 	return (
 		<Window page="LicenceKey" className="flex-col overflow-y-auto">
 			<BackButton onClick={closePage} className="ml-3" />
-			<LicenseKeyMenu closePage={closePage} checkout={checkout} className="flex-1" />
+			<LicenseKeyMenu closePage={closePage} className="flex-1" />
 		</Window>
 	);
 }
 
 export function LicenseKeyMenu({
-	checkout,
 	databaseLabel = "",
 	paywall = false,
 	className = "",
@@ -30,16 +29,9 @@ export function LicenseKeyMenu({
 
 	const [paywallMode, setPaywallMode] = useState(paywall);
 
-	const { openCheckout, activateLicenseKey } = useLemonSqueezy();
-
-	useEffect(() => {
-		if (checkout) {
-			openCheckout();
-		}
-	}, [checkout]);
+	const { activateLicenseKey } = useLemonSqueezy();
 
 	const onBuyButtonClick = () => {
-		openCheckout();
 		setTimeout(() => {
 			setPaywallMode(false);
 		}, 400);
@@ -94,7 +86,7 @@ export function LicenseKeyMenu({
 						<p className="text-balance px-3 mb-4">
 							Start syncing your {databaseLabel} with your website's CMS today.
 						</p>
-						<Button primary onClick={onBuyButtonClick} className="w-full">
+						<Button primary onClick={onBuyButtonClick} href={CHECKOUT_URL} className="w-full">
 							Buy Now
 							<ArrowRightIcon />
 						</Button>
@@ -165,11 +157,13 @@ export function LicenseKeyMenu({
 					<Button onClick={() => setPaywallMode(false)}>Activate License Key</Button>
 				</div>
 			) : paywall ? (
-				<Button onClick={onBuyButtonClick}>Buy FramerSync License</Button>
+				<Button onClick={onBuyButtonClick} href={CHECKOUT_URL}>
+					Buy FramerSync License
+				</Button>
 			) : (
 				<>
 					<FeaturesList />
-					<Button primary onClick={onBuyButtonClick} className="w-full">
+					<Button primary onClick={onBuyButtonClick} href={CHECKOUT_URL} className="w-full">
 						Get a Licence Key
 						<ArrowRightIcon />
 					</Button>
