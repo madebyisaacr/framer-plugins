@@ -4,18 +4,20 @@ import { isReview } from "../utils";
 
 export const CHECKOUT_URL = "https://store.framersync.com/buy/6d6eb4c9-8ea4-462f-b7b3-f2080a4582b3";
 
-const storeId = 20315;
-const productId = 341988;
+const framestackStoreId = 20315;
+const framestackProductId = 341988;
+const framerSyncStoreId = 134584;
+const framerSyncProductId = 393592;
 
 const PluginDataLicenseKey = "lemonSqueezyLicenseKey";
 const PluginDataInstanceId = "lemonSqueezyInstanceId";
 
 const licenseKeyValidationCache = {};
 
-export const LemonSqueezyContext = createContext();
+export const LicenseContext = createContext();
 
-export function useLemonSqueezy() {
-	return useContext(LemonSqueezyContext);
+export function useLicense() {
+	return useContext(LicenseContext);
 }
 
 export function LemonSqueezyProvider({ children }) {
@@ -51,9 +53,15 @@ export function LemonSqueezyProvider({ children }) {
 
 			const data = await response.json();
 
-			if (data.meta?.store_id !== storeId || data.meta?.product_id !== productId) {
-				activated = false
-				error = "Invalid license key"
+			const storeId = data.meta?.store_id;
+			const productId = data.meta?.product_id;
+
+			if (
+				(storeId === framestackStoreId && productId === framestackProductId) ||
+				(storeId === framerSyncStoreId && productId === framerSyncProductId)
+			) {
+				activated = false;
+				error = "Invalid license key";
 			} else if (data.error === "This license key has reached the activation limit.") {
 				activated = false;
 				error = "This license key is already in use in another Framer project.";
@@ -82,7 +90,7 @@ export function LemonSqueezyProvider({ children }) {
 	}, []);
 
 	return (
-		<LemonSqueezyContext.Provider
+		<LicenseContext.Provider
 			value={{
 				validateLicenseKey: validateLicenseKeyFunction,
 				activateLicenseKey,
@@ -92,7 +100,7 @@ export function LemonSqueezyProvider({ children }) {
 			}}
 		>
 			{children}
-		</LemonSqueezyContext.Provider>
+		</LicenseContext.Provider>
 	);
 }
 

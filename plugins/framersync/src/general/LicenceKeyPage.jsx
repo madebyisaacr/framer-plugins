@@ -1,8 +1,8 @@
 import Window from "./Window";
 import Button from "@shared/Button";
 import BackButton from "../components/BackButton";
-import { useState, useEffect } from "react";
-import { useLemonSqueezy, CHECKOUT_URL } from "./LemonSqueezy";
+import { useState } from "react";
+import { useLicense, CHECKOUT_URL } from "./License";
 import classNames from "classnames";
 import ArrowRightIcon from "../assets/ArrowRightIcon";
 import { isReview } from "../utils";
@@ -29,7 +29,7 @@ export function LicenseKeyMenu({
 
 	const [paywallMode, setPaywallMode] = useState(paywall);
 
-	const { activateLicenseKey } = useLemonSqueezy();
+	const { activateLicenseKey } = useLicense();
 
 	const onBuyButtonClick = () => {
 		setTimeout(() => {
@@ -141,11 +141,6 @@ export function LicenseKeyMenu({
 							{isValidated ? "Success" : "Activate License Key"}
 						</Button>
 						{error && <p className="text-error text-center text-balance">{error}</p>}
-						{/* {isReview() && (
-							<p className="text-center">
-								Licence key for plugin reviewer: <strong>ABC</strong>
-							</p>
-						)} */}
 					</>
 				)}
 			</div>

@@ -10,7 +10,7 @@ import Window from "./Window";
 import { SegmentedControl } from "@shared/components";
 import { cmsFieldTypeNames } from "./data.js";
 import BackButton from "../components/BackButton";
-import { useLemonSqueezy } from "./LemonSqueezy";
+import { useLicense } from "./License.jsx";
 import { LicenseKeyMenu } from "./LicenceKeyPage";
 import { XIcon } from "@shared/components";
 import { motion, AnimatePresence } from "framer-motion";
@@ -99,7 +99,7 @@ function MapFieldsPage({
 	error: Error | null;
 }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
-	const { licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
+	const { licenseKeyValid, licenseKeyValidLoading } = useLicense();
 
 	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(false);
 

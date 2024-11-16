@@ -3,14 +3,14 @@ import { Logo } from "../assets/AppIcons";
 import Button from "@shared/Button";
 import { LicenseKeyPage } from "./LicenceKeyPage";
 import { useState } from "react";
-import { useLemonSqueezy, CHECKOUT_URL } from "./LemonSqueezy";
+import { useLicense, CHECKOUT_URL } from "./License";
 import classNames from "classnames";
 import ArrowRightIcon from "../assets/ArrowRightIcon";
 
 export default function IntegrationsPage({ onIntegrationSelected }) {
 	const [licenseKeyPageOpen, setLicenseKeyPageOpen] = useState(false);
 
-	const { licenseKeyValid, licenseKeyValidLoading } = useLemonSqueezy();
+	const { licenseKeyValid, licenseKeyValidLoading } = useLicense();
 
 	const onLicenseKeyButtonClick = () => {
 		setLicenseKeyPageOpen(true);

@@ -20,7 +20,7 @@ import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/HomePage";
 import { PluginDataKey } from "./general/updateCollection";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
-import { LemonSqueezyProvider, validateLicenseKey } from "./general/LemonSqueezy";
+import { LemonSqueezyProvider, validateLicenseKey } from "./general/License";
 
 export const integrations = {
 	notion: Notion,
