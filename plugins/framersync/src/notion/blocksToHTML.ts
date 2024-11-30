@@ -88,13 +88,20 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				blockContent = "<hr >";
 				break;
 			case "image":
-				switch (item.type) {
-					case "external":
-						blockContent = `<img src="${item.external.url}" alt="${item.caption[0]?.plain_text}" />`;
-						break;
-					case "file":
-						blockContent = `<img src="${item.file.url}" alt="${item.caption[0]?.plain_text}" />`;
-						break;
+				const fileUrl =
+					item.type === "external"
+						? item.external.url
+						: item.type === "file"
+						? item.file.url
+						: null;
+
+				if (fileUrl) {
+					const altText = item.caption[0]?.plain_text;
+					if (altText) {
+						blockContent = `<img src="${fileUrl}" alt="${altText}" />`;
+					} else {
+						blockContent = `<img src="${fileUrl}" />`;
+					}
 				}
 				break;
 			case "bulleted_list_item":
@@ -118,7 +125,7 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				const language = CODE_LANGUAGE_MAPPING[item.language];
 
 				if (language) {
-					htmlContent += `<pre data-language="${language}"><code>${richTextToHTML(
+					blockContent = `<pre data-language="${language}"><code>${richTextToHTML(
 						item.rich_text
 					)}</code></pre>`;
 				} else {
