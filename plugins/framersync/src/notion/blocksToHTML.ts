@@ -3,7 +3,6 @@ import {
 	RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { assert } from "../utils";
-import { richTextToPlainText } from "./notion";
 
 const YOUTUBE_ID_REGEX = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))(?<videoId>[^?&]+)/u;
 
