@@ -21,7 +21,6 @@ import {
 	defaultFieldSettingValues,
 } from "./FieldSettings";
 import { getFieldsById } from "./updateCollection";
-import { codeBlockLanguages } from "./data";
 
 export interface CollectionFieldConfig {
 	property: object;
@@ -811,8 +810,8 @@ function EditFieldMenu({
 	const fieldConversionMessage = getFieldConversionMessage(fieldConfig, fieldType);
 
 	const applicableSettings = useMemo(
-		() => getApplicableFieldSettings(fieldConfig, allFieldSettings),
-		[fieldConfig, allFieldSettings]
+		() => getApplicableFieldSettings(fieldConfig, fieldType, allFieldSettings),
+		[fieldConfig, fieldType, allFieldSettings]
 	);
 
 	const fieldSettingMessages = [];
@@ -1204,7 +1203,11 @@ function getInitialFieldSettings(
 			settings[id] = fieldConfig.autoFieldSettings || {};
 		}
 
-		const applicableSettings = getApplicableFieldSettings(fieldConfig, allFieldSettings);
+		const applicableSettings = getApplicableFieldSettings(
+			fieldConfig,
+			fieldConfig.conversionTypes[0],
+			allFieldSettings
+		);
 
 		for (const setting of applicableSettings) {
 			if (!settings[id].hasOwnProperty(setting)) {
