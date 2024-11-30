@@ -5,7 +5,6 @@ import { Spinner } from "./spinner/Spinner";
 const Button = forwardRef(function Button(
 	{
 		primary = false,
-		newTab = false,
 		square = false,
 		children,
 		className = "",
@@ -27,7 +26,7 @@ const Button = forwardRef(function Button(
 		<Element
 			ref={ref}
 			href={href}
-			target={href && newTab ? "_blank" : undefined}
+			target={href ? "_blank" : undefined}
 			onClick={onClick}
 			className={classNames(
 				"relative flex items-center gap-1.5 justify-center rounded font-semibold border-none text-xs min-h-6 max-h-6 decoration-[none] overflow-visible",

@@ -476,16 +476,12 @@ function IconPackInfoPage({ iconPack }) {
 			<h1 className="font-semibold -mb-1">{iconPack?.name}</h1>
 			<p className="mb-1">{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
 			{iconPack?.licenseUrl && (
-				<Button
-					newTab
-					href={iconPack.licenseUrl.replace("[github]", iconPack.github)}
-					className="flex-1"
-				>
+				<Button href={iconPack.licenseUrl.replace("[github]", iconPack.github)} className="flex-1">
 					{iconPack.license} License
 				</Button>
 			)}
 			{iconPack?.github && (
-				<Button newTab href={iconPack.github}>
+				<Button href={iconPack.github}>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="18"
@@ -503,7 +499,7 @@ function IconPackInfoPage({ iconPack }) {
 				</Button>
 			)}
 			{iconPack?.website && (
-				<Button primary newTab href={iconPack.website}>
+				<Button primary href={iconPack.website}>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="18"
