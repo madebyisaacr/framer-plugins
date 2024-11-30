@@ -288,10 +288,12 @@ export function getPropertyValue(
 			case "singleLineText":
 			case "multilineText":
 			case "aiText":
-				const format = fieldSettings[FieldSettings.ImportMarkdownOrHTML] || "html";
-				return format === "markdown"
-					? markdownToHTML(value, fieldSettings[FieldSettings.CodeBlockLanguage])
-					: value;
+				const text = property.type === "aiText" ? value.value : value;
+				if (fieldSettings[FieldSettings.ImportMarkdownOrHTML] === "markdown") {
+					return markdownToHTML(text, fieldSettings[FieldSettings.CodeBlockLanguage]);
+				} else {
+					return text;
+				}
 			case "currency":
 				if (fieldType === "string") {
 					const { precision = 2, symbol = "" } = property.options || {};
