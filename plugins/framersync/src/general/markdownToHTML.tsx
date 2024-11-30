@@ -35,23 +35,12 @@ export function markdownToHTML(richText: string, defaultCodeBlockLanguage: strin
 
 		if (line.trim().startsWith("```")) {
 			if (inCodeBlock) {
-				const identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
-				const props = {
-					code: {
-						type: "string",
-						value: codeBlockContent.join("\n"),
-					},
-					language: {
-						type: "enum",
-						value: codeBlockLanguage || defaultCodeBlockLanguage,
-					},
-				};
-
 				lines.push(
-					`<template data-module-identifier="${identifier}" data-module-props='${JSON.stringify(
-						props
-					)}'></template>`
+					`<pre data-language="${
+						codeBlockLanguage || defaultCodeBlockLanguage
+					}"><code>${codeBlockContent.join("\n")}</code></pre>`
 				);
+
 				codeBlockContent = [];
 				codeBlockLanguage = null;
 			} else {

@@ -1,6 +1,11 @@
-import { BlockObjectResponse, RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+	BlockObjectResponse,
+	RichTextItemResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 import { assert } from "../utils";
 import { richTextToPlainText } from "./notion";
+
+const YOUTUBE_ID_REGEX = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))(?<videoId>[^?&]+)/u;
 
 export function richTextToHTML(texts: RichTextItemResponse[]) {
 	if (!texts.length) {
@@ -111,7 +116,15 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 				}
 				break;
 			case "code":
-				blockContent = componentBlockToHtml("CodeBlock", item);
+				const language = CODE_LANGUAGE_MAPPING[item.language];
+
+				if (language) {
+					htmlContent += `<pre data-language="${language}"><code>${richTextToHTML(
+						item.rich_text
+					)}</code></pre>`;
+				} else {
+					blockContent = `<pre><code>${richTextToHTML(item.rich_text)}</code></pre>`;
+				}
 				break;
 			case "quote":
 				const quoteContent = richTextToHTML(item.rich_text);
@@ -131,19 +144,18 @@ export function blocksToHtml(blocks: BlockObjectResponse[]) {
 					blockContent = `<p>${toggleContent}${childrenToHtml(block)}</p>`;
 				}
 				break;
-			// case "bookmark":
-			// 	const captionContent = richTextToHTML(item.caption);
-			// 	if (captionContent !== null) {
-			// 		blockContent = `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${captionContent}</a>`;
-			// 	} else {
-			// 		blockContent = `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.url}</a>`;
-			// 	}
-			// 	break;
 			case "equation":
 				blockContent = `<p>${item.expression}</p>`;
 				break;
 			case "video":
-				blockContent = componentBlockToHtml("YouTube", item);
+				if (item.type === "external") {
+					const url = item.external.url;
+					const youtubeId = url.match(YOUTUBE_ID_REGEX)?.groups?.videoId;
+					if (youtubeId) {
+						blockContent = `<iframe src="https://www.youtube.com/embed/${youtubeId}"></iframe>`;
+						break;
+					}
+				}
 				break;
 			default:
 				// TODO: More block types can be added here!
@@ -166,43 +178,7 @@ function childrenToHtml(block) {
 	return "";
 }
 
-function componentBlockToHtml(type: string, item: object) {
-	let identifier = "";
-	let props = {};
-
-	switch (type) {
-		case "YouTube":
-			const url = item.external?.url || "";
-			if (url.includes("youtube.com") || url.includes("youtu.be")) {
-				identifier = "module:NEd4VmDdsxM3StIUbddO/9rhBPUZttCbLCWqJEL42/YouTube.js:Youtube";
-				props = {
-					url: { type: "string", value: url },
-					play: { type: "enum", value: "Off" },
-					shouldMute: { type: "boolean", value: true },
-				};
-			}
-			break;
-		case "CodeBlock":
-			identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
-			props = {
-				code: {
-					type: "string",
-					value: richTextToPlainText(item.rich_text),
-				},
-				language: {
-					type: "enum",
-					value: codeLanguageMapping[item.language] || "JSX",
-				},
-			};
-			break;
-	}
-
-	return identifier
-		? `<template data-module-identifier="${identifier}" data-module-props='${JSON.stringify(props)}'></template>`
-		: "";
-}
-
-const codeLanguageMapping = {
+const CODE_LANGUAGE_MAPPING = {
 	abap: null,
 	arduino: null,
 	bash: "Shell",
@@ -230,7 +206,7 @@ const codeLanguageMapping = {
 	haskell: "Haskell",
 	html: "HTML",
 	java: "Java",
-	javascript: "JSX",
+	javascript: "JavaScript",
 	json: null,
 	julia: "Julia",
 	kotlin: "Kotlin",
@@ -266,7 +242,7 @@ const codeLanguageMapping = {
 	shell: "Shell",
 	sql: "SQL",
 	swift: "Swift",
-	typescript: "TSX",
+	typescript: "TypeScript",
 	"vb.net": null,
 	verilog: null,
 	vhdl: null,
