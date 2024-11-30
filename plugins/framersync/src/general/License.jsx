@@ -60,15 +60,15 @@ export function LemonSqueezyProvider({ children }) {
 				(storeId === framestackStoreId && productId === framestackProductId) ||
 				(storeId === framerSyncStoreId && productId === framerSyncProductId)
 			) {
-				activated = false;
-				error = "Invalid license key";
+				activated = data.activated;
+				error = data.error;
+				instanceId = data.instance.id;
 			} else if (data.error === "This license key has reached the activation limit.") {
 				activated = false;
 				error = "This license key is already in use in another Framer project.";
 			} else {
-				activated = data.activated;
-				error = data.error;
-				instanceId = data.instance.id;
+				activated = false;
+				error = "Invalid license key";
 			}
 		}
 
