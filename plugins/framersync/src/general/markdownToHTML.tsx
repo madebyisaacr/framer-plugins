@@ -14,7 +14,7 @@ const PrefixTags = {
 	">": "blockquote",
 };
 
-export function markdownToHTML(richText: string, defaultCodeBlockLanguage: string = "JavaScript") {
+export function markdownToHTML(richText: string) {
 	let lines: string[] = [];
 	let listStack: { type: string; level: number }[] = [];
 	let currentListType: string | null = null;
@@ -23,8 +23,6 @@ export function markdownToHTML(richText: string, defaultCodeBlockLanguage: strin
 	let codeBlockLanguage: string | null = null;
 	let currentParagraph: string[] = [];
 	let isParagraphStart = true;
-
-	defaultCodeBlockLanguage = defaultCodeBlockLanguage || "JavaScript";
 
 	for (const line of richText.split("\n")) {
 		// Dividers
@@ -35,11 +33,15 @@ export function markdownToHTML(richText: string, defaultCodeBlockLanguage: strin
 
 		if (line.trim().startsWith("```")) {
 			if (inCodeBlock) {
-				lines.push(
-					`<pre data-language="${
-						codeBlockLanguage || defaultCodeBlockLanguage
-					}"><code>${codeBlockContent.join("\n")}</code></pre>`
-				);
+				if (codeBlockLanguage) {
+					lines.push(
+						`<pre data-language="${codeBlockLanguage}"><code>${codeBlockContent.join(
+							"\n"
+						)}</code></pre>`
+					);
+				} else {
+					lines.push(`<pre><code>${codeBlockContent.join("\n")}</code></pre>`);
+				}
 
 				codeBlockContent = [];
 				codeBlockLanguage = null;
@@ -47,7 +49,7 @@ export function markdownToHTML(richText: string, defaultCodeBlockLanguage: strin
 				const languageMatch = line.trim().match(/^```(\w+)/);
 				codeBlockLanguage = languageMatch ? languageMatch[1] : null;
 				if (codeBlockLanguage && !codeBlockLanguages.includes(codeBlockLanguage)) {
-					codeBlockLanguage = defaultCodeBlockLanguage;
+					codeBlockLanguage = null;
 				}
 			}
 			inCodeBlock = !inCodeBlock;

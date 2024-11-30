@@ -19,23 +19,7 @@ export function richTextToHTML(richText: string) {
 	for (const line of richText.split("\n")) {
 		if (line.trim() === "```") {
 			if (inCodeBlock) {
-				const identifier = "module:pVk4QsoHxASnVtUBp6jr/TbhpORLndv1iOkZzyo83/CodeBlock.js:default";
-				const props = {
-					code: {
-						type: "string",
-						value: codeBlockContent.join("\n"),
-					},
-					language: {
-						type: "enum",
-						value: "JSX",
-					},
-				};
-
-				lines.push(
-					`<template data-module-identifier="${identifier}" data-module-props='${JSON.stringify(
-						props
-					)}'></template>`
-				);
+				lines.push(`<pre><code>${codeBlockContent.join("\n")}</code></pre>`);
 				codeBlockContent = [];
 			}
 			inCodeBlock = !inCodeBlock;
