@@ -10,6 +10,7 @@ import {
 	getFieldsById,
 } from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
+import { markdownToHTML } from "../general/markdownToHTML";
 
 type FieldId = string;
 
@@ -31,7 +32,7 @@ const noneOptionID = "##NONE##";
 const concurrencyLimit = 5;
 
 const propertyConversionTypes: Record<string, string[]> = {
-	aiText: ["string"],
+	aiText: ["string", "formattedText"],
 	multipleAttachments: ["file", "image"],
 	autoNumber: ["number"],
 	barcode: ["string"],
@@ -48,7 +49,7 @@ const propertyConversionTypes: Record<string, string[]> = {
 	email: ["string"],
 	lastModifiedBy: ["string"],
 	lastModifiedTime: ["date"],
-	multilineText: ["string"],
+	multilineText: ["string", "formattedText"],
 	multipleCollaborators: ["string"],
 	multipleSelects: ["enum", "string"],
 	number: ["number"],
@@ -56,7 +57,7 @@ const propertyConversionTypes: Record<string, string[]> = {
 	phoneNumber: ["string"],
 	rating: ["number"],
 	richText: ["formattedText", "string"],
-	singleLineText: ["string"],
+	singleLineText: ["string", "formattedText"],
 	singleSelect: ["enum", "string"],
 	externalSyncSource: ["string"],
 	url: ["link", "string"],
@@ -282,10 +283,15 @@ export function getPropertyValue(
 			case "percent":
 			case "phoneNumber":
 			case "rating":
-			case "singleLineText":
-			case "multilineText":
 			case "url":
 				return value;
+			case "singleLineText":
+			case "multilineText":
+			case "aiText":
+				const format = fieldSettings[FieldSettings.ImportMarkdownOrHTML] || "html";
+				return format === "markdown"
+					? markdownToHTML(value, fieldSettings[FieldSettings.CodeBlockLanguage])
+					: value;
 			case "currency":
 				if (fieldType === "string") {
 					const { precision = 2, symbol = "" } = property.options || {};
@@ -300,8 +306,6 @@ export function getPropertyValue(
 				return dateValue(value, fieldSettings);
 			case "richText":
 				return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
-			case "aiText":
-				return value.value;
 			case "multipleAttachments":
 				return value.url || null;
 			case "multipleRecordLinks":

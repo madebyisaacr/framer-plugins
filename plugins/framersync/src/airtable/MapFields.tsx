@@ -3,7 +3,6 @@ import {
 	SynchronizeMutationOptions,
 	getCollectionFieldForProperty,
 	getPossibleSlugFields,
-	hasFieldConfigurationChanged,
 	getPropertyConversionTypes,
 	getEffectivePropertyType,
 	updatePluginData,
@@ -105,6 +104,28 @@ const allFieldSettings = [
 		[FieldSettings.CodeBlockLanguage]: {
 			message:
 				"Code blocks in the text will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
+		},
+	},
+	{
+		propertyType: "singleLineText",
+		fieldType: "formattedText",
+		[FieldSettings.ImportMarkdownOrHTML]: true,
+	},
+	{
+		propertyType: "multilineText",
+		fieldType: "formattedText",
+		[FieldSettings.ImportMarkdownOrHTML]: true,
+	},
+	{
+		propertyType: "aiText",
+		fieldType: "formattedText",
+		[FieldSettings.ImportMarkdownOrHTML]: true,
+	},
+	{
+		fieldType: "formattedText",
+		[FieldSettings.CodeBlockLanguage]: {
+			message:
+				"Code blocks without a language or with an an unsupported language will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
 		},
 	},
 ];
@@ -215,31 +236,6 @@ function getInitialSlugFieldId(context: PluginContext, fieldOptions): string | n
 	if (context.type === "update" && context.slugFieldId) return context.slugFieldId;
 
 	return fieldOptions[0]?.id ?? null;
-}
-
-function getLastSyncedTime(
-	pluginContext: PluginContext,
-	table: object,
-	slugFieldId: string,
-	disabledFieldIds: Set<string>
-): string | null {
-	if (pluginContext.type !== "update") return null;
-
-	// Always resync if the slug field changes.
-	if (pluginContext.slugFieldId !== slugFieldId) return null;
-
-	// Always resync if field config changes
-	if (
-		hasFieldConfigurationChanged(
-			pluginContext.collectionFields,
-			table,
-			Array.from(disabledFieldIds)
-		)
-	) {
-		return null;
-	}
-
-	return pluginContext.lastSyncedTime;
 }
 
 function getPropertyTypeName(fieldConfig: CollectionFieldConfig, long: boolean = false) {

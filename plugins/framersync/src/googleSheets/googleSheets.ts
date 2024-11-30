@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { PluginContext } from "../general/PluginContext";
 import { updateCollection, updateCollectionPluginData } from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
-import { markdownToHTML } from "./markdownToHTML";
+import { markdownToHTML } from "../general/markdownToHTML";
 import { imageFileExtensions } from "../general/data";
 
 const apiBaseUrl =
