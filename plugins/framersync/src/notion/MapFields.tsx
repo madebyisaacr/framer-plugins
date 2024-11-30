@@ -425,4 +425,9 @@ const allFieldSettings = [
 		fieldType: "enum",
 		[FieldSettings.NoneOption]: true,
 	},
+	{
+		propertyType: "rich_text",
+		fieldType: "formattedText",
+		[FieldSettings.ImportDefaultMarkdownOrHTML]: true,
+	},
 ];

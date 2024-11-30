@@ -3,6 +3,7 @@ export enum FieldSettings {
 	MultipleFields = "multipleFields",
 	NoneOption = "noneOption",
 	ImportMarkdownOrHTML = "importMarkdownOrHTML",
+	ImportDefaultMarkdownOrHTML = "importDefaultMarkdownOrHTML",
 }
 
 export const defaultFieldSettingValues: Record<FieldSettings, any> = {
@@ -10,6 +11,7 @@ export const defaultFieldSettingValues: Record<FieldSettings, any> = {
 	[FieldSettings.MultipleFields]: true,
 	[FieldSettings.NoneOption]: "",
 	[FieldSettings.ImportMarkdownOrHTML]: "html",
+	[FieldSettings.ImportDefaultMarkdownOrHTML]: "default",
 };
 
 export function getApplicableFieldSettings(

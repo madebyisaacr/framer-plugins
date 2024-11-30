@@ -24,6 +24,7 @@ import {
 	getFieldsById,
 } from "../general/updateCollection";
 import { FieldSettings } from "../general/FieldSettings";
+import { markdownToHTML } from "../general/markdownToHTML";
 
 export type FieldId = string;
 
@@ -284,8 +285,20 @@ export function getPropertyValue(
 		case "last_edited_time":
 			return dateValue(value, fieldSettings);
 		case "title":
+			return richTextToPlainText(value);
 		case "rich_text":
-			return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
+			if (fieldType === "formattedText") {
+				switch (fieldSettings[FieldSettings.ImportDefaultMarkdownOrHTML]) {
+					case "default":
+						const text = richTextToHTML(value);
+						return text ? `<p>${richTextToHTML(value)}</p>` : null;
+					case "html":
+						return richTextToPlainText(value);
+					case "markdown":
+						return markdownToHTML(richTextToPlainText(value));
+				}
+			}
+			return richTextToPlainText(value);
 		case "created_by":
 		case "last_edited_by":
 			return value?.id;

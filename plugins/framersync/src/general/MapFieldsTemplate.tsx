@@ -999,6 +999,27 @@ function EditFieldMenu({
 							</SegmentedControl>
 						</PropertyControl>
 					)}
+					{applicableSettings.includes(FieldSettings.ImportDefaultMarkdownOrHTML) && (
+						<PropertyControl title="Text Format">
+							<SegmentedControl
+								id={`importDefaultMarkdownOrHTML-${id}`}
+								items={["default", "html", "markdown"]}
+								itemTitles={["Default", "HTML", "Markdown"]}
+								currentItem={
+									settings?.[FieldSettings.ImportDefaultMarkdownOrHTML] ??
+									defaultFieldSettingValues[FieldSettings.ImportDefaultMarkdownOrHTML]
+								}
+								tint
+								vertical
+								onChange={(value) => {
+									setFieldSettings({
+										...fieldSettings,
+										[id]: { ...settings, [FieldSettings.ImportDefaultMarkdownOrHTML]: value },
+									});
+								}}
+							/>
+						</PropertyControl>
+					)}
 				</div>
 			</div>
 		</div>
