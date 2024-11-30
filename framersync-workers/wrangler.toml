@@ -8,6 +8,9 @@ kv_namespaces = [
   { binding = "keyValueStore", id = "a869bdc0e9a24b50b8874e01203fa449" }
 ]
 
+[dev]
+port = 8787
+
 [vars]
 NOTION_CLIENT_ID = "c213633a-8eee-47e0-b126-6a25b2d5a622"
 AIRTABLE_CLIENT_ID = "da5fb6c7-a40e-4931-8f06-67507c3816eb"

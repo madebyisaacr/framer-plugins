@@ -3,7 +3,6 @@ export enum FieldSettings {
 	MultipleFields = "multipleFields",
 	NoneOption = "noneOption",
 	ImportMarkdownOrHTML = "importMarkdownOrHTML",
-	CodeBlockLanguage = "codeBlockLanguage",
 }
 
 export const defaultFieldSettingValues: Record<FieldSettings, any> = {
@@ -11,7 +10,6 @@ export const defaultFieldSettingValues: Record<FieldSettings, any> = {
 	[FieldSettings.MultipleFields]: true,
 	[FieldSettings.NoneOption]: "",
 	[FieldSettings.ImportMarkdownOrHTML]: "html",
-	[FieldSettings.CodeBlockLanguage]: "JavaScript",
 };
 
 export function getApplicableFieldSettings(fieldConfig: object, allFieldSettings: object[]) {

@@ -99,14 +99,6 @@ const allFieldSettings = [
 		[FieldSettings.NoneOption]: true,
 	},
 	{
-		propertyType: "richText",
-		fieldType: "formattedText",
-		[FieldSettings.CodeBlockLanguage]: {
-			message:
-				"Code blocks in the text will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
-		},
-	},
-	{
 		propertyType: "singleLineText",
 		fieldType: "formattedText",
 		[FieldSettings.ImportMarkdownOrHTML]: true,
@@ -120,13 +112,6 @@ const allFieldSettings = [
 		propertyType: "aiText",
 		fieldType: "formattedText",
 		[FieldSettings.ImportMarkdownOrHTML]: true,
-	},
-	{
-		fieldType: "formattedText",
-		[FieldSettings.CodeBlockLanguage]: {
-			message:
-				"Code blocks without a language or with an an unsupported language will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
-		},
 	},
 ];
 

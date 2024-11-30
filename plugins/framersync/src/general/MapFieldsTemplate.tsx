@@ -907,41 +907,6 @@ function EditFieldMenu({
 							/>
 						</PropertyControl>
 					)}
-					{applicableSettings.includes(FieldSettings.CodeBlockLanguage) && (
-						<>
-							<PropertyControl title="Code Block Language">
-								<select
-									className="w-full"
-									value={
-										settings?.[FieldSettings.CodeBlockLanguage] ??
-										defaultFieldSettingValues[FieldSettings.CodeBlockLanguage]
-									}
-									onChange={(e) => {
-										setFieldSettings({
-											...fieldSettings,
-											[id]: { ...settings, [FieldSettings.CodeBlockLanguage]: e.target.value },
-										});
-									}}
-								>
-									{codeBlockLanguages.map((language) => (
-										<option key={language} value={language}>
-											{language}
-										</option>
-									))}
-								</select>
-							</PropertyControl>
-							<div
-								className={classNames(
-									"p-3 bg-secondary rounded text-secondary flex-col gap-1.5 transition-opacity",
-									disabled && "opacity-50"
-								)}
-							>
-								{fieldSettingMessages.find((msg) => msg[FieldSettings.CodeBlockLanguage])?.[
-									FieldSettings.CodeBlockLanguage
-								]?.message || ""}
-							</div>
-						</>
-					)}
 					{applicableSettings.includes(FieldSettings.MultipleFields) && (
 						<>
 							<PropertyControl title="Multiple Fields">

@@ -350,9 +350,7 @@ export function getCellValue(
 	if (value !== null && value !== undefined) {
 		if (fieldType === "formattedText") {
 			const format = fieldSettings[FieldSettings.ImportMarkdownOrHTML] || "html";
-			return format === "markdown"
-				? markdownToHTML(value, fieldSettings[FieldSettings.CodeBlockLanguage])
-				: value;
+			return format === "markdown" ? markdownToHTML(value) : value;
 		}
 
 		if (fieldType === "link") {

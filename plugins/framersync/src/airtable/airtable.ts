@@ -290,7 +290,7 @@ export function getPropertyValue(
 			case "aiText":
 				const text = property.type === "aiText" ? value.value : value;
 				if (fieldSettings[FieldSettings.ImportMarkdownOrHTML] === "markdown") {
-					return markdownToHTML(text, fieldSettings[FieldSettings.CodeBlockLanguage]);
+					return markdownToHTML(text);
 				} else {
 					return text;
 				}

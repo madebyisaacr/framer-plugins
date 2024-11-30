@@ -177,12 +177,5 @@ function getPropertyTypeName(fieldConfig: CollectionFieldConfig) {
 
 const allFieldSettings = [
 	{ propertyType: "TEXT", fieldType: "formattedText", [FieldSettings.ImportMarkdownOrHTML]: true },
-	{
-		fieldType: "formattedText",
-		[FieldSettings.CodeBlockLanguage]: {
-			message:
-				"Code blocks without a language or with an an unsupported language will be imported with the selected language. If there are no code blocks, you can ignore this setting.",
-		},
-	},
 ];
 const fieldConversionMessages = {};
