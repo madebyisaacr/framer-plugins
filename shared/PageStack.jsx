@@ -5,9 +5,9 @@ import classNames from "classnames";
 const PageStackContext = createContext({});
 
 const TRANSITION = {
-	type: "tween",
-	ease: [0.25, 1, 0.4, 1],
-	duration: 0.35,
+	type: "spring",
+	bounce: 0,
+	duration: 0.25,
 };
 
 export function usePageStack() {

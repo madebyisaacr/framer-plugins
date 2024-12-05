@@ -48,7 +48,7 @@ export const iconPacks = [
 		license: "MIT",
 	},
 	{
-		name: "BoxIcons",
+		name: "Boxicons",
 		cdnId: "bx",
 		website: "https://boxicons.com/",
 		github: "https://github.com/atisawd/boxicons",

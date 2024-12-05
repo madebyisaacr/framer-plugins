@@ -62,7 +62,7 @@ const ICON_PACKS = {
 	Streamline: Streamline,
 	"Ant Design Icons": AntDesign,
 	"Bootstrap Icons": BootstrapIcons,
-	"Box Icons": BoxIcons,
+	"Boxicons": BoxIcons,
 	"Circum Icons": CircumIcons,
 	"css.gg": CssGG,
 	"Eva Icons": EvaIcons,
@@ -105,7 +105,8 @@ function HomePage() {
 	const rowsVisibleRef = useRef(rowsVisible);
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
-	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
+	const iconIds = iconPackData?.iconIds || [];
+	const iconNames = iconPackData?.iconNames || iconIds;
 	const iconGroup = iconGroups[iconType];
 	const searchValue = searchText.toLowerCase().replace(/\s/g, "-");
 	const filteredIcons =
@@ -183,7 +184,7 @@ function HomePage() {
 				await navigator.clipboard.writeText(svgText);
 			} else {
 				const iconName =
-					(iconPackData.iconNames ? iconNames[iconPackData.iconIds.indexOf(icon)] : icon) ?? "Icon";
+					(iconPackData.iconNames ? iconNames[iconIds.indexOf(icon)] : icon) ?? "Icon";
 				await framer.addSVG({
 					svg: svgText,
 					name: `${iconName}.svg`,
@@ -227,7 +228,7 @@ function HomePage() {
 
 	const icons: any[] = [];
 
-	for (let i = 0; i < iconPackData?.iconIds?.length; i++) {
+	for (let i = 0; i < iconIds?.length; i++) {
 		if (visibleIconCount >= visibleIcons) {
 			break;
 		}
@@ -410,9 +411,7 @@ function HomePage() {
 								/>
 							</div>
 							<div className="flex flex-col gap-1 flex-1 pt-0.5">
-								<span className="font-semibold">
-									{iconNames[iconPackData?.iconIds?.indexOf(icon)]}
-								</span>
+								<span className="font-semibold">{iconNames[iconIds.indexOf(icon)]}</span>
 								<span className="text-secondary">{iconPack?.name}</span>
 							</div>
 						</div>
@@ -469,12 +468,13 @@ function IconPackInfoPage({ iconPack }) {
 	const { closeModal } = usePageStack();
 
 	const iconPackData = ICON_PACKS[iconPack?.name];
+	const iconIds = iconPackData?.iconIds || [];
 
 	return (
 		<div className="flex flex-col size-full p-3 gap-2">
 			<XIcon className="absolute top-4 right-4" onClick={closeModal} />
 			<h1 className="font-semibold -mb-1">{iconPack?.name}</h1>
-			<p className="mb-1">{iconPackData?.iconIds?.length.toLocaleString() ?? 0} Icons</p>
+			<p className="mb-1">{iconIds.length.toLocaleString()} Icons</p>
 			{iconPack?.licenseUrl && (
 				<Button href={iconPack.licenseUrl.replace("[github]", iconPack.github)} className="flex-1">
 					{iconPack.license} License
@@ -524,7 +524,8 @@ function IconPackInfoPage({ iconPack }) {
 
 function generateIconGroups(iconPackData) {
 	const types = iconPackData?.types;
-	const iconNames = iconPackData?.iconNames || iconPackData?.iconIds;
+	const iconIds = iconPackData?.iconIds || [];
+	const iconNames = iconPackData?.iconNames || iconIds;
 
 	if (types) {
 		const newIconGroups = Array.from({ length: types?.length ?? 1 }, (_, i) => []);
@@ -555,7 +556,7 @@ function generateIconGroups(iconPackData) {
 		return newIconGroups;
 	}
 
-	return [iconPackData.iconIds];
+	return [iconIds];
 }
 
 function CopySVGButton({ copyFunction }) {
