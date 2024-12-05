@@ -62,7 +62,7 @@ const ICON_PACKS = {
 	Streamline: Streamline,
 	"Ant Design Icons": AntDesign,
 	"Bootstrap Icons": BootstrapIcons,
-	"Boxicons": BoxIcons,
+	Boxicons: BoxIcons,
 	"Circum Icons": CircumIcons,
 	"css.gg": CssGG,
 	"Eva Icons": EvaIcons,
@@ -440,7 +440,7 @@ function HomePage() {
 							max="100"
 							value={iconSize}
 							onChange={(e) => setIconSize(parseInt(e.target.value))}
-							className="w-[60px]"
+							className="w-[70px]"
 						/>
 						<span className="absolute right-1.5 text-tertiary flex flex-row items-center inset-y-0 pointer-events-none">
 							px
@@ -617,69 +617,60 @@ function CustomizationMenu({
 				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
 					Customization
 				</div>
-				<PropertyControl title="Size">
-					<div className="flex flex-row gap-2 w-full">
-						<input
-							type="number"
-							min="1"
-							max="100"
-							value={size}
-							onChange={(e) => setSize(parseInt(e.target.value))}
-							className="w-1/2"
-						/>
-						<div className="flex flex-row bg-secondary rounded h-6 w-1/2 text-tertiary items-center">
-							<div
-								onClick={() => setSize(Math.max(size - 1, 1))}
-								className="flex flex-1 justify-center items-center h-full cursor-pointer"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
-									<path
-										d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
-										fill="currentColor"
-									></path>
-								</svg>
-							</div>
-							<div className="min-w-[1px] bg-divider-secondary h-3"></div>
-							<div
-								onClick={() => setSize(Math.min(size + 1, 1000))}
-								className="flex flex-1 justify-center items-center h-full cursor-pointer"
-							>
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10">
-									<path
-										d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
-										fill="currentColor"
-									></path>
-								</svg>
+				<div className="w-full flex flex-col gap-2">
+					<PropertyControl title="Size">
+						<div className="flex flex-row gap-2 w-full">
+							<input
+								type="number"
+								min="1"
+								max="100"
+								value={size}
+								onChange={(e) => setSize(parseInt(e.target.value))}
+								className="w-1/2"
+							/>
+							<div className="flex flex-row bg-secondary rounded h-6 w-1/2 text-tertiary items-center">
+								<div
+									onClick={() => setSize(Math.max(size - 1, 1))}
+									className="flex flex-1 justify-center items-center h-full cursor-pointer"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">
+										<path
+											d="M 0 4.75 C 0 4.336 0.336 4 0.75 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 L 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 Z"
+											fill="currentColor"
+										></path>
+									</svg>
+								</div>
+								<div className="min-w-[1px] bg-divider-secondary h-3"></div>
+								<div
+									onClick={() => setSize(Math.min(size + 1, 1000))}
+									className="flex flex-1 justify-center items-center h-full cursor-pointer"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 10 10"
+										width="10"
+										height="10"
+									>
+										<path
+											d="M 4 0.75 C 4 0.336 4.336 0 4.75 0 C 5.164 0 5.5 0.336 5.5 0.75 L 5.5 4 L 8.75 4 C 9.164 4 9.5 4.336 9.5 4.75 C 9.5 5.164 9.164 5.5 8.75 5.5 L 5.5 5.5 L 5.5 8.75 C 5.5 9.164 5.164 9.5 4.75 9.5 C 4.336 9.5 4 9.164 4 8.75 L 4 5.5 L 0.75 5.5 C 0.336 5.5 0 5.164 0 4.75 C 0 4.336 0.336 4 0.75 4 L 4 4 Z"
+											fill="currentColor"
+										></path>
+									</svg>
+								</div>
 							</div>
 						</div>
-					</div>
-				</PropertyControl>
-				<div className="absolute inset-x-3 bottom-0 min-h-[1px] bg-divider" />
-			</div>
-			<div className="flex flex-col px-3 pb-3 overflow-y-auto flex-1">
-				<div className="min-h-10 flex flex-row items-center text-primary font-semibold">
-					Color Styles
+					</PropertyControl>
+					<PropertyControl title="Color">
+						<ColorStyleButton color={selectedCustomColor} selected inlineHexCode>
+							<input
+								type="color"
+								value={selectedCustomColor}
+								onChange={(e) => setSelectedCustomColor(e.target.value)}
+								className="absolute opacity-0 inset-0 w-full cursor-pointer"
+							/>
+						</ColorStyleButton>
+					</PropertyControl>
 				</div>
-				<ColorStyleButton
-					color={selectedCustomColor}
-					selected={!selectedColorStyleID}
-					onClick={() => setSelectedColorStyleID(null)}
-				>
-					<input
-						type="color"
-						value={selectedCustomColor}
-						onChange={(e) => setSelectedCustomColor(e.target.value)}
-						className="absolute opacity-0 inset-0 w-full cursor-pointer"
-					/>
-				</ColorStyleButton>
-				{colorStyles.map((style) => (
-					<ColorStyleButton
-						key={style.id}
-						style={style}
-						selected={selectedColorStyleID == style.id}
-						onClick={() => setSelectedColorStyleID(style.id)}
-					/>
-				))}
 			</div>
 			<div className="flex flex-col p-3 relative">
 				<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
@@ -766,7 +757,7 @@ function ColorStyleButton({
 	style = null,
 	color = null,
 	selected = false,
-	onClick,
+	onClick = null,
 	children = null,
 	inlineHexCode = false,
 }) {
@@ -785,13 +776,13 @@ function ColorStyleButton({
 	return (
 		<div
 			className={classNames(
-				"relative flex flex-row gap-2 px-2 h-6 min-h-6 w-full items-center cursor-pointer rounded",
+				"relative flex flex-row gap-1.5 px-[4px] h-6 min-h-6 w-full items-center cursor-pointer rounded",
 				selected ? "bg-secondary text-primary" : "text-secondary"
 			)}
 			onClick={onClick}
 		>
 			<div
-				className="size-2 relative rounded-full"
+				className="size-[22px] relative rounded-[4px]"
 				style={{
 					backgroundColor: colorStyle
 						? theme === "light"
@@ -800,7 +791,7 @@ function ColorStyleButton({
 						: color || "transparent",
 				}}
 			>
-				<div className="absolute size-full rounded-full border border-[#000] dark:border-[#fff] opacity-10" />
+				<div className="absolute size-full rounded-[inherit] border border-[#000] dark:border-[#fff] opacity-10" />
 			</div>
 			{colorStyle ? colorStyle.name : inlineHexCode ? expandHexCode(color) : "Custom Color"}
 			{!inlineHexCode && color && !colorStyle && (
