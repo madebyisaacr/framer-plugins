@@ -426,13 +426,14 @@ function HomePage() {
 				)}
 				<div className="relative flex flex-row gap-2 w-full p-3">
 					<div className="absolute inset-x-3 top-0 min-h-[1px] bg-divider" />
-					<ColorStyleButton
-						colorStyleID={colorStyleID}
-						color={customColor}
-						onClick={openColorStyleMenu}
-						selected
-						inlineHexCode
-					/>
+					<ColorStyleButton colorStyleID={colorStyleID} color={customColor} selected inlineHexCode>
+						<input
+							type="color"
+							value={customColor}
+							onChange={(e) => setCustomColor(e.target.value)}
+							className="absolute opacity-0 inset-0 w-full cursor-pointer"
+						/>
+					</ColorStyleButton>
 					<div className="relative">
 						<input
 							type="number"
@@ -440,24 +441,12 @@ function HomePage() {
 							max="100"
 							value={iconSize}
 							onChange={(e) => setIconSize(parseInt(e.target.value))}
-							className="w-[70px]"
+							className="w-[75px]"
 						/>
 						<span className="absolute right-1.5 text-tertiary flex flex-row items-center inset-y-0 pointer-events-none">
 							px
 						</span>
 					</div>
-					<Button square onClick={openColorStyleMenu}>
-						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
-							<path
-								fill="none"
-								stroke="currentColor"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16v4m9.5-13.5l4 4"
-							/>
-						</svg>
-					</Button>
 				</div>
 			</div>
 		</div>
