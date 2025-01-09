@@ -417,6 +417,7 @@ async function processItem(
 	// Mark the item as seen
 	unsyncedItemIds.delete(item.id);
 
+	// First pass: Process all fields that exist in the record
 	for (const fieldId in item.fields) {
 		const value = item.fields[fieldId];
 		const property = properties[fieldId];
@@ -448,6 +449,18 @@ async function processItem(
 		}
 
 		fieldData[field.id] = fieldValue;
+	}
+
+	// Second pass: Handle missing checkbox fields
+	for (const [fieldId, field] of fieldsById.entries()) {
+		// Skip if field already processed
+		if (fieldId in fieldData) continue;
+
+		const property = properties[fieldId];
+		// If it's a checkbox field and wasn't in the record, set it to false
+		if (property?.type === "checkbox") {
+			fieldData[fieldId] = false;
+		}
 	}
 
 	if (!slugValue) {
