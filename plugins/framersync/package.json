@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev": "concurrently \"vite\" \"cd framersync-workers && npm run dev\"",
         "build": "vite build --base=${PREFIX_BASE_PATH:+/$npm_package_name}/",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "typecheck": "tsc --noEmit",
@@ -29,6 +29,7 @@
         "@typescript-eslint/parser": "^7",
         "@vitejs/plugin-react-swc": "^3",
         "autoprefixer": "^10.4.19",
+        "concurrently": "^9.1.2",
         "eslint": "^8",
         "eslint-plugin-react-hooks": "^4",
         "eslint-plugin-react-refresh": "^0",

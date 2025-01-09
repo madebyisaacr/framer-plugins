@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build --base=${PREFIX_BASE_PATH:+/$npm_package_name}/",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "pack": "npx framer-plugin-tools@latest pack"
   },
   "description": "This is a template for using the Framer Plugin API in a TypeScript project.",
   "main": "postcss.config.js",
