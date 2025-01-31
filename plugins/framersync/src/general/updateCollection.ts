@@ -69,6 +69,8 @@ export async function updateCollection(
 						const arrayValue = field.type == "enum" ? value[i] || noneOptionID : value[i];
 						if (arrayValue !== null && arrayValue !== undefined) {
 							fieldData[`${fieldId}-[[${i}]]`] = arrayValue;
+						} else if (field.type === "image" || field.type === "file") {
+							fieldData[`${fieldId}-[[${i}]]`] = null;
 						}
 					}
 				}
