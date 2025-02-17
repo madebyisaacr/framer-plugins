@@ -17,7 +17,11 @@ enum Command {
 	OpenGooglePicker = 'open-picker',
 	PollGooglePicker = 'poll-picker',
 	GooglePickerCallback = 'picker-callback',
+	GetPluginData = 'get-plugin-data',
+	SetPluginData = 'set-plugin-data',
 }
+
+const PLUGIN_DATA_STORE_KEYS = ['disabledFieldIds', 'fieldSettings', 'databaseName'];
 
 async function handleRequest(request: Request, env: Env) {
 	const requestUrl = new URL(request.url);
@@ -458,6 +462,101 @@ async function handleRequest(request: Request, env: Env) {
 		await env.keyValueStore.put(`pickerReadKey:${readKey}`, spreadsheetId, {
 			expirationTtl: 300, // 5 minutes
 		});
+
+		return new Response(JSON.stringify({ success: true }), {
+			headers: {
+				'Content-Type': 'application/json',
+				...accessControlOrigin,
+			},
+		});
+	}
+
+	// Add this new endpoint handler before checking for platform-specific commands
+	if (request.method === 'GET' && sections[0] === Command.GetPluginData) {
+		const key = requestUrl.searchParams.get('key');
+
+		if (!key) {
+			return new Response('Missing key URL param', {
+				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
+			});
+		}
+
+		const value = await env.pluginDataStore.get(key);
+
+		if (!value) {
+			return new Response(null, {
+				status: 404,
+				headers: { ...accessControlOrigin },
+			});
+		}
+
+		return new Response(value, {
+			headers: {
+				'Content-Type': 'application/json',
+				...accessControlOrigin,
+			},
+		});
+	}
+
+	// Add this new endpoint handler next to the get-plugin-data handler
+	if (request.method === 'POST' && sections[0] === Command.SetPluginData) {
+		let body;
+		try {
+			body = await request.json();
+		} catch (e) {
+			return new Response('Invalid JSON body', {
+				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
+			});
+		}
+
+		// Validate key exists and is string
+		if (!body.key || typeof body.key !== 'string') {
+			return new Response('Missing or invalid key in body', {
+				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
+			});
+		}
+
+		// Validate data exists and is object
+		if (!body.data || typeof body.data !== 'object' || Array.isArray(body.data)) {
+			return new Response('Missing or invalid data object in body', {
+				status: 400,
+				headers: {
+					...accessControlOrigin,
+				},
+			});
+		}
+
+		// Validate all data keys are allowed and all values are strings
+		for (const [key, value] of Object.entries(body.data)) {
+			if (!PLUGIN_DATA_STORE_KEYS.includes(key)) {
+				return new Response(`Invalid data key: ${key}`, {
+					status: 400,
+					headers: {
+						...accessControlOrigin,
+					},
+				});
+			}
+			if (typeof value !== 'string') {
+				return new Response(`Value for key ${key} must be a string`, {
+					status: 400,
+					headers: {
+						...accessControlOrigin,
+					},
+				});
+			}
+		}
+
+		// Store the validated data
+		await env.pluginDataStore.put(body.key, JSON.stringify(body.data));
 
 		return new Response(JSON.stringify({ success: true }), {
 			headers: {

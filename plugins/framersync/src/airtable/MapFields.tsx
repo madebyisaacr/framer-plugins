@@ -253,8 +253,6 @@ export function MapFieldsPage({
 
 	assert(table);
 
-	console.log(table);
-
 	return (
 		<MapFieldsPageTemplate
 			onSubmit={onSubmit}

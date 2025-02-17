@@ -18,7 +18,7 @@ import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/HomePage";
-import { PluginDataKey } from "./general/updateCollection";
+import { PluginDataKey, loadPluginData } from "./general/pluginDataManger";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import { LemonSqueezyProvider, validateLicenseKey } from "./general/License";
 
@@ -204,25 +204,27 @@ function App() {
 
 async function runPlugin() {
 	collection = await framer.getManagedCollection();
-	[
-		collectionFields,
-		collectionIntegrationId,
-		integrationDataJson,
-		disabledFieldIdsJson,
-		lastSyncedTime,
-		slugFieldId,
-		databaseName,
-		fieldSettingsJson,
-	] = await Promise.all([
+	const [fields, pluginData] = await Promise.all([
 		collection.getFields(),
-		collection.getPluginData(PluginDataKey.integrationId),
-		collection.getPluginData(PluginDataKey.integrationData),
-		collection.getPluginData(PluginDataKey.disabledFieldIds),
-		collection.getPluginData(PluginDataKey.lastSyncedTime),
-		collection.getPluginData(PluginDataKey.slugFieldId),
-		collection.getPluginData(PluginDataKey.databaseName),
-		collection.getPluginData(PluginDataKey.fieldSettings),
+		loadPluginData(collection, [
+			PluginDataKey.integrationId,
+			PluginDataKey.integrationData,
+			PluginDataKey.disabledFieldIds,
+			PluginDataKey.lastSyncedTime,
+			PluginDataKey.slugFieldId,
+			PluginDataKey.databaseName,
+			PluginDataKey.fieldSettings,
+		]),
 	]);
+
+	collectionFields = fields;
+	collectionIntegrationId = pluginData[PluginDataKey.integrationId];
+	integrationDataJson = pluginData[PluginDataKey.integrationData];
+	disabledFieldIdsJson = pluginData[PluginDataKey.disabledFieldIds];
+	lastSyncedTime = pluginData[PluginDataKey.lastSyncedTime];
+	slugFieldId = pluginData[PluginDataKey.slugFieldId];
+	databaseName = pluginData[PluginDataKey.databaseName];
+	fieldSettingsJson = pluginData[PluginDataKey.fieldSettings];
 
 	try {
 		let pluginContext: PluginContext = await createPluginContext();

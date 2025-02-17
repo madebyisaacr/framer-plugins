@@ -5,7 +5,8 @@ compatibility_date = "2024-08-06"
 node_compat = true
 
 kv_namespaces = [
-  { binding = "keyValueStore", id = "a869bdc0e9a24b50b8874e01203fa449" }
+  { binding = "keyValueStore", id = "a869bdc0e9a24b50b8874e01203fa449" },
+  { binding = "pluginDataStore", id = "67dbc7cdb9c14704b84ebe76449c0381" }
 ]
 
 [dev]

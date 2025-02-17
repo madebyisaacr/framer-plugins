@@ -1,16 +1,7 @@
 import { framer, CollectionItem, CollectionField } from "framer-plugin";
-import { createObject, slugify } from "../utils";
+import { slugify } from "../utils";
 import { PluginContext } from "./PluginContext";
-
-export const PluginDataKey = createObject([
-	"integrationId",
-	"integrationData",
-	"disabledFieldIds",
-	"lastSyncedTime",
-	"slugFieldId",
-	"databaseName",
-	"fieldSettings",
-]);
+import { PluginDataKey, savePluginData } from "./pluginDataManger";
 
 const noneOptionID = "##NONE##";
 
@@ -140,20 +131,14 @@ export async function updateCollectionPluginData(
 		await collection.setFields(collectionFields);
 	}
 
-	await Promise.all([
-		collection.setPluginData(PluginDataKey.integrationId, integrationId),
-		collection.setPluginData(PluginDataKey.disabledFieldIds, JSON.stringify(disabledFieldIds)),
-		collection.setPluginData(PluginDataKey.integrationData, JSON.stringify(integrationData)),
-		collection.setPluginData(PluginDataKey.slugFieldId, slugFieldId),
-		collection.setPluginData(
-			PluginDataKey.databaseName,
-			databaseName || pluginContext.databaseName || null
-		),
-		collection.setPluginData(
-			PluginDataKey.fieldSettings,
-			fieldSettings ? JSON.stringify(fieldSettings) : null
-		),
-	]);
+	await savePluginData(collection, {
+		[PluginDataKey.integrationId]: integrationId,
+		[PluginDataKey.disabledFieldIds]: JSON.stringify(disabledFieldIds),
+		[PluginDataKey.integrationData]: JSON.stringify(integrationData),
+		[PluginDataKey.slugFieldId]: slugFieldId,
+		[PluginDataKey.databaseName]: databaseName || pluginContext.databaseName || null,
+		[PluginDataKey.fieldSettings]: fieldSettings ? JSON.stringify(fieldSettings) : null,
+	});
 }
 
 export function getFieldsById(collectionFields: CollectionField[]) {
