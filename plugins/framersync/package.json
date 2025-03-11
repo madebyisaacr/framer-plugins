@@ -9,7 +9,8 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "typecheck": "tsc --noEmit",
         "preview": "vite preview",
-        "pack": "npx framer-plugin-tools@latest pack"
+        "pack": "npx framer-plugin-tools@latest pack",
+        "deploy-worker": "cd framersync-workers && wrangler deploy"
     },
     "dependencies": {
         "@notionhq/client": "^2.2.15",

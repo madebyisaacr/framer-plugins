@@ -70,7 +70,7 @@ export function LicenseKeyMenu({
 	const activateHeadingText = isValidated ? "Activated License Key!" : "Activate Your License Key";
 
 	let isSubmitButtonDisabled = licenseKey.length != 36;
-	if (isReview() && isSubmitButtonDisabled) {
+	if ((isReview() || window.location.hostname === "localhost") && isSubmitButtonDisabled) {
 		isSubmitButtonDisabled = licenseKey != "ABC";
 	}
 
