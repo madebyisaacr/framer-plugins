@@ -50,6 +50,7 @@ export function SelectDatabasePage() {
 			}
 		} catch (error) {
 			console.error("Error polling for picker result:", error);
+			setIsLoading(false);
 		}
 	};
 
@@ -160,7 +161,7 @@ export function SelectDatabasePage() {
 			{selectedSpreadsheetId && (
 				<div className="p-3 relative">
 					<div className="absolute top-0 inset-x-3 h-px bg-divider" />
-					<Button primary onClick={handleSheetSelect} disabled={!selectedSheet}>
+					<Button primary onClick={handleSheetSelect} disabled={!selectedSheet} loading={isLoading}>
 						Next: Configure Collection Fields
 					</Button>
 				</div>
