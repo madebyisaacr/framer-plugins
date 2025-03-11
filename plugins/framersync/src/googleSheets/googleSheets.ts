@@ -278,6 +278,10 @@ export function getCellValue(
 	fieldType: string,
 	fieldSettings: Record<string, any>
 ): unknown {
+	if (!cell) {
+		return getFieldTypeValue(fieldType);
+	}
+
 	const cellValue = cell.effectiveValue;
 	const formattedValue = cell.formattedValue;
 	const numberFormat = cell.effectiveFormat?.numberFormat?.type;
@@ -366,16 +370,7 @@ export function getCellValue(
 	}
 
 	// Default values based on field type
-	switch (fieldType) {
-		case "number":
-			return 0;
-		case "boolean":
-			return false;
-		case "date":
-			return null;
-		default:
-			return "";
-	}
+	return getFieldTypeValue(fieldType);
 }
 
 export interface SynchronizeMutationOptions {
@@ -420,7 +415,7 @@ async function processItem(
 	unsyncedItemIds.delete(rowIndex.toString());
 
 	row.values.forEach((cell, index) => {
-		const columnId = generateColumnId(headerRow[index].formattedValue);
+		const columnId = generateColumnId(headerRow[index]?.formattedValue);
 		if (columnId === slugFieldId) {
 			const resolvedSlug = getCellValue(cell, "string", {});
 			if (!resolvedSlug || typeof resolvedSlug !== "string") {
@@ -629,7 +624,7 @@ export function hasFieldConfigurationChanged(
 	const headerRow = sheet.data[0].rowData[0].values;
 	const properties = headerRow.filter(
 		(cell) =>
-			cell.formattedValue && !disabledFieldIds.includes(generateColumnId(cell.formattedValue))
+			cell?.formattedValue && !disabledFieldIds.includes(generateColumnId(cell?.formattedValue))
 	);
 
 	if (properties.length !== fields.length) {
@@ -637,12 +632,12 @@ export function hasFieldConfigurationChanged(
 	}
 
 	const includedProperties = properties.filter((cell) =>
-		currentFieldsById.has(generateColumnId(cell.formattedValue))
+		currentFieldsById.has(generateColumnId(cell?.formattedValue))
 	);
 
 	for (let i = 0; i < includedProperties.length; i++) {
 		const property = includedProperties[i];
-		const currentField = currentFieldsById.get(generateColumnId(property.formattedValue));
+		const currentField = currentFieldsById.get(generateColumnId(property?.formattedValue));
 		if (!currentField) {
 			console.log("Configuration changed: currentField not found", { index: i });
 			return true;
@@ -910,4 +905,17 @@ export function generateColumnId(inputString: string | undefined): string {
 	// Convert to hexadecimal and pad to ensure 32 characters
 	const hexHash = Math.abs(hash).toString(16).padStart(32, "0");
 	return hexHash.slice(0, 32);
+}
+
+function getFieldTypeValue(fieldType: string) {
+	switch (fieldType) {
+		case "number":
+			return 0;
+		case "boolean":
+			return false;
+		case "date":
+			return null;
+		default:
+			return "";
+	}
 }
