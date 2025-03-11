@@ -427,7 +427,7 @@ async function processItem(
 		const field = fieldsById.get(columnId);
 
 		// We can continue if the column was not included in the field mapping
-		if (!field) {
+		if (!field || !field.id) {
 			return;
 		}
 
