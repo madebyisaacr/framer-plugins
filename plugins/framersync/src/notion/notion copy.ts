@@ -345,9 +345,9 @@ export function getPropertyValue(
 			return dateValue(value?.start, fieldSettings);
 		case "files":
 			if (importArray) {
-				return value?.map((file) => file[file.type].url ?? "");
+				return value?.map((file) => file[file.type].url);
 			} else {
-				return value?.[0] ? value[0][value[0].type]?.url ?? "" : "";
+				return value?.[0] ? value[0][value[0].type]?.url : null;
 			}
 		case "select":
 			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;
@@ -560,6 +560,66 @@ export async function fetchDatabasePages(databaseId: string) {
 	return data;
 }
 
+/**
+ * Resolves duplicate slugs by adding a numeric suffix
+ * @param items Collection items that may have duplicate slugs
+ * @returns Collection items with unique slugs
+ */
+function resolveDuplicateSlugs(items: CollectionItem[]): CollectionItem[] {
+	// Create a map to track slug occurrences
+	const slugCounts: Record<string, number> = {};
+	const processedItems: CollectionItem[] = [];
+
+	// First pass: count all slugs
+	for (const item of items) {
+		if (!item.slug) continue;
+
+		const baseSlug = item.slug;
+		slugCounts[baseSlug] = (slugCounts[baseSlug] || 0) + 1;
+	}
+
+	// Create a set to track used slugs
+	const usedSlugs = new Set<string>();
+
+	// Second pass: resolve duplicates
+	for (const item of items) {
+		if (!item.slug) {
+			processedItems.push(item);
+			continue;
+		}
+
+		const baseSlug = item.slug;
+
+		// If this slug is unique or it's the first occurrence, keep it as is
+		if (slugCounts[baseSlug] === 1 || !usedSlugs.has(baseSlug)) {
+			usedSlugs.add(baseSlug);
+			processedItems.push(item);
+			continue;
+		}
+
+		// This is a duplicate, we need to generate a new slug with a suffix
+		let suffix = 2;
+		let newSlug = `${baseSlug}-${suffix}`;
+
+		// Keep incrementing the suffix until we find an unused slug
+		while (usedSlugs.has(newSlug)) {
+			suffix++;
+			newSlug = `${baseSlug}-${suffix}`;
+		}
+
+		// Add the new slug to the used set
+		usedSlugs.add(newSlug);
+
+		// Create a new item with the updated slug
+		processedItems.push({
+			...item,
+			slug: newSlug,
+		});
+	}
+
+	return processedItems;
+}
+
 export async function synchronizeDatabase(
 	pluginContext: PluginContext
 ): Promise<SynchronizeResult> {
@@ -598,11 +658,12 @@ export async function synchronizeDatabase(
 		fieldSettings
 	);
 
-	console.log(collectionItems);
+	// Resolve duplicate slugs before submitting to the collection
+	const uniqueSlugItems = resolveDuplicateSlugs(collectionItems);
 
 	console.log("Submitting database");
 	console.table(
-		collectionItems.map((item) => ({ ...item, fieldData: JSON.stringify(item.fieldData) }))
+		uniqueSlugItems.map((item) => ({ ...item, fieldData: JSON.stringify(item.fieldData) }))
 	);
 
 	try {
@@ -610,7 +671,7 @@ export async function synchronizeDatabase(
 		const databaseName = richTextToPlainText(database.title);
 		await updateCollection(
 			pluginContext,
-			collectionItems,
+			uniqueSlugItems,
 			itemsToDelete,
 			getIntegrationData(pluginContext),
 			databaseName

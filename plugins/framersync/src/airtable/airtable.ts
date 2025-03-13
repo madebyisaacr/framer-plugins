@@ -219,6 +219,10 @@ export function getCollectionFieldForProperty(
 	type: string,
 	fieldSettings: Record<string, any>
 ): CollectionField | null {
+	if (!property || !property.id) {
+		return null;
+	}
+
 	const fieldData = {};
 
 	if (type == "enum") {

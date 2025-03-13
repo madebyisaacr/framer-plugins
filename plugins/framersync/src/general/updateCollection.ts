@@ -1,9 +1,22 @@
 import { framer, CollectionItem, CollectionField } from "framer-plugin";
 import { slugify } from "../utils";
 import { PluginContext } from "./PluginContext";
-import { PluginDataKey, savePluginData } from "./pluginDataManger";
+import { PluginDataKey, savePluginData } from "./pluginDataManager";
 
 const noneOptionID = "##NONE##";
+
+const defaultFieldValues = {
+	enum: noneOptionID,
+	number: 0,
+	boolean: false,
+	date: null,
+	string: "",
+	link: "",
+	image: "",
+	file: "",
+	color: "",
+	formattedText: "",
+};
 
 export async function updateCollection(
 	pluginContext: PluginContext,
@@ -41,7 +54,12 @@ export async function updateCollection(
 		const fieldData = item.fieldData;
 		for (const fieldId of Object.keys(fieldData)) {
 			if (fieldData[fieldId] === null || fieldData[fieldId] === undefined) {
-				delete fieldData[fieldId];
+				const field = collectionFieldsById[fieldId];
+				if (field) {
+					fieldData[fieldId] = defaultFieldValues[field.type] ?? null;
+				} else {
+					fieldData[fieldId] = null;
+				}
 				continue;
 			}
 
@@ -53,14 +71,20 @@ export async function updateCollection(
 				if (!value) {
 					fieldData[fieldId] = field.type == "enum" ? noneOptionID : null;
 				} else if (arrayFieldLength <= 1) {
-					fieldData[fieldId] = field.type == "enum" ? value[0] || noneOptionID : value[0];
+					fieldData[fieldId] =
+						field.type == "enum"
+							? value[0] || noneOptionID
+							: value[0] ?? defaultFieldValues[field.type] ?? null;
 				} else {
 					delete fieldData[fieldId];
 					for (let i = 0; i < arrayFieldLength; i++) {
-						const arrayValue = field.type == "enum" ? value[i] || noneOptionID : value[i];
+						const arrayValue =
+							field.type == "enum"
+								? value[i] || noneOptionID
+								: value[i] ?? defaultFieldValues[field.type] ?? null;
 						if (arrayValue !== null && arrayValue !== undefined) {
 							fieldData[`${fieldId}-[[${i}]]`] = arrayValue;
-						} else if (field.type === "image" || field.type === "file") {
+						} else {
 							fieldData[`${fieldId}-[[${i}]]`] = null;
 						}
 					}

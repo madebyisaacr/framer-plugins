@@ -18,7 +18,7 @@ import { logSyncResult } from "./debug";
 import { ErrorBoundaryFallback } from "./components/ErrorBoundaryFallback";
 import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/HomePage";
-import { PluginDataKey, loadPluginData } from "./general/pluginDataManger";
+import { PluginDataKey, loadPluginData } from "./general/pluginDataManager";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
 import { LemonSqueezyProvider, validateLicenseKey } from "./general/License";
 
