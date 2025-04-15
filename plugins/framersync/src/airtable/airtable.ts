@@ -271,11 +271,20 @@ export function getPropertyValue(
 
 	const importArray = fieldSettings[FieldSettings.MultipleFields];
 
-	const values = Array.isArray(propertyValue)
+	let values = Array.isArray(propertyValue)
 		? importArray
 			? propertyValue
 			: [propertyValue[0]]
 		: [propertyValue];
+
+	// Handle isReversed option for multipleAttachments
+	if (
+		property.type === "multipleAttachments" &&
+		property.options?.isReversed &&
+		Array.isArray(values)
+	) {
+		values = [...values].reverse();
+	}
 
 	const result = values.map((value) => {
 		switch (property.type) {
