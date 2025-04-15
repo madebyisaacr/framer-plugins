@@ -428,24 +428,34 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const spreadsheetId = await env.framerSyncAuthorization.get(`pickerReadKey:${readKey}`);
+		try {
+			const spreadsheetId = await env.framerSyncAuthorization.get(`pickerReadKey:${readKey}`);
 
-		if (!spreadsheetId) {
-			return new Response(null, {
-				status: 404,
-				headers: { ...accessControlOrigin },
+			if (!spreadsheetId) {
+				return new Response(null, {
+					status: 404,
+					headers: { ...accessControlOrigin },
+				});
+			}
+
+			// Delete the stored spreadsheetId after retrieving it
+			await env.framerSyncAuthorization.delete(`pickerReadKey:${readKey}`);
+
+			return new Response(JSON.stringify({ spreadsheetId }), {
+				headers: {
+					'Content-Type': 'application/json',
+					...accessControlOrigin,
+				},
+			});
+		} catch (error) {
+			console.error('Error in poll-picker:', error);
+			return new Response('Internal server error', {
+				status: 500,
+				headers: {
+					...accessControlOrigin,
+				},
 			});
 		}
-
-		// Delete the stored spreadsheetId after retrieving it
-		await env.framerSyncAuthorization.delete(`pickerReadKey:${readKey}`);
-
-		return new Response(JSON.stringify({ spreadsheetId }), {
-			headers: {
-				'Content-Type': 'application/json',
-				...accessControlOrigin,
-			},
-		});
 	}
 
 	// Google Picker Callback //

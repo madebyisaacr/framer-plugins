@@ -23,3 +23,6 @@ REDIRECT_URI = "https://framersync-workers.isaac-b49.workers.dev"
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
