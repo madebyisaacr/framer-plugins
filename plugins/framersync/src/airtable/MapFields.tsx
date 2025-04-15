@@ -158,6 +158,10 @@ async function createFieldConfig(pluginContext: PluginContext): Promise<Collecti
 	const fileTypesByPropertyId = {};
 
 	for (const record of tableRecords) {
+		if (!record || !record.fields) {
+			continue;
+		}
+
 		for (const fieldId of autoFileTypeFieldIds) {
 			const files = record.fields[fieldId];
 
