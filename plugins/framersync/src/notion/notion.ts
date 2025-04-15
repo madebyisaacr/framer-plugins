@@ -598,8 +598,6 @@ export async function synchronizeDatabase(
 		fieldSettings
 	);
 
-	console.log(collectionItems);
-
 	console.log("Submitting database");
 	console.table(
 		collectionItems.map((item) => ({ ...item, fieldData: JSON.stringify(item.fieldData) }))
