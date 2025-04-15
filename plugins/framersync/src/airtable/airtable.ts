@@ -313,7 +313,7 @@ export function getPropertyValue(
 			case "richText":
 				return fieldType === "formattedText" ? richTextToHTML(value) : richTextToPlainText(value);
 			case "multipleAttachments":
-				return value.url || null;
+				return value.url || "";
 			case "multipleRecordLinks":
 				return null;
 			case "barcode":
@@ -323,7 +323,7 @@ export function getPropertyValue(
 			case "singleCollaborator":
 			case "createdBy":
 			case "lastModifiedBy":
-				return value.name || null;
+				return value.name || "";
 			case "formula":
 			case "multipleLookupValues":
 			case "rollup":
@@ -713,7 +713,7 @@ function getIntegrationData(pluginContext: PluginContext) {
 }
 
 function getSelectOptionId(name: string, property: object) {
-	if (!name) {
+	if (!name || !property) {
 		return noneOptionID;
 	}
 
@@ -733,6 +733,8 @@ function getSelectOptionId(name: string, property: object) {
 }
 
 export function getEffectivePropertyType(property: object) {
+	if (!property) return null;
+
 	let effectiveType = property.type;
 	if (autoCalculatedFieldTypes.includes(property.type)) {
 		const type = property.options?.result?.type;

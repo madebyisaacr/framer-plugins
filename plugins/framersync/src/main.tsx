@@ -217,7 +217,22 @@ async function runPlugin() {
 		]),
 	]);
 
-	collectionFields = fields;
+	const newCollectionFields: any[] = [];
+	for (const field of fields) {
+		if (field.id.includes("-[[")) {
+			if (field.id.endsWith("-[[0]]")) {
+				newCollectionFields.push({
+					...field,
+					name: field.name.substring(0, field.name.length - 2),
+					id: field.id.replace("-[[0]]", ""),
+				});
+			}
+		} else {
+			newCollectionFields.push(field);
+		}
+	}
+
+	collectionFields = newCollectionFields;
 	collectionIntegrationId = pluginData[PluginDataKey.integrationId];
 	integrationDataJson = pluginData[PluginDataKey.integrationData];
 	disabledFieldIdsJson = pluginData[PluginDataKey.disabledFieldIds];
