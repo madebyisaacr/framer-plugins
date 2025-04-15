@@ -105,7 +105,7 @@ async function handleRequest(request: Request, env: Env) {
 				throw new Error('Unsupported platform');
 		}
 
-		await env.keyValueStore.put(`readKey:${writeKey}`, keyValueStoreData, {
+		await env.framerSyncAuthorization.put(`readKey:${writeKey}`, keyValueStoreData, {
 			expirationTtl: 60,
 		});
 
@@ -164,7 +164,7 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const storedValue = await env.keyValueStore.get(`readKey:${writeKey}`);
+		const storedValue = await env.framerSyncAuthorization.get(`readKey:${writeKey}`);
 
 		if (!storedValue) {
 			return new Response('No read key found in storage', {
@@ -250,7 +250,7 @@ async function handleRequest(request: Request, env: Env) {
 		// Store the tokens temporarily inside a key value store. This will be
 		// retrieved when the plugin polls for them.
 		const keyValueStoreData = JSON.stringify(await tokenResponse.json());
-		await env.keyValueStore.put(`tokens:${readKey}`, keyValueStoreData, {
+		await env.framerSyncAuthorization.put(`tokens:${readKey}`, keyValueStoreData, {
 			expirationTtl: 300,
 		});
 
@@ -276,7 +276,7 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const tokens = await env.keyValueStore.get(`tokens:${readKey}`);
+		const tokens = await env.framerSyncAuthorization.get(`tokens:${readKey}`);
 
 		if (!tokens) {
 			return new Response(null, {
@@ -287,7 +287,7 @@ async function handleRequest(request: Request, env: Env) {
 
 		// Even though the tokens have an expiry, it's important to delete them on
 		// our side to reduce the reliability of storing user's sensitive data.
-		await env.keyValueStore.delete(`tokens:${readKey}`);
+		await env.framerSyncAuthorization.delete(`tokens:${readKey}`);
 
 		return new Response(tokens, {
 			headers: {
@@ -428,7 +428,7 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const spreadsheetId = await env.keyValueStore.get(`pickerReadKey:${readKey}`);
+		const spreadsheetId = await env.framerSyncAuthorization.get(`pickerReadKey:${readKey}`);
 
 		if (!spreadsheetId) {
 			return new Response(null, {
@@ -438,7 +438,7 @@ async function handleRequest(request: Request, env: Env) {
 		}
 
 		// Delete the stored spreadsheetId after retrieving it
-		await env.keyValueStore.delete(`pickerReadKey:${readKey}`);
+		await env.framerSyncAuthorization.delete(`pickerReadKey:${readKey}`);
 
 		return new Response(JSON.stringify({ spreadsheetId }), {
 			headers: {
@@ -459,7 +459,7 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		await env.keyValueStore.put(`pickerReadKey:${readKey}`, spreadsheetId, {
+		await env.framerSyncAuthorization.put(`pickerReadKey:${readKey}`, spreadsheetId, {
 			expirationTtl: 300, // 5 minutes
 		});
 
@@ -484,7 +484,7 @@ async function handleRequest(request: Request, env: Env) {
 			});
 		}
 
-		const value = await env.pluginDataStore.get(key);
+		const value = await env.framerSyncPluginData.get(key);
 
 		if (!value) {
 			return new Response(null, {
@@ -556,7 +556,7 @@ async function handleRequest(request: Request, env: Env) {
 		}
 
 		// Store the validated data
-		await env.pluginDataStore.put(body.key, JSON.stringify(body.data));
+		await env.framerSyncPluginData.put(body.key, JSON.stringify(body.data));
 
 		return new Response(JSON.stringify({ success: true }), {
 			headers: {
