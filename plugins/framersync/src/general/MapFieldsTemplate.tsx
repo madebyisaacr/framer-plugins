@@ -7,14 +7,9 @@ import { cmsFieldIcons } from "../assets/cmsFieldIcons";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext";
 import Window from "./Window";
-import { SegmentedControl } from "@shared/components";
 import { cmsFieldTypeNames } from "./data.js";
 import BackButton from "../components/BackButton";
-import { useLicense } from "./License.jsx";
-import { LicenseKeyMenu } from "./LicenceKeyPage";
-import { XIcon } from "@shared/components";
-import { motion, AnimatePresence } from "framer-motion";
-import { framer } from "framer-plugin";
+import { motion } from "framer-motion";
 import {
 	FieldSettings,
 	getApplicableFieldSettings,
@@ -98,9 +93,6 @@ function MapFieldsPage({
 	error: Error | null;
 }) {
 	const { pluginContext, updatePluginContext } = usePluginContext();
-	const { licenseKeyValid, licenseKeyValidLoading } = useLicense();
-
-	const [showLicenseKeyMenu, setShowLicenseKeyMenu] = useState(false);
 
 	// Field config object or "slug"
 	const [editMenuFieldConfig, setEditMenuFieldConfig] = useState(null);
@@ -174,7 +166,7 @@ function MapFieldsPage({
 		}));
 	};
 
-	const onImportClick = (isLicenseKeyValid: boolean) => {
+	const onImportClick = () => {
 		if (isLoading) return;
 
 		const fields: any[] = [];
@@ -207,12 +199,8 @@ function MapFieldsPage({
 				databaseName,
 				fieldSettings,
 			},
-			isLicenseKeyValid ? onSubmit : updatePluginData
+			onSubmit
 		);
-
-		if (!isLicenseKeyValid) {
-			setShowLicenseKeyMenu(true);
-		}
 	};
 
 	const selectField = (id: string) => {
@@ -255,13 +243,6 @@ function MapFieldsPage({
 		});
 	};
 
-	const onLicenseKeyActivated = () => {
-		setTimeout(() => {
-			setShowLicenseKeyMenu(false);
-			onImportClick(true);
-		}, 600);
-	};
-
 	useEffect(() => {
 		const handleEscapeKey = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
@@ -276,12 +257,6 @@ function MapFieldsPage({
 		};
 	}, []);
 
-	useEffect(() => {
-		if (framer.mode === "syncManagedCollection" && !licenseKeyValid && !licenseKeyValidLoading) {
-			setShowLicenseKeyMenu(true);
-		}
-	}, [licenseKeyValidLoading]);
-
 	const unsupportedFields = fieldConfigList.filter((fieldConfig) => fieldConfig.unsupported);
 	const pageLevelFields = fieldConfigList.filter((fieldConfig) => fieldConfig.isPageLevelField);
 	const otherFields = fieldConfigList.filter(
@@ -294,11 +269,11 @@ function MapFieldsPage({
 			<motion.div
 				className={classNames(
 					"h-full flex-1 overflow-hidden flex-col",
-					(isLoading || showLicenseKeyMenu) && "pointer-events-none"
+					isLoading && "pointer-events-none"
 				)}
 				animate={{
-					opacity: isLoading || showLicenseKeyMenu ? 0.5 : 1,
-					filter: isLoading || showLicenseKeyMenu ? "blur(5px)" : "blur(0px)",
+					opacity: isLoading ? 0.5 : 1,
+					filter: isLoading ? "blur(5px)" : "blur(0px)",
 				}}
 				transition={TRANSITION}
 			>
@@ -546,11 +521,7 @@ function MapFieldsPage({
 						)}
 						<div className="flex-col p-3 relative">
 							<div className="absolute inset-x-3 top-0 h-px bg-divider" />
-							<Button
-								primary
-								onClick={() => onImportClick(licenseKeyValid)}
-								disabled={!slugFieldId}
-							>
+							<Button primary onClick={() => onImportClick()} disabled={!slugFieldId}>
 								{pluginContext.type === "update" ? "Save & Import Collection" : "Import Collection"}
 							</Button>
 						</div>
@@ -563,35 +534,6 @@ function MapFieldsPage({
 					Importing items...
 				</div>
 			)}
-			<AnimatePresence>
-				{showLicenseKeyMenu && (
-					<motion.div
-						className="absolute inset-0 flex-col items-center justify-center"
-						initial={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
-						animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-						exit={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
-						transition={TRANSITION}
-					>
-						<div
-							className="w-[350px] bg-primary rounded-xl pt-3 flex-col relative"
-							style={{
-								boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 30px 0px",
-							}}
-						>
-							<LicenseKeyMenu
-								closePage={() => setShowLicenseKeyMenu(false)}
-								paywall
-								databaseLabel={databaseLabel}
-								onActivated={onLicenseKeyActivated}
-							/>
-							<XIcon
-								onClick={() => setShowLicenseKeyMenu(false)}
-								className="absolute top-4 right-4"
-							/>
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
 		</Window>
 	);
 }

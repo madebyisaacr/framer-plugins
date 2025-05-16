@@ -20,7 +20,7 @@ import { assert, jsonStringToArray } from "./utils";
 import IntegrationsPage from "./general/HomePage";
 import { PluginDataKey, loadPluginData } from "./general/pluginDataManager";
 import { PluginContextProvider, usePluginContext } from "./general/PluginContext";
-import { LemonSqueezyProvider, validateLicenseKey } from "./general/License";
+import { LemonSqueezyProvider } from "./general/License";
 
 export const integrations = {
 	notion: Notion,
@@ -57,7 +57,6 @@ async function shouldSyncImmediately(pluginContext: PluginContext): Promise<bool
 	if (!pluginContext.integrationContext) return false;
 	if (!pluginContext.slugFieldId) return false;
 	if (pluginContext.hasChangedFields) return false;
-	if (!(await validateLicenseKey())) return false;
 
 	return true;
 }
