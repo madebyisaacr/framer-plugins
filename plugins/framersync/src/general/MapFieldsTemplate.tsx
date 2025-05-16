@@ -7,6 +7,7 @@ import { cmsFieldIcons } from "../assets/cmsFieldIcons";
 import { Spinner } from "@shared/spinner/Spinner";
 import { usePluginContext, PluginContext } from "./PluginContext";
 import Window from "./Window";
+import { SegmentedControl } from "@shared/components";
 import { cmsFieldTypeNames } from "./data.js";
 import BackButton from "../components/BackButton";
 import { motion } from "framer-motion";
