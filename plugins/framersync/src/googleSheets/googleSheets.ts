@@ -66,8 +66,17 @@ export type GoogleSheetsColumn = {
 		boolValue?: boolean;
 		numberValue?: number;
 		stringValue?: string;
+		formulaValue?: string;
 	};
 	formattedValue?: string;
+	hyperlink?: string;
+	textFormatRuns?: Array<{
+		format: {
+			link?: {
+				uri: string;
+			};
+		};
+	}>;
 };
 
 const googleSheetsApiBaseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
@@ -334,20 +343,26 @@ export function getCellValue(
 		propertyConversionTypes.IMAGE.includes(fieldType)
 	) {
 		const imageUrl = formulaValue.match(/=IMAGE\("(.+)"\)/)?.[1];
-		if (imageUrl) {
+		if (imageUrl && isValidUrl(imageUrl)) {
 			value = imageUrl;
+		} else {
+			value = null;
 		}
 	}
 
 	// Handle hyperlink type
 	if (propertyConversionTypes.HYPERLINK.includes(fieldType)) {
-		if (cell.hyperlink) {
+		if (cell.hyperlink && isValidUrl(cell.hyperlink)) {
 			value = cell.hyperlink;
 		} else if (cell.textFormatRuns && cell.textFormatRuns.some((run) => run.format.link)) {
 			const linkRun = cell.textFormatRuns.find((run) => run.format.link);
-			if (linkRun) {
+			if (linkRun && linkRun.format.link && isValidUrl(linkRun.format.link.uri)) {
 				value = linkRun.format.link.uri;
+			} else {
+				value = null;
 			}
+		} else {
+			value = null;
 		}
 	}
 
@@ -357,11 +372,11 @@ export function getCellValue(
 			return format === "markdown" ? markdownToHTML(value) : value;
 		}
 
-		if (fieldType === "link") {
-			try {
-				new URL(value);
+		// Validate URLs for image, link, and file types
+		if (fieldType === "link" || fieldType === "image" || fieldType === "file") {
+			if (typeof value === "string" && isValidUrl(value)) {
 				return value;
-			} catch {
+			} else {
 				return null;
 			}
 		}
@@ -905,6 +920,16 @@ export function generateColumnId(inputString: string | undefined): string {
 	// Convert to hexadecimal and pad to ensure 32 characters
 	const hexHash = Math.abs(hash).toString(16).padStart(32, "0");
 	return hexHash.slice(0, 32);
+}
+
+// URL validation function
+function isValidUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return url.protocol === "http:" || url.protocol === "https:";
+	} catch {
+		return false;
+	}
 }
 
 function getFieldTypeValue(fieldType: string) {
