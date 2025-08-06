@@ -440,6 +440,12 @@ async function processItem(
 			fieldValue = noValue ? 0 : Number(fieldValue);
 		} else if (field.type === "boolean") {
 			fieldValue = noValue ? false : Boolean(fieldValue);
+		} else if (field.type === "link" || field.type === "image" || field.type === "file") {
+			if (typeof fieldValue === "string" && isValidUrl(fieldValue)) {
+				fieldValue = fieldValue;
+			} else {
+				fieldValue = null;
+			}
 		}
 
 		fieldData[field.id] = fieldValue;
@@ -917,5 +923,15 @@ function getFieldTypeValue(fieldType: string) {
 			return null;
 		default:
 			return "";
+	}
+}
+
+// URL validation function
+function isValidUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return url.protocol === "http:" || url.protocol === "https:";
+	} catch {
+		return false;
 	}
 }
