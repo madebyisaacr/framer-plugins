@@ -347,7 +347,7 @@ export function getPropertyValue(
 			if (importArray) {
 				return value?.map((file) => file[file.type].url ?? "");
 			} else {
-				return value?.[0] ? value[0][value[0].type]?.url ?? "" : "";
+				return value?.[0] ? (value[0][value[0].type]?.url ?? "") : "";
 			}
 		case "select":
 			return fieldType == "enum" ? (value ? value.id : noneOptionID) : value?.name;
@@ -427,20 +427,16 @@ async function processItem(
 		}
 	}
 
-	// TODO: Only skip reimporting page content, images, and files. Always reimport other fields.
-	if (isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime)) {
+	// Check if we should skip page content import
+	const shouldSkipPageContent = isUnchangedSinceLastSync(item.last_edited_time, lastSyncedTime);
+
+	if (shouldSkipPageContent) {
 		status.info.push({
-			message: `Skipping. last updated: ${formatDate(
+			message: `Skipping page content import. last updated: ${formatDate(
 				item.last_edited_time
 			)}, last synced: ${formatDate(lastSyncedTime!)}`,
 			url: item.url,
 		});
-
-		return {
-			id: item.id,
-			slug: slugValue,
-			noImport: true,
-		};
 	}
 
 	for (const key in item.properties) {
@@ -462,7 +458,7 @@ async function processItem(
 		fieldData[field.id] = fieldValue;
 	}
 
-	if (fieldsById.has(pageContentField.id) && item.id) {
+	if (fieldsById.has(pageContentField.id) && item.id && !shouldSkipPageContent) {
 		const contentHTML = await getPageBlocksAsRichText(item.id);
 		fieldData[pageContentField.id] = contentHTML;
 	}

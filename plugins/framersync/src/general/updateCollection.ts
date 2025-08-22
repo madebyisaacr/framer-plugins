@@ -28,12 +28,10 @@ export async function updateCollection(
 	const { collectionFields } = pluginContext;
 	const collection = await framer.getManagedCollection();
 
-	const syncedItems = collectionItems.filter((item) => !item.noImport);
-
 	// Generate dynamic fields (arrays and file types)
 	const arrayFieldIDs = new Set<string>();
 	const arrayFieldLengths = {};
-	for (const item of syncedItems) {
+	for (const item of collectionItems) {
 		for (const field of collectionFields) {
 			const value = item.fieldData[field.id];
 			if (Array.isArray(value)) {
@@ -50,7 +48,7 @@ export async function updateCollection(
 		.map((field) => field.id)
 		.filter((fieldId) => arrayFieldIDs.has(fieldId));
 
-	for (const item of syncedItems) {
+	for (const item of collectionItems) {
 		const fieldData = item.fieldData;
 		for (const fieldId of Object.keys(fieldData)) {
 			if (fieldData[fieldId] === null || fieldData[fieldId] === undefined) {
@@ -132,7 +130,7 @@ export async function updateCollection(
 		item.slug = uniqueSlug;
 	}
 
-	await collection.addItems(syncedItems);
+	await collection.addItems(collectionItems);
 	if (itemsToDelete.length > 0) {
 		await collection.removeItems(itemsToDelete);
 	}
