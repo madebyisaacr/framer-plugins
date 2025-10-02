@@ -72,14 +72,14 @@ export async function updateCollection(
 					fieldData[fieldId] =
 						field.type == "enum"
 							? value[0] || noneOptionID
-							: value[0] ?? defaultFieldValues[field.type] ?? null;
+							: (value[0] ?? defaultFieldValues[field.type] ?? null);
 				} else {
 					delete fieldData[fieldId];
 					for (let i = 0; i < arrayFieldLength; i++) {
 						const arrayValue =
 							field.type == "enum"
 								? value[i] || noneOptionID
-								: value[i] ?? defaultFieldValues[field.type] ?? null;
+								: (value[i] ?? defaultFieldValues[field.type] ?? null);
 						if (arrayValue !== null && arrayValue !== undefined) {
 							fieldData[`${fieldId}-[[${i}]]`] = arrayValue;
 						} else {
@@ -130,10 +130,11 @@ export async function updateCollection(
 		item.slug = uniqueSlug;
 	}
 
-	await collection.addItems(collectionItems);
 	if (itemsToDelete.length > 0) {
 		await collection.removeItems(itemsToDelete);
 	}
+
+	await collection.addItems(collectionItems);
 
 	collection.setPluginData(PluginDataKey.lastSyncedTime, new Date().toISOString());
 }
